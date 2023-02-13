@@ -38,19 +38,30 @@ pub struct SerializedQuadTree {
 pub struct World {
     quad: QuadTree,
     pub seed: u32,
+    sheep_num: usize,
+    wolf_num: usize,
+    wolves: Vec<(f32, f32)>,
+    sheep: Vec<(f32, f32)>,
 }
 
 // Main JS interface to the simulation
 #[wasm_bindgen(inspectable)]
 impl World {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> World {
+    pub fn new(sheep_num: usize, wolf_num: usize) -> World {
         let mut rng = rand::thread_rng();
         World {
             quad: QuadTree::new(1.),
             seed: rng.gen(),
+
+            sheep_num,
+            wolf_num,
+
+            sheep: Vec::with_capacity(sheep_num),
+            wolves: Vec::with_capacity(wolf_num),
         }
     }
+
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
         self.seed
@@ -61,9 +72,11 @@ impl World {
         result.sizes.push(node.size);
         result.children.push(node.children.clone());
 
-        /* log(&format!("{:#?}", node.child_nodes.len())); */
-        if (node.child_nodes.len() > 0) {
-            return traverse_quadtree();
+        log(&format!("{:#?}", node.child_nodes.len()));
+        if node.child_nodes.len() > 0 {
+            for child in &node.child_nodes {
+                result = Self::traverse_quadtree(child, result);
+            }
         }
 
         result

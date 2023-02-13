@@ -47,6 +47,13 @@ impl QuadTree {
         }
         println!("{:#?}", self);
     }
+
+    pub fn is_contained(&self, point: (f32, f32)) -> bool {
+        point.0 >= self.position.x
+            && point.0 <= self.position.x + self.size
+            && point.1 >= self.position.y
+            && point.1 <= self.position.y + self.size
+    }
 }
 
 #[cfg(test)]
