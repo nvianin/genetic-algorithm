@@ -12,10 +12,10 @@ class Renderer {
         this.setSize()
         document.body.appendChild(this.renderer.domElement)
 
-        this.sheeps = new THREE.InstancedMesh(
+        this.sheep = new THREE.InstancedMesh(
             new THREE.SphereGeometry(.5, 16, 32),
             new THREE.MeshBasicMaterial({
-                color: 0x00ff00
+                color: 0xaaaaaa
             }),
             sheepNumber
         )
@@ -27,6 +27,14 @@ class Renderer {
             }),
             wolfNumber
         )
+
+        this.grass = new THREE.InstancedMesh(
+            new THREE.BoxGeometry(.1, 1, .1),
+            new THREE.MeshBasicMaterial({
+                color: 0x00ff00
+            }),
+            1024
+        )
     }
 
     setSize(width = innerWidth, height = innerHeight) {
@@ -36,7 +44,6 @@ class Renderer {
     }
 
     render() {
-        requestAnimationFrame(this.render.bind(this));
         this.renderer.render(this.scene, this.camera);
     }
 }

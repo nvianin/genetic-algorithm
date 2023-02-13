@@ -1,5 +1,9 @@
+use std::thread::current;
+
 use vector2d::Vector2D;
 use wasm_bindgen::prelude::*;
+
+use crate::log;
 
 // Clockwise winding of the quads
 const QUAD_ORDER: [Vector2D<f32>; 4] = [
@@ -8,16 +12,16 @@ const QUAD_ORDER: [Vector2D<f32>; 4] = [
     Vector2D { x: 1., y: 1. },
     Vector2D { x: 0., y: 1. },
 ];
-const MAX_CHILDREN: usize = 2;
-const MAX_LEVELS: usize = 32;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct QuadTree {
     pub children: Vec<usize>,
     pub child_nodes: Vec<Box<QuadTree>>,
     pub position: Vector2D<f32>,
     pub size: f32,
-    pub level: i32,
+    pub level: usize,
+    pub index: usize,
+    pub address: Vec<usize>,
 }
 
 impl QuadTree {
@@ -28,11 +32,16 @@ impl QuadTree {
             position: Vector2D { x: 0., y: 0. },
             size,
             level: 0,
+            index: 0,
+            address: vec![0],
         }
     }
 
     pub fn subdivide(&mut self) {
+        /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
+            let mut address = self.address.clone();
+            address.push(i);
             let q = QuadTree {
                 children: Vec::new(),
                 child_nodes: Vec::with_capacity(4),
@@ -42,17 +51,48 @@ impl QuadTree {
                 },
                 size: self.size / 2.,
                 level: self.level + 1,
+                index: i,
+                address,
             };
             self.child_nodes.push(Box::new(q));
         }
+        /* log(&format!("{:#?}", self)); */
         println!("{:#?}", self);
     }
 
-    pub fn is_contained(&self, point: (f32, f32)) -> bool {
+    pub fn contains(&self, point: (f32, f32)) -> bool {
         point.0 >= self.position.x
             && point.0 <= self.position.x + self.size
             && point.1 >= self.position.y
             && point.1 <= self.position.y + self.size
+    }
+
+    pub fn gather_children(node: &QuadTree, mut result: Vec<QuadTree>) -> Vec<QuadTree> {
+        result.push(node.clone());
+
+        for child in &node.child_nodes {
+            result = Self::gather_children(child, result);
+        }
+
+        result
+    }
+
+    pub fn get_mut_child_at(&mut self, mut address: Vec<usize>) -> &mut QuadTree {
+        address.reverse();
+        let mut current_node = self;
+        while address.len() > 1 {
+            current_node = &mut *current_node.child_nodes[address.pop().unwrap()]
+        }
+        current_node
+    }
+
+    pub fn get_child_at(&self, mut address: Vec<usize>) -> &QuadTree {
+        address.reverse();
+        let mut current_node = self;
+        while address.len() > 1 {
+            current_node = &*current_node.child_nodes[address.pop().unwrap()]
+        }
+        current_node
     }
 }
 
