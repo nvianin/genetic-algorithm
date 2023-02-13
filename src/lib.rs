@@ -31,7 +31,8 @@ pub struct SerializedVector2(f32, f32);
 pub struct SerializedQuadTree {
     pub locations: Vec<(f32, f32)>,
     pub sizes: Vec<f32>,
-    pub children: Vec<Vec<usize>>,
+    pub children: Vec<Vec<(f32, f32)>>,
+    pub children_type: Vec<Vec<u8>>,
     pub has_child_nodes: Vec<bool>,
     pub address: Vec<Vec<usize>>,
 }
@@ -41,6 +42,7 @@ impl SerializedQuadTree {
             locations: Vec::new(),
             sizes: Vec::new(),
             children: Vec::new(),
+            children_type: Vec::new(),
             has_child_nodes: Vec::new(),
             address: Vec::new(),
         }
@@ -201,21 +203,34 @@ impl World {
         self.seed
     }
 
-    fn traverse_quadtree(node: &QuadTree, mut result: SerializedQuadTree) -> SerializedQuadTree {
+    fn traverse_quadtree(
+        &self,
+        node: &QuadTree,
+        mut result: SerializedQuadTree,
+    ) -> SerializedQuadTree {
         result.locations.push((node.position.x, node.position.y));
         result.sizes.push(node.size);
-        result.children.push(node.children.clone());
 
-        result
-            .result
-            .has_child_nodes
-            .push(node.child_nodes.len() > 0);
+        let mut children_position = Vec::new();
+        let mut children_type = Vec::new();
+        for child in &node.children {
+            children_position.push(self.agents[*child].position);
+            children_type.push(match self.agents[*child].kind {
+                AgentType::Grass(_) => 2,
+                AgentType::Sheep(_) => 1,
+                AgentType::Wolf(_) => 0,
+            })
+        }
+        result.children.push(children_position);
+        result.children_type.push(children_type);
+
+        result.has_child_nodes.push(node.child_nodes.len() > 0);
         result.address.push(node.address.clone());
 
         /* log(&format!("{:#?}", node.child_nodes.len())); */
         if node.child_nodes.len() > 0 {
             for child in &node.child_nodes {
-                result = Self::traverse_quadtree(child, result);
+                result = self.traverse_quadtree(child, result);
             }
         }
 
@@ -227,7 +242,7 @@ impl World {
         println!("Getting quadtree as serialized object...");
         let mut result = SerializedQuadTree::new();
 
-        result = Self::traverse_quadtree(&self.quad, result);
+        result = self.traverse_quadtree(&self.quad, result);
 
         serde_wasm_bindgen::to_value(&result).unwrap()
     }
