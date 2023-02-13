@@ -109,9 +109,9 @@ pub struct World {
 
 extern crate console_error_panic_hook;
 
-const MAX_GRASS: usize = 1024;
+const MAX_GRASS: usize = 0;
 const MAX_CHILDREN: usize = 2;
-const MAX_LEVELS: usize = 32;
+const MAX_LEVELS: usize = 8;
 
 // Main JS interface to the simulation
 #[wasm_bindgen(inspectable)]
@@ -148,31 +148,44 @@ impl World {
 
         while !done {
             iterations += 1;
-            if iterations >= 1000 {
+            if iterations >= 10 {
                 log(&format!("Stopping after {iterations} iterations"));
                 break;
             };
             done = true;
             let scheme = QuadTree::gather_children(&self.quad, Vec::new());
-            for quad in scheme {
+            for quad in &scheme {
                 if quad.child_nodes.len() == 0 {
-                    let mut contained_agents = 0;
+                    /* log(&format!("Node at address {:#?} empty", quad.address)); */
+                    let mut contained_agents = Vec::new();
+                    let mut i = 0;
                     for agent in &self.agents {
                         if quad.contains(agent.position) {
-                            contained_agents += 1;
+                            contained_agents.push(i);
+                            log(&format!(
+                                "Node at {:?} contains {} agents",
+                                quad.address,
+                                contained_agents.len()
+                            ));
                         }
-                        if contained_agents > MAX_CHILDREN && quad.level < MAX_LEVELS {
-                            log(&format!("{:#?}", self.quad));
+                        if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
+                            log(&format!("{:#?} nodes in scheme", scheme.len()));
                             self.quad.get_mut_child_at(quad.address.clone()).subdivide();
                             /* log(&format!("{:#?}", quad)); */
                             done = false;
                             break;
+                        } else {
+                            self.quad
+                                .get_mut_child_at(quad.address.clone())
+                                .children
+                                .append(&mut contained_agents);
                         }
+                        i += 1;
+                    }
+                    if !done {
+                        break;
                     }
                 }
-                if !done {
-                    break;
-                };
             }
             /* done = true; */
         }
@@ -192,7 +205,11 @@ impl World {
         result.locations.push((node.position.x, node.position.y));
         result.sizes.push(node.size);
         result.children.push(node.children.clone());
-        result.has_child_nodes.push(node.child_nodes.len() > 0);
+
+        result
+            .result
+            .has_child_nodes
+            .push(node.child_nodes.len() > 0);
         result.address.push(node.address.clone());
 
         /* log(&format!("{:#?}", node.child_nodes.len())); */

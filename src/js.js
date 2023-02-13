@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 2,
-    sheep_count: 8,
+    wolf_count: 1,
+    sheep_count: 10,
     size: 1024
 }
 
@@ -44,19 +44,45 @@ class App {
 
     update() {
         requestAnimationFrame(this.update.bind(this))
+        log("update")
 
         if (this.canvas) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+            /* let then = performance.now(); */
             let q = this.world.get_quadtree()
             for (let i = 0; i < q.locations.length; i++) {
-                this.ctx.fillStyle = "red"
-                this.ctx.fillRect(q.locations[i][0], q.locations[i][1], q.sizes[i], q.sizes[i]);
+                if (!q.has_child_nodes[i]) {
+                    const color = hexPalette[i % hexPalette.length];
+                    this.ctx.strokeStyle = color
+                    this.ctx.lineWidth = 5;
+                    this.ctx.fillStyle = "rgba(255,0,0,.1)"
+                    this.ctx.rect(q.locations[i][0], q.locations[i][1], q.sizes[i], q.sizes[i]);
+                    /* this.ctx.fill() */
+                    this.ctx.stroke()
+                    q.children.forEach(childSet => {
+                        childSet.forEach(child => {
+                            this.ctx.arc(child[])
+                        })
+                    })
+                }
             }
+            /* log(`Quadtree fetch & draw took ${performance.now() - then} ms`) */
         }
 
         this.renderer.render();
     }
 }
+
+const hexPalette = [
+    "#003f5c",
+    "#2f4b7c",
+    "#665191",
+    "#a05195",
+    "#d45087",
+    "#f95d6a",
+    "#ff7c43",
+    "#ffa600"
+]
 
 document.readyState == "complete" ? window.app = new App() :
     addEventListener("load", () => {
