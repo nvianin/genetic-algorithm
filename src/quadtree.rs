@@ -8,10 +8,13 @@ const QUAD_ORDER: [Vector2D<f32>; 4] = [
     Vector2D { x: 1., y: 1. },
     Vector2D { x: 0., y: 1. },
 ];
+const MAX_CHILDREN: usize = 2;
+const MAX_LEVELS: usize = 32;
 
 #[derive(Debug)]
 pub struct QuadTree {
-    pub children: Vec<Box<QuadTree>>,
+    pub children: Vec<usize>,
+    pub child_nodes: Vec<Box<QuadTree>>,
     pub position: Vector2D<f32>,
     pub size: f32,
     pub level: i32,
@@ -20,7 +23,8 @@ pub struct QuadTree {
 impl QuadTree {
     pub fn new(size: f32) -> QuadTree {
         QuadTree {
-            children: Vec::with_capacity(4),
+            children: Vec::new(),
+            child_nodes: Vec::with_capacity(4),
             position: Vector2D { x: 0., y: 0. },
             size,
             level: 0,
@@ -30,7 +34,8 @@ impl QuadTree {
     pub fn subdivide(&mut self) {
         for i in 0..4 {
             let q = QuadTree {
-                children: Vec::with_capacity(4),
+                children: Vec::new(),
+                child_nodes: Vec::with_capacity(4),
                 position: Vector2D {
                     x: self.size / 2. * QUAD_ORDER[i].x,
                     y: self.size / 2. * QUAD_ORDER[i].y,
@@ -38,7 +43,7 @@ impl QuadTree {
                 size: self.size / 2.,
                 level: self.level + 1,
             };
-            self.children.push(Box::new(q));
+            self.child_nodes.push(Box::new(q));
         }
         println!("{:#?}", self);
     }
