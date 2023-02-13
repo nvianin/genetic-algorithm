@@ -19,6 +19,10 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 extern "C" {
     fn alert(s: &str);
 }
+#[wasm_bindgen(js_namespace=console)]
+extern "C" {
+    fn log(s: &str);
+}
 
 #[wasm_bindgen]
 pub struct SerializedVector2(f32, f32);
@@ -57,11 +61,17 @@ impl World {
         result.sizes.push(node.size);
         result.children.push(node.children.clone());
 
+        /* log(&format!("{:#?}", node.child_nodes.len())); */
+        if (node.child_nodes.len() > 0) {
+            return traverse_quadtree();
+        }
+
         result
     }
 
     #[wasm_bindgen]
     pub fn get_quadtree(&self) -> JsValue {
+        println!("Getting quadtree as serialized object...");
         let mut result = SerializedQuadTree {
             locations: Vec::new(),
             sizes: Vec::new(),
