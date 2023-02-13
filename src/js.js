@@ -61,7 +61,7 @@ class App {
                     this.ctx.stroke()
                     q.children.forEach(childSet => {
                         childSet.forEach(child => {
-                            this.ctx.arc(child[])
+                            this.ctx.arc(child)
                         })
                     })
                 }
