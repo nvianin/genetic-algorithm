@@ -17,6 +17,7 @@ class App {
         this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count)
         this.world = new wasm.World()
         log(`Simulation world started with seed [${this.world.seed}].`)
+        log(this.world.get_quadtree())
 
         this.initListeners()
 
