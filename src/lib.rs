@@ -187,9 +187,12 @@ impl World {
                     }
                     if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
                         log(&format!("{:#?} nodes in scheme", scheme.len()));
-                        let then = chrono::;
+                        let then = chrono::Local::now();
                         self.quad.get_mut_child_at(quad.address.clone()).subdivide();
-                        log(&format!("{:?}", then.elapsed()));
+                        log(&format!(
+                            "Quad access by address took {:?}",
+                            (chrono::Local::now() - then)
+                        ));
                         /* log(&format!("{:#?}", quad)); */
                         done = false;
                         break;
