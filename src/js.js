@@ -55,7 +55,7 @@ class App {
             for (let i = 0; i < q.locations.length; i++) {
                 if (!q.has_child_nodes[i] || true) {
                     const color = hexPalette[i % hexPalette.length];
-                    log(color)
+                    /* log(color) */
                     this.ctx.strokeStyle = color
                     this.ctx.lineWidth = 5;
                     this.ctx.fillStyle = color
@@ -64,21 +64,27 @@ class App {
                     this.ctx.fill()
                     /* this.ctx.stroke() */
                     this.ctx.closePath();
-                    for (let j = 0; j < q.children[i].length; j++) {
-                        switch (q.children_type[i][j]) {
-                            case 0: // Wolf
-                                this.ctx.fillStyle = "red"
-                                break;
-                            case 1: // Sheep
-                                this.ctx.fillStyle = "white"
-                                break;
-                            case 2: // Grass
-                                this.ctx.fillStyle = "green"
-                                break;
-                        }
-                        this.ctx.arc(q.children[i][j][0], q.children[i][j][1], .01, 0, Math.PI * 2);
-                        this.ctx.fill();
+                }
+            }
+
+            this.ctx.closePath()
+            for (let i = 0; i < q.children.length; i++) {
+                for (let j = 0; j < q.children[i].length; j++) {
+                    switch (q.children_type[i][j]) {
+                        case 0: // Wolf
+                            this.ctx.fillStyle = "red"
+                            break;
+                        case 1: // Sheep
+                            this.ctx.fillStyle = "white"
+                            break;
+                        case 2: // Grass
+                            this.ctx.fillStyle = "green"
+                            break;
                     }
+                    this.ctx.beginPath();
+                    this.ctx.arc(q.children[i][j][0], q.children[i][j][1], 10, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.closePath()
                 }
             }
             log(`Quadtree fetch & draw took ${performance.now() - then} ms`)
