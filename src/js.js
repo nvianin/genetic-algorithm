@@ -43,7 +43,7 @@ class App {
     }
 
     update() {
-        requestAnimationFrame(this.update.bind(this))
+        /* requestAnimationFrame(this.update.bind(this)) */
         log("update")
 
         if (this.canvas) {
