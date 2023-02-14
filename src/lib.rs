@@ -87,6 +87,7 @@ impl SheepGeneticInformation {
     }
 }
 
+
 enum AgentType {
     Wolf(WolfGeneticInformation),
     Sheep(SheepGeneticInformation),
