@@ -1,4 +1,5 @@
 mod quadtree;
+use nickname::NameGen;
 use quadtree::QuadTree;
 mod utils;
 
@@ -112,6 +113,7 @@ struct Agent {
 #[wasm_bindgen]
 pub struct World {
     quad: QuadTree,
+    namer: NameGen,
     size: f32,
     pub seed: u32,
     sheep_num: usize,
@@ -133,9 +135,12 @@ impl World {
     pub fn new(sheep_num: usize, wolf_num: usize, size: f32) -> World {
         console_error_panic_hook::set_once();
 
+        let namer= NameGen::new();
+
         let mut rng = rand::thread_rng();
         let mut w = World {
-            quad: QuadTree::new(size),
+            quad: QuadTree::new(size, namer.name()),
+            namer,
             size,
             seed: rng.gen(),
 
@@ -157,8 +162,7 @@ impl World {
     fn build_quadtree(&mut self) {
         let mut done = false;
         let mut iterations = 0;
-        self.quad = QuadTree::new(self.size);
-
+        
         while !done {
             iterations += 1;
             if iterations >= 10 {
@@ -167,6 +171,7 @@ impl World {
             };
             log(&format!("Iteration n° {iterations}"));
             done = true;
+            self.quad = QuadTree::new(self.size, self.namer.name());
             let scheme = QuadTree::gather_children(&self.quad, Vec::new());
             for quad in &scheme {
                 if quad.child_nodes.len() == 0 {
@@ -188,7 +193,7 @@ impl World {
                     if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
                         log(&format!("{:#?} nodes in scheme", scheme.len()));
                         let then = chrono::Local::now();
-                        self.quad.get_mut_child_at(quad.address.clone()).subdivide();
+                        self.quad.get_mut_child_at(quad.address.clone()).subdivide(&self.namer);
                         log(&format!(
                             "Quad access by address took {:?}",
                             (chrono::Local::now() - then)
@@ -213,10 +218,12 @@ impl World {
 
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
-        let mut q = QuadTree::new(1024.);
-        q.subdivide();
-        q.child_nodes[0].subdivide();
-        q.child_nodes[0].child_nodes[3].subdivide();
+        let namer = NameGen::new();
+
+        let mut q = QuadTree::new(1024., namer.name());
+        q.subdivide(&namer);
+        q.child_nodes[0].subdivide(&namer);
+        q.child_nodes[0].child_nodes[3].subdivide(&namer);
         log(&format!("{:#?}", q));
         self.seed
     }

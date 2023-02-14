@@ -1,4 +1,5 @@
 use std::thread::current;
+use nickname::NameGen;
 use wasm_bindgen::prelude::*;
 
 use crate::log;
@@ -17,10 +18,11 @@ pub struct QuadTree {
     pub level: usize,
     pub index: usize,
     pub address: Vec<usize>,
+    pub name: String,
 }
 
 impl QuadTree {
-    pub fn new(size: f32) -> QuadTree {
+    pub fn new(size: f32, name: String) -> QuadTree {
         QuadTree {
             children: Vec::new(),
             child_nodes: Vec::with_capacity(4),
@@ -29,10 +31,11 @@ impl QuadTree {
             level: 0,
             index: 0,
             address: vec![0],
+            name,
         }
     }
 
-    pub fn subdivide(&mut self) {
+    pub fn subdivide(&mut self, namer: &NameGen) {
         /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
             let mut address = self.address.clone();
@@ -48,6 +51,7 @@ impl QuadTree {
                 level: self.level + 1,
                 index: i,
                 address,
+                name: namer.name()
             };
             self.child_nodes.push(Box::new(q));
         }
@@ -102,11 +106,15 @@ impl QuadTree {
 
 #[cfg(test)]
 mod tests {
+    use nickname::NameGen;
+
     use super::QuadTree;
 
     #[test]
     fn quadtree_tests() {
-        let mut q = QuadTree::new(1.);
-        q.subdivide();
+        let namer = NameGen::new();
+
+        let mut q = QuadTree::new(1., namer.name());
+        q.subdivide(&namer);
     }
 }
