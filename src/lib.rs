@@ -2,8 +2,6 @@ mod quadtree;
 use quadtree::QuadTree;
 mod utils;
 
-use vector2d::Vector2D;
-
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -36,6 +34,7 @@ pub struct SerializedQuadTree {
     pub children: Vec<Vec<(f32, f32)>>,
     pub children_type: Vec<Vec<u8>>,
     pub has_child_nodes: Vec<bool>,
+    pub child_nodes: Vec<usize>,
     pub address: Vec<Vec<usize>>,
 }
 impl SerializedQuadTree {
@@ -46,6 +45,7 @@ impl SerializedQuadTree {
             children: Vec::new(),
             children_type: Vec::new(),
             has_child_nodes: Vec::new(),
+            child_nodes: Vec::new(),
             address: Vec::new(),
         }
     }
@@ -88,7 +88,6 @@ impl SheepGeneticInformation {
         }
     }
 }
-
 
 enum AgentType {
     Wolf(WolfGeneticInformation),
@@ -227,7 +226,7 @@ impl World {
         node: &QuadTree,
         mut result: SerializedQuadTree,
     ) -> SerializedQuadTree {
-        result.locations.push((node.position.x, node.position.y));
+        result.locations.push((node.position.0, node.position.1));
         result.sizes.push(node.size);
 
         let mut children_position = Vec::new();
@@ -254,10 +253,11 @@ impl World {
 
     #[wasm_bindgen]
     pub fn get_quadtree(&self) -> JsValue {
-        println!("Getting quadtree as serialized object...");
-        let mut result = SerializedQuadTree::new();
 
-        result = self.traverse_quadtree(&self.quad, result);
+        let result = self.quad.get_all();
+
+        /* let mut result = SerializedQuadTree::new();
+        result = self.traverse_quadtree(&self.quad, result); */
 
         serde_wasm_bindgen::to_value(&result).unwrap()
     }
@@ -267,8 +267,8 @@ impl World {
         for _ in 0..self.wolf_num {
             self.agents.push(Agent {
                 position: (
-                    rng.gen::<f32>() * self.quad.size,
-                    rng.gen::<f32>() * self.quad.size,
+                    rng.gen::<f32>() * self.quad.size + self.quad.position.0,
+                    rng.gen::<f32>() * self.quad.size + self.quad.position.1,
                 ),
                 kind: AgentType::Wolf(WolfGeneticInformation::default()),
             });

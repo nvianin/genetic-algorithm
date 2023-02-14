@@ -1,23 +1,18 @@
 use std::thread::current;
-
-use vector2d::Vector2D;
 use wasm_bindgen::prelude::*;
 
 use crate::log;
 
-// Clockwise winding of the quads
-const QUAD_ORDER: [Vector2D<f32>; 4] = [
-    Vector2D { x: 0., y: 0. },
-    Vector2D { x: 1., y: 0. },
-    Vector2D { x: 1., y: 1. },
-    Vector2D { x: 0., y: 1. },
-];
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Clone)]
+// Clockwise winding of the quads
+const QUAD_ORDER: [(f32, f32); 4] = [(0., 0.), (1., 0.), (1., 1.), (0., 1.)];
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct QuadTree {
     pub children: Vec<usize>,
     pub child_nodes: Vec<Box<QuadTree>>,
-    pub position: Vector2D<f32>,
+    pub position: (f32, f32),
     pub size: f32,
     pub level: usize,
     pub index: usize,
@@ -29,7 +24,7 @@ impl QuadTree {
         QuadTree {
             children: Vec::new(),
             child_nodes: Vec::with_capacity(4),
-            position: Vector2D { x: 0., y: 0. },
+            position: (0., 0.),
             size,
             level: 0,
             index: 0,
@@ -45,10 +40,10 @@ impl QuadTree {
             let q = QuadTree {
                 children: Vec::new(),
                 child_nodes: Vec::with_capacity(4),
-                position: Vector2D {
-                    x: self.size / 2. * QUAD_ORDER[i].x,
-                    y: self.size / 2. * QUAD_ORDER[i].y,
-                },
+                position: (
+                    self.position.0 + self.size / 2. * QUAD_ORDER[i].0,
+                    self.position.1 + self.size / 2. * QUAD_ORDER[i].1,
+                ),
                 size: self.size / 2.,
                 level: self.level + 1,
                 index: i,
@@ -61,10 +56,10 @@ impl QuadTree {
     }
 
     pub fn contains(&self, point: (f32, f32)) -> bool {
-        point.0 >= self.position.x
-            && point.0 <= self.position.x + self.size
-            && point.1 >= self.position.y
-            && point.1 <= self.position.y + self.size
+        point.0 >= self.position.0
+            && point.0 <= self.position.0 + self.size
+            && point.1 >= self.position.1
+            && point.1 <= self.position.1 + self.size
     }
 
     pub fn gather_children(node: &QuadTree, mut result: Vec<QuadTree>) -> Vec<QuadTree> {
@@ -93,6 +88,14 @@ impl QuadTree {
             current_node = &*current_node.child_nodes[address.pop().unwrap()]
         }
         current_node
+    }
+
+    pub fn get_all(&self) -> Vec<Box<QuadTree>> {
+        let mut result = Vec::new();
+        for child in &self.child_nodes {
+            result.append(&mut child.get_all())
+        }
+        result
     }
 }
 

@@ -50,42 +50,49 @@ class App {
         if (this.canvas) {
             let then = performance.now();
 
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-            let q = this.world.get_quadtree()
-            for (let i = 0; i < q.locations.length; i++) {
-                if (!q.has_child_nodes[i] || true) {
-                    const color = hexPalette[i % hexPalette.length];
-                    /* log(color) */
-                    this.ctx.strokeStyle = color
-                    this.ctx.lineWidth = 5;
-                    this.ctx.fillStyle = color
-                    this.ctx.beginPath();
-                    this.ctx.rect(q.locations[i][0], q.locations[i][1], q.sizes[i], q.sizes[i]);
-                    this.ctx.fill()
-                    /* this.ctx.stroke() */
-                    this.ctx.closePath();
-                }
-            }
-
-            this.ctx.closePath()
-            for (let i = 0; i < q.children.length; i++) {
-                for (let j = 0; j < q.children[i].length; j++) {
-                    switch (q.children_type[i][j]) {
-                        case 0: // Wolf
-                            this.ctx.fillStyle = "red"
-                            break;
-                        case 1: // Sheep
-                            this.ctx.fillStyle = "white"
-                            break;
-                        case 2: // Grass
-                            this.ctx.fillStyle = "green"
-                            break;
+            if (false) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+                let q = this.world.get_quadtree()
+                for (let i = 0; i < q.locations.length; i++) {
+                    if (!q.has_child_nodes[i] || true) {
+                        const color = hexPalette[i % hexPalette.length];
+                        /* log(color) */
+                        this.ctx.strokeStyle = color
+                        this.ctx.lineWidth = 5;
+                        this.ctx.fillStyle = color
+                        this.ctx.beginPath();
+                        this.ctx.rect(q.locations[i][0], q.locations[i][1], q.sizes[i], q.sizes[i]);
+                        this.ctx.fill()
+                        /* this.ctx.stroke() */
+                        this.ctx.closePath();
                     }
-                    this.ctx.beginPath();
-                    this.ctx.arc(q.children[i][j][0], q.children[i][j][1], 10, 0, Math.PI * 2);
-                    this.ctx.fill();
-                    this.ctx.closePath()
                 }
+
+                this.ctx.closePath()
+                for (let i = 0; i < q.children.length; i++) {
+                    for (let j = 0; j < q.children[i].length; j++) {
+                        switch (q.children_type[i][j]) {
+                            case 0: // Wolf
+                                this.ctx.fillStyle = "red"
+                                break;
+                            case 1: // Sheep
+                                this.ctx.fillStyle = "white"
+                                break;
+                            case 2: // Grass
+                                this.ctx.fillStyle = "green"
+                                break;
+                        }
+                        this.ctx.beginPath();
+                        this.ctx.arc(q.children[i][j][0], q.children[i][j][1], 10, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.closePath()
+                        log(`Drew ${i}/${j} at ${q.children[i][j][0]}/${q.children[i][j][1]}`)
+                    }
+                }
+            } else {
+                this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+
+                let q = this.world.get_quadtree();
             }
             log(`Quadtree fetch & draw took ${performance.now() - then} ms`)
         }
