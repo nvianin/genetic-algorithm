@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 1,
-    sheep_count: 10,
+    wolf_count: 4,
+    sheep_count: 4,
     size: 1024
 }
 
@@ -24,6 +24,7 @@ class App {
 
         this.initDebugCanvas()
 
+        /* setInterval(this.update.bind(this), 2000) */
         this.update()
     }
 
@@ -47,19 +48,21 @@ class App {
         log("update")
 
         if (this.canvas) {
+            let then = performance.now();
+
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-            /* let then = performance.now(); */
             let q = this.world.get_quadtree()
             for (let i = 0; i < q.locations.length; i++) {
-                if (!q.has_child_nodes[i]) {
+                if (!q.has_child_nodes[i] || true) {
                     const color = hexPalette[i % hexPalette.length];
+                    log(color)
                     this.ctx.strokeStyle = color
                     this.ctx.lineWidth = 5;
-                    this.ctx.fillStyle = "rgba(255,0,0,.1)"
+                    this.ctx.fillStyle = color
                     this.ctx.beginPath();
                     this.ctx.rect(q.locations[i][0], q.locations[i][1], q.sizes[i], q.sizes[i]);
-                    /* this.ctx.fill() */
-                    this.ctx.stroke()
+                    this.ctx.fill()
+                    /* this.ctx.stroke() */
                     this.ctx.closePath();
                     for (let j = 0; j < q.children[i].length; j++) {
                         switch (q.children_type[i][j]) {
@@ -78,10 +81,10 @@ class App {
                     }
                 }
             }
-            /* log(`Quadtree fetch & draw took ${performance.now() - then} ms`) */
+            log(`Quadtree fetch & draw took ${performance.now() - then} ms`)
         }
 
-        this.renderer.render();
+        /* this.renderer.render(); */
     }
 }
 

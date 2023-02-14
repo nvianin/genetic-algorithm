@@ -154,6 +154,7 @@ impl World {
                 log(&format!("Stopping after {iterations} iterations"));
                 break;
             };
+            log(&format!("Iteration n° {iterations}"));
             done = true;
             let scheme = QuadTree::gather_children(&self.quad, Vec::new());
             for quad in &scheme {
@@ -169,20 +170,21 @@ impl World {
                                 quad.address,
                                 contained_agents.len()
                             ));
-                        }
-                        if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
-                            log(&format!("{:#?} nodes in scheme", scheme.len()));
-                            self.quad.get_mut_child_at(quad.address.clone()).subdivide();
-                            /* log(&format!("{:#?}", quad)); */
-                            done = false;
-                            break;
-                        } else {
-                            self.quad
-                                .get_mut_child_at(quad.address.clone())
-                                .children
-                                .append(&mut contained_agents);
+                            log(&format!("{:?}", contained_agents));
                         }
                         i += 1;
+                    }
+                    if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
+                        log(&format!("{:#?} nodes in scheme", scheme.len()));
+                        self.quad.get_mut_child_at(quad.address.clone()).subdivide();
+                        /* log(&format!("{:#?}", quad)); */
+                        done = false;
+                        break;
+                    } else {
+                        self.quad
+                            .get_mut_child_at(quad.address.clone())
+                            .children
+                            .append(&mut contained_agents);
                     }
                     if !done {
                         break;
