@@ -90,8 +90,9 @@ impl QuadTree {
         current_node
     }
 
-    pub fn get_all(&self) -> Vec<Box<QuadTree>> {
+    pub fn get_all(&self) -> Vec<QuadTree> {
         let mut result = Vec::new();
+        result.push(self.clone());
         for child in &self.child_nodes {
             result.append(&mut child.get_all())
         }

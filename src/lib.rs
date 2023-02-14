@@ -255,6 +255,7 @@ impl World {
     pub fn get_quadtree(&self) -> JsValue {
 
         let result = self.quad.get_all();
+        log(&format!("{:?}", result));
 
         /* let mut result = SerializedQuadTree::new();
         result = self.traverse_quadtree(&self.quad, result); */

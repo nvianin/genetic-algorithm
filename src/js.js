@@ -93,6 +93,16 @@ class App {
                 this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
 
                 let q = this.world.get_quadtree();
+                log(q)
+                let levels = []
+                q.forEach(quad=>{
+                    if(levels[quad.level]){
+                        levels[quad.level].push(quad)
+                    } else {
+                        levels[quad.level] = [quad]
+                    }
+                })
+                log(levels)
             }
             log(`Quadtree fetch & draw took ${performance.now() - then} ms`)
         }
