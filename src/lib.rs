@@ -162,6 +162,7 @@ impl World {
     fn build_quadtree(&mut self) {
         let mut done = false;
         let mut iterations = 0;
+        self.quad = QuadTree::new(self.size, self.namer.name());
         
         while !done {
             iterations += 1;
@@ -171,7 +172,6 @@ impl World {
             };
             log(&format!("Iteration n° {iterations}"));
             done = true;
-            self.quad = QuadTree::new(self.size, self.namer.name());
             let scheme = QuadTree::gather_children(&self.quad, Vec::new());
             for quad in &scheme {
                 if quad.child_nodes.len() == 0 {
@@ -200,7 +200,6 @@ impl World {
                         ));
                         /* log(&format!("{:#?}", quad)); */
                         done = false;
-                        break;
                     } else {
                         self.quad
                             .get_mut_child_at(quad.address.clone())
@@ -262,7 +261,7 @@ impl World {
     pub fn get_quadtree(&self) -> JsValue {
 
         let result = self.quad.get_all();
-        log(&format!("{:?}", result));
+        /* log(&format!("{:?}", result)); */
 
         /* let mut result = SerializedQuadTree::new();
         result = self.traverse_quadtree(&self.quad, result); */

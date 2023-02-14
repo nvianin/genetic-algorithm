@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 4,
-    sheep_count: 4,
+    sheep_count: 40,
     size: 1024
 }
 
@@ -49,60 +49,91 @@ class App {
 
         if (this.canvas) {
             let then = performance.now();
+            let q = this.world.get_quadtree()
+            /* log(q); */
 
-            if (false) {
+            // Draw Quads
+            if (true) {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-                let q = this.world.get_quadtree()
-                for (let i = 0; i < q.locations.length; i++) {
-                    if (!q.has_child_nodes[i] || true) {
-                        const color = hexPalette[i % hexPalette.length];
-                        /* log(color) */
-                        this.ctx.strokeStyle = color
-                        this.ctx.lineWidth = 5;
-                        this.ctx.fillStyle = color
-                        this.ctx.beginPath();
-                        this.ctx.rect(q.locations[i][0], q.locations[i][1], q.sizes[i], q.sizes[i]);
-                        this.ctx.fill()
-                        /* this.ctx.stroke() */
-                        this.ctx.closePath();
-                    }
-                }
+                let i = 0;
+                q.forEach(quad => {
+                    /* log(quad) */
+                    const color = hexPalette[i % hexPalette.length];
+                    const rgb = transparent_hex(color, .3);
+                    /* log(color) */
+                    this.ctx.lineWidth = 5;
+                    this.ctx.strokeStyle = color
+                    this.ctx.fillStyle = rgb
+                    this.ctx.beginPath();
+                    this.ctx.rect(quad.position[0], quad.position[1], quad.size, quad.size);
+                    this.ctx.fill()
+                    this.ctx.stroke()
+                    this.ctx.closePath();
 
-                this.ctx.closePath()
-                for (let i = 0; i < q.children.length; i++) {
-                    for (let j = 0; j < q.children[i].length; j++) {
-                        switch (q.children_type[i][j]) {
-                            case 0: // Wolf
-                                this.ctx.fillStyle = "red"
-                                break;
-                            case 1: // Sheep
-                                this.ctx.fillStyle = "white"
-                                break;
-                            case 2: // Grass
-                                this.ctx.fillStyle = "green"
-                                break;
-                        }
-                        this.ctx.beginPath();
-                        this.ctx.arc(q.children[i][j][0], q.children[i][j][1], 10, 0, Math.PI * 2);
-                        this.ctx.fill();
-                        this.ctx.closePath()
-                        log(`Drew ${i}/${j} at ${q.children[i][j][0]}/${q.children[i][j][1]}`)
-                    }
-                }
-            } else {
-                this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+                    this.ctx.font = "12pt sans-serif"
+                    this.ctx.fillStyle = "black"
+                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0] + quad.size / 2, quad.position[1] + quad.size / 2);
+                    i++;
+                })
+            }
 
-                let q = this.world.get_quadtree();
-                log(q)
+            // Draw Agents
+            if (true) {
+                const agents = this.world.get_agents();
+                log(agents)
+                for (let i = 0; i < agents.positions.length; i++) {
+                    /* log(agents.positions[i], agents.types[i]) */
+                    switch (agents.types[i]) {
+                        case 0: // Wolf
+                            this.ctx.fillStyle = "red"
+                            break;
+                        case 1: // Sheep
+                            this.ctx.fillStyle = "white"
+                            break;
+                        case 2: // Grass
+                            this.ctx.fillStyle = "green"
+                            break;
+                    }
+                    this.ctx.beginPath();
+                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 10, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.closePath()
+                    /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
+                }
+            }
+
+            // Draw Tree
+            if (false) {
+                /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
+                /* log(q) */
                 let levels = []
-                q.forEach(quad=>{
-                    if(levels[quad.level]){
+                q.forEach(quad => {
+                    if (levels[quad.level]) {
                         levels[quad.level].push(quad)
                     } else {
                         levels[quad.level] = [quad]
                     }
                 })
-                log(levels)
+                /* log(levels) */
+                let y = 60;
+                const side = 40;
+                this.ctx.font = "12pt sans-serif"
+                levels.forEach(level => {
+                    /* log(level) */
+                    for (let i = -level.length / 2; i < level.length / 2; i++) {
+                        const index = (i + level.length / 2)
+                        /* log(i, index) */
+                        this.ctx.fillStyle = "black"
+                        this.ctx.beginPath();
+                        this.ctx.fillRect(this.canvas.width / 2 + i * 50 - side / 2, y - side / 2, side, side)
+                        /* this.ctx.arc(this.canvas.width / 2 + i * 50, y, 2, 0, Math.PI * 2) */
+                        this.ctx.fill()
+                        this.ctx.closePath()
+                        this.ctx.fillStyle = "red"
+                        this.ctx.fillText(level[index].name, this.canvas.width / 2 + i * 50 - side / 2, y - side / 2 + i * 18)
+                    }
+                    y += 100;
+                })
             }
             log(`Quadtree fetch & draw took ${performance.now() - then} ms`)
         }
@@ -121,6 +152,20 @@ const hexPalette = [
     "#ff7c43",
     "#ffa600"
 ]
+function hexToRgb(hex) { // Thanks to Tim Down @ https://stackoverflow.com/a/5624139
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function transparent_hex(hex, alpha) {
+    if (alpha > 1 || alpha < 0) console.error('Alpha must be normalized (is currently ${alpha})');
+    const rgb = hexToRgb(hex);
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+}
 
 document.readyState == "complete" ? window.app = new App() :
     addEventListener("load", () => {
