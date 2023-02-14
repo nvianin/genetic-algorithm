@@ -9,6 +9,8 @@ use wasm_bindgen::prelude::*;
 
 use rand::Rng;
 
+use chrono;
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
@@ -93,6 +95,15 @@ enum AgentType {
     Grass(f32),
 }
 
+impl AgentType {
+    pub fn to_int(&self) -> u8 {
+        match self {
+            AgentType::Wolf(_) => 0,
+            AgentType::Sheep(_) => 1,
+            AgentType::Grass(_) => 2,
+        }
+    }
+}
 struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),
@@ -176,7 +187,9 @@ impl World {
                     }
                     if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
                         log(&format!("{:#?} nodes in scheme", scheme.len()));
+                        let then = chrono::;
                         self.quad.get_mut_child_at(quad.address.clone()).subdivide();
+                        log(&format!("{:?}", then.elapsed()));
                         /* log(&format!("{:#?}", quad)); */
                         done = false;
                         break;
@@ -217,11 +230,7 @@ impl World {
         let mut children_type = Vec::new();
         for child in &node.children {
             children_position.push(self.agents[*child].position);
-            children_type.push(match self.agents[*child].kind {
-                AgentType::Grass(_) => 2,
-                AgentType::Sheep(_) => 1,
-                AgentType::Wolf(_) => 0,
-            })
+            children_type.push(self.agents[*child].kind.to_int());
         }
         result.children.push(children_position);
         result.children_type.push(children_type);
@@ -278,6 +287,32 @@ impl World {
                 ),
                 kind: AgentType::Grass(1.),
             })
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn get_agents(&self) -> JsValue {
+        let mut result = SerializedAgents::new();
+
+        for agent in &self.agents {
+            result.positions.push(agent.position);
+            result.types.push(agent.kind.to_int());
+        }
+
+        serde_wasm_bindgen::to_value(&result).unwrap()
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SerializedAgents {
+    pub positions: Vec<(f32, f32)>,
+    pub types: Vec<u8>,
+}
+impl SerializedAgents {
+    pub fn new() -> SerializedAgents {
+        SerializedAgents {
+            positions: Vec::new(),
+            types: Vec::new(),
         }
     }
 }
