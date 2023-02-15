@@ -34,7 +34,10 @@ class App {
         })
 
         if (this.canvas) {
-            this.mouse = { x: 0, y: 0 }
+            this.mouse = {
+                x: 0,
+                y: 0
+            }
             this.canvas.addEventListener("mousemove", e => {
                 this.mouse.x = e.offsetX;
                 this.mouse.y = e.offsetY;
@@ -137,10 +140,14 @@ class App {
                         levels[quad.level] = [quad]
                     }
 
-                    if(quad.level > 0){
-                        const owning_quad = q.find(e => {e.child_nodes.includes(quad)})
+                    if (quad.level > 0) {
+                        const owning_quad = q.find(e => {
+                            e.child_nodes.includes(quad)
+                        })
                         log(owning_quad)
-                        relationships[quad.name] = q.indexOf(owning_quad);
+                        relationships[quad.name] = q.findIndex(e => {
+                            log(e)
+                        })
                     }
                 })
                 log(relationships)
@@ -165,9 +172,9 @@ class App {
                         this.ctx.fill()
                         this.ctx.closePath()
 
-                        
+
                         this.ctx.translate(x + 10, y + 10)
-                        this.ctx.rotate(Math.PI/3);
+                        this.ctx.rotate(Math.PI / 3);
                         this.ctx.fillStyle = "red"
                         this.ctx.fillText(level[index].name, 0, 0)
 
@@ -193,6 +200,7 @@ const hexPalette = [
     "#ff7c43",
     "#ffa600"
 ]
+
 function hexToRgb(hex) { // Thanks to Tim Down @ https://stackoverflow.com/a/5624139
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
