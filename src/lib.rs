@@ -181,12 +181,12 @@ impl World {
                     for agent in &self.agents {
                         if quad.contains(agent.position) {
                             contained_agents.push(i);
-                            log(&format!(
+                            /* log(&format!(
                                 "Node at {:?} contains {} agents",
                                 quad.address,
                                 contained_agents.len()
-                            ));
-                            log(&format!("{:?}", contained_agents));
+                            )); */
+                            /* log(&format!("{:?}", contained_agents)); */
                         }
                         i += 1;
                     }
@@ -316,9 +316,17 @@ impl World {
 
     #[wasm_bindgen]
     pub fn activate(&self, mouse_x: f32, mouse_y: f32) -> JsValue {
+        return serde_wasm_bindgen::to_value(
+            &self
+                .quad
+                .get_child_at(vec![0, 1])
+                .contains((mouse_x, mouse_y)),
+        )
+        .unwrap();
+
         match self.quad.find_quad_containing_point((mouse_x, mouse_y)) {
             Some(q) => serde_wasm_bindgen::to_value(q).unwrap(),
-            None => wasm_bindgen::JsValue::NULL
+            None => wasm_bindgen::JsValue::NULL,
         }
     }
 }

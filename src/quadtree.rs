@@ -50,16 +50,19 @@ impl QuadTree {
                 size: self.size / 2.,
                 level: self.level + 1,
                 index: i,
-                address,
+                address: address.clone(),
                 name: namer.name()
             };
             self.child_nodes.push(Box::new(q));
+            log(&format!("Subdivided at address {:?}", address));
         }
         /* log(&format!("{:#?}", self)); */
         println!("{:#?}", self);
     }
 
     pub fn contains(&self, point: (f32, f32)) -> bool {
+        /* log(&format!("{},{} + {}", self.position.0, self.position.1, self.size)); */
+
         point.0 >= self.position.0
             && point.0 <= self.position.0 + self.size
             && point.1 >= self.position.1

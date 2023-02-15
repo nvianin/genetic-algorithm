@@ -20,7 +20,7 @@ class App {
         log(`Simulation world started with seed [${this.world.seed}].`)
         log(this.world.get_quadtree())
 
-        
+
         this.initDebugCanvas()
         this.initListeners()
 
@@ -33,8 +33,8 @@ class App {
             this.renderer.setSize(innerWidth, innerHeight)
         })
 
-        if(this.canvas) {
-            this.mouse = {x:0,y:0}
+        if (this.canvas) {
+            this.mouse = { x: 0, y: 0 }
             this.canvas.addEventListener("mousemove", e => {
                 this.mouse.x = e.offsetX;
                 this.mouse.y = e.offsetY;
@@ -57,9 +57,11 @@ class App {
         /* requestAnimationFrame(this.update.bind(this)) */
         /* log("update") */
 
-        
+
         if (this.canvas) {
-            let active_quad = this.world.activate(this.mouse.x, this.mouse.y).name
+            let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
+            log(active_quad)
+            active_quad = active_quad == null ? "none" : active_quad
             let then = performance.now();
             let q = this.world.get_quadtree()
             /* log(q); */
@@ -71,7 +73,7 @@ class App {
                 q.forEach(quad => {
                     /* log(quad) */
                     let color = hexPalette[i % hexPalette.length];
-                    if(quad.name == active_quad) {
+                    if (quad.name == active_quad) {
                         color = "#ff00ff"
                         console.log(active_quad)
                     } else {
@@ -88,9 +90,11 @@ class App {
                     this.ctx.stroke()
                     this.ctx.closePath();
 
+
                     this.ctx.font = "12pt sans-serif"
                     this.ctx.fillStyle = "black"
                     this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0], quad.position[1] + quad.size / 2);
+
                     i++;
                 })
             }
@@ -125,32 +129,51 @@ class App {
                 /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                 /* log(q) */
                 let levels = []
+                let relationships = {}
                 q.forEach(quad => {
                     if (levels[quad.level]) {
                         levels[quad.level].push(quad)
                     } else {
                         levels[quad.level] = [quad]
                     }
+
+                    if(quad.level > 0){
+                        const owning_quad = q.find(e => {e.child_nodes.includes(quad)})
+                        log(owning_quad)
+                        relationships[quad.name] = q.indexOf(owning_quad);
+                    }
                 })
+                log(relationships)
                 /* log(levels) */
-                let y = 60;
+                log(q)
+                let _y = 60;
                 const side = 40;
-                this.ctx.font = "12pt sans-serif"
+                this.ctx.font = "13pt sans-serif"
                 levels.forEach(level => {
                     /* log(level) */
                     for (let i = -level.length / 2; i < level.length / 2; i++) {
                         const index = (i + level.length / 2)
-                        /* log(i, index) */
+                        /* log(level[index]) */
+
+                        const x = this.canvas.width / 2 + i * 50 - side / 2
+                        const y = _y - side / 2;
+
                         this.ctx.fillStyle = "black"
                         this.ctx.beginPath();
-                        this.ctx.fillRect(this.canvas.width / 2 + i * 50 - side / 2, y - side / 2, side, side)
+                        this.ctx.fillRect(x, y, side, side)
                         /* this.ctx.arc(this.canvas.width / 2 + i * 50, y, 2, 0, Math.PI * 2) */
                         this.ctx.fill()
                         this.ctx.closePath()
+
+                        
+                        this.ctx.translate(x + 10, y + 10)
+                        this.ctx.rotate(Math.PI/3);
                         this.ctx.fillStyle = "red"
-                        this.ctx.fillText(level[index].name, this.canvas.width / 2 + i * 50 - side / 2, y - side / 2 + i * 18)
+                        this.ctx.fillText(level[index].name, 0, 0)
+
+                        this.ctx.resetTransform();
                     }
-                    y += 100;
+                    _y += 100;
                 })
             }
             /* log(`Quadtree fetch & draw took ${performance.now() - then} ms`) */
