@@ -146,7 +146,7 @@ class App {
                         })
                         log(owning_quad)
                         relationships[quad.name] = q.findIndex(e => {
-                            log(e)
+                            e.child_nodes.includes(quad)
                         })
                     }
                 })
