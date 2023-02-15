@@ -85,6 +85,19 @@ impl QuadTree {
         current_node
     }
 
+    pub fn find_quad_containing_point(&self, point:(f32,f32)) -> Option<&QuadTree> {
+        if self.child_nodes.len() == 0 && self.contains(point) {
+            return Some(&self);
+        }
+        for child in &self.child_nodes {
+            match child.find_quad_containing_point(point) {
+                Some(quad) => {return Some(quad)},
+                None => {return None}
+            }
+        }
+        None
+    }
+
     pub fn get_child_at(&self, mut address: Vec<usize>) -> &QuadTree {
         address.reverse();
         let mut current_node = self;

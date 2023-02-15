@@ -135,7 +135,7 @@ impl World {
     pub fn new(sheep_num: usize, wolf_num: usize, size: f32) -> World {
         console_error_panic_hook::set_once();
 
-        let namer= NameGen::new();
+        let namer = NameGen::new();
 
         let mut rng = rand::thread_rng();
         let mut w = World {
@@ -163,7 +163,7 @@ impl World {
         let mut done = false;
         let mut iterations = 0;
         self.quad = QuadTree::new(self.size, self.namer.name());
-        
+
         while !done {
             iterations += 1;
             if iterations >= 10 {
@@ -193,7 +193,9 @@ impl World {
                     if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
                         log(&format!("{:#?} nodes in scheme", scheme.len()));
                         let then = chrono::Local::now();
-                        self.quad.get_mut_child_at(quad.address.clone()).subdivide(&self.namer);
+                        self.quad
+                            .get_mut_child_at(quad.address.clone())
+                            .subdivide(&self.namer);
                         log(&format!(
                             "Quad access by address took {:?}",
                             (chrono::Local::now() - then)
@@ -259,7 +261,6 @@ impl World {
 
     #[wasm_bindgen]
     pub fn get_quadtree(&self) -> JsValue {
-
         let result = self.quad.get_all();
         /* log(&format!("{:?}", result)); */
 
@@ -311,6 +312,14 @@ impl World {
         }
 
         serde_wasm_bindgen::to_value(&result).unwrap()
+    }
+
+    #[wasm_bindgen]
+    pub fn activate(&self, mouse_x: f32, mouse_y: f32) -> JsValue {
+        match self.quad.find_quad_containing_point((mouse_x, mouse_y)) {
+            Some(q) => serde_wasm_bindgen::to_value(q).unwrap(),
+            None => wasm_bindgen::JsValue::NULL
+        }
     }
 }
 

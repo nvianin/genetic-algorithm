@@ -20,9 +20,9 @@ class App {
         log(`Simulation world started with seed [${this.world.seed}].`)
         log(this.world.get_quadtree())
 
-        this.initListeners()
-
+        
         this.initDebugCanvas()
+        this.initListeners()
 
         /* setInterval(this.update.bind(this), 2000) */
         this.update()
@@ -32,6 +32,16 @@ class App {
         window.addEventListener("resize", () => {
             this.renderer.setSize(innerWidth, innerHeight)
         })
+
+        if(this.canvas) {
+            this.mouse = {x:0,y:0}
+            this.canvas.addEventListener("mousemove", e => {
+                this.mouse.x = e.offsetX;
+                this.mouse.y = e.offsetY;
+                /* log(this.mouse) */
+                this.update()
+            })
+        }
     }
 
     initDebugCanvas() {
@@ -45,9 +55,11 @@ class App {
 
     update() {
         /* requestAnimationFrame(this.update.bind(this)) */
-        log("update")
+        /* log("update") */
 
+        
         if (this.canvas) {
+            let active_quad = this.world.activate(this.mouse.x, this.mouse.y).name
             let then = performance.now();
             let q = this.world.get_quadtree()
             /* log(q); */
@@ -58,11 +70,17 @@ class App {
                 let i = 0;
                 q.forEach(quad => {
                     /* log(quad) */
-                    const color = hexPalette[i % hexPalette.length];
-                    const rgb = transparent_hex(color, .3);
+                    let color = hexPalette[i % hexPalette.length];
+                    if(quad.name == active_quad) {
+                        color = "#ff00ff"
+                        console.log(active_quad)
+                    } else {
+                        /* log(quad) */
+                    }
+                    const rgb = transparent_hex(color, quad.level / 10);
                     /* log(color) */
                     this.ctx.lineWidth = 5;
-                    this.ctx.strokeStyle = color
+                    this.ctx.strokeStyle = color;
                     this.ctx.fillStyle = rgb
                     this.ctx.beginPath();
                     this.ctx.rect(quad.position[0], quad.position[1], quad.size, quad.size);
@@ -72,7 +90,7 @@ class App {
 
                     this.ctx.font = "12pt sans-serif"
                     this.ctx.fillStyle = "black"
-                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0] + quad.size / 2, quad.position[1] + quad.size / 2);
+                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0], quad.position[1] + quad.size / 2);
                     i++;
                 })
             }
@@ -80,7 +98,7 @@ class App {
             // Draw Agents
             if (true) {
                 const agents = this.world.get_agents();
-                log(agents)
+                /* log(agents) */
                 for (let i = 0; i < agents.positions.length; i++) {
                     /* log(agents.positions[i], agents.types[i]) */
                     switch (agents.types[i]) {
@@ -103,7 +121,7 @@ class App {
             }
 
             // Draw Tree
-            if (false) {
+            if (true) {
                 /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                 /* log(q) */
                 let levels = []
@@ -135,7 +153,7 @@ class App {
                     y += 100;
                 })
             }
-            log(`Quadtree fetch & draw took ${performance.now() - then} ms`)
+            /* log(`Quadtree fetch & draw took ${performance.now() - then} ms`) */
         }
 
         /* this.renderer.render(); */
