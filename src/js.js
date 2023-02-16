@@ -150,20 +150,23 @@ class App {
                                 potential_parent.child_nodes.forEach(child_node => {
                                     if (child_node.name == node.name) {
                                         parent = potential_parent.name
+                                        /* log(child_node.name, node.name, potential_parent.name) */
+                                        relationships[child_node.name] = parent
                                     }
                                 })
                             })
-                            relationships[levels[i].name] = parent;
                         })
                     }
                 }
                 log(relationships)
+
                 /* log(levels) */
                 log(q)
                 let _y = 60;
                 const side = 40;
                 this.ctx.font = "13pt sans-serif"
 
+                let named_node_positions = {}
                 // Draw the levels of the QuadTree
                 levels.forEach(level => {
                     /* log(level) */
@@ -174,12 +177,28 @@ class App {
                         const x = this.canvas.width / 2 + i * 50 - side / 2
                         const y = _y - side / 2;
 
+                        named_node_positions[level[index].name] = [x, y]
+
                         this.ctx.fillStyle = "black"
                         this.ctx.beginPath();
                         this.ctx.fillRect(x, y, side, side)
                         /* this.ctx.arc(this.canvas.width / 2 + i * 50, y, 2, 0, Math.PI * 2) */
                         this.ctx.fill()
                         this.ctx.closePath()
+
+
+                        const parent_name = relationships[level[index].name];
+                        const parent = named_node_positions[parent_name];
+                        if (parent) {
+                            /* log(parent_name, parent) */
+                            this.ctx.strokeStyle = "black"
+                            this.ctx.lineWidth = 1
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(x, y);
+                            this.ctx.lineTo(parent[0] + side / 2, parent[1] + side)
+                            this.ctx.stroke()
+                            this.ctx.closePath()
+                        }
 
 
                         this.ctx.translate(x + 10, y + 10)
