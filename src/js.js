@@ -139,23 +139,32 @@ class App {
                     } else {
                         levels[quad.level] = [quad]
                     }
+                })
 
-                    if (quad.level > 0) {
-                        const owning_quad = q.find(e => {
-                            e.child_nodes.includes(quad)
-                        })
-                        log(owning_quad)
-                        relationships[quad.name] = q.findIndex(e => {
-                            e.child_nodes.includes(quad)
+                // Figure out node relationships
+                for (let i = 0; i < levels.length; i++) {
+                    if (i > 0) {
+                        let parent;
+                        levels[i].forEach(node => {
+                            levels[i - 1].forEach(potential_parent => {
+                                potential_parent.child_nodes.forEach(child_node => {
+                                    if (child_node.name == node.name) {
+                                        parent = potential_parent.name
+                                    }
+                                })
+                            })
+                            relationships[levels[i].name] = parent;
                         })
                     }
-                })
+                }
                 log(relationships)
                 /* log(levels) */
                 log(q)
                 let _y = 60;
                 const side = 40;
                 this.ctx.font = "13pt sans-serif"
+
+                // Draw the levels of the QuadTree
                 levels.forEach(level => {
                     /* log(level) */
                     for (let i = -level.length / 2; i < level.length / 2; i++) {
