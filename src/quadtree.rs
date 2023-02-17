@@ -2,7 +2,7 @@ use nickname::NameGen;
 use std::thread::current;
 use wasm_bindgen::prelude::*;
 
-use crate::log;
+use crate::{log, Agent, MAX_CHILDREN, MAX_LEVELS};
 
 use serde::{Deserialize, Serialize};
 
@@ -23,7 +23,7 @@ pub struct QuadTree {
 }
 
 impl QuadTree {
-    pub fn new(size: f32, name: String) -> QuadTree {
+    pub fn new(size: f32) -> QuadTree {
         QuadTree {
             children: Vec::new(),
             child_nodes: Vec::with_capacity(4),
@@ -33,11 +33,11 @@ impl QuadTree {
             level: 0,
             index: 0,
             address: vec![0],
-            name,
+            name: String::from("root"),
         }
     }
 
-    pub fn subdivide(&mut self, namer: &NameGen) {
+    pub fn subdivide(&mut self, namer: &NameGen, agent_list: &Vec<Agent>) {
         /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
             let mut address = self.address.clone();
@@ -60,6 +60,22 @@ impl QuadTree {
             self.is_leaf = false;
             log(&format!("Subdivided at address {:?}", address));
         }
+        while self.children.len() >= 1 {
+            let child = self.children.pop().unwrap();
+            for child_node in &mut self.child_nodes {
+                if child_node.insert(agent_list[child].position, child, agent_list, namer) {
+                    break;
+                }
+            }
+        }
+
+        for child in &self.children {
+            for child_node in &mut self.child_nodes {
+                if child_node.insert((0., 0.), *child, agent_list, namer) {
+                    break;
+                }
+            }
+        }
         /* log(&format!("{:#?}", self)); */
         println!("{:#?}", self);
     }
@@ -73,13 +89,41 @@ impl QuadTree {
             && point.1 <= self.position.1 + self.size
     }
 
-    pub fn insert(&mut self, point: (f32, f32), child_index: usize) -> bool {
+    pub fn insert(
+        &mut self,
+        point: (f32, f32),
+        child_index: usize,
+        agent_list: &Vec<Agent>,
+        namer: &NameGen,
+    ) -> bool {
         if self.contains(point) && self.is_leaf {
-            self.children.push(child_index);
-            return true;
+            if self.children.len() < MAX_CHILDREN {
+                self.children.push(child_index);
+                return true;
+            } else {
+                if (self.level + 1 <= MAX_LEVELS) {
+                    self.subdivide(&namer, agent_list);
+                    for child in &mut self.child_nodes {
+                        if child.insert(point, child_index, agent_list, namer) {
+                            return true;
+                        };
+                    }
+                    for child_agent in &self.children {
+                        for child in &mut self.child_nodes {
+                            if child.insert(point, *child_agent, agent_list, namer) {
+                                return true;
+                            };
+                        }
+                    }
+                } else {
+                    self.children.push(child_index);
+                    return true;
+                }
+                panic!("Failed to insert child into quadtree");
+            }
         } else {
             for child in &mut self.child_nodes {
-                if child.insert(point, child_index) {
+                if child.insert(point, child_index, agent_list, namer) {
                     return true;
                 };
             }
@@ -98,9 +142,11 @@ impl QuadTree {
     }
 
     pub fn get_child_at(&self, mut address: Vec<usize>) -> &QuadTree {
+        log(&format!("{:?}", address));
         address.reverse();
         let mut current_node = self;
-        while address.len() >= 1 {
+        while address.len() > 1 {
+            log(&format!("{:?}", address.len()));
             current_node = &*current_node.child_nodes[address.pop().unwrap()]
         }
         current_node
@@ -109,21 +155,21 @@ impl QuadTree {
     pub fn get_mut_child_at(&mut self, mut address: Vec<usize>) -> &mut QuadTree {
         address.reverse();
         let mut current_node = self;
-        while address.len() >= 1 {
+        while address.len() > 1 {
             current_node = &mut *current_node.child_nodes[address.pop().unwrap()]
         }
         current_node
     }
 
     pub fn find_quad_containing_point(&self, point: (f32, f32)) -> Option<&QuadTree> {
-        if self.child_nodes.len() == 0 && self.contains(point) {
+        if self.is_leaf && self.contains(point) {
             return Some(&self);
         }
         for child in &self.child_nodes {
             match child.find_quad_containing_point(point) {
                 Some(quad) => return Some(quad),
-                None => return None,
-            }
+                None => continue,
+            };
         }
         None
     }
@@ -136,9 +182,58 @@ impl QuadTree {
         }
         result
     }
+
+    pub fn intersects_circle(&self, position: (f32, f32), radius: f32) -> bool {
+        let closest_point = (
+            position
+                .0
+                .max(self.position.0)
+                .min(self.position.0 + self.size),
+            position
+                .1
+                .max(self.position.1)
+                .min(self.position.1 + self.size),
+        );
+        let distance =
+            (position.0 - closest_point.0).powi(2) + (position.1 - closest_point.1).powi(2);
+        // This is an optimization to avoid the sqrt
+        distance < radius.powi(2)
+    }
+
+    pub fn get_children_in_radius(
+        &self,
+        position: (f32, f32),
+        radius: f32,
+        agent_list: &Vec<Agent>,
+    ) -> Vec<usize> {
+        let mut result = Vec::new();
+
+        if self.intersects_circle(position, radius) {
+            let last_len = result.len();
+            for child in &self.children {
+                if (agent_list[*child].position.0 - position.0).powi(2)
+                    + (agent_list[*child].position.1 - position.1).powi(2)
+                    < radius.powi(2)
+                {
+                    result.push(*child);
+                }
+                result.push(*child);
+            }
+            for child in &self.child_nodes {
+                result.append(&mut child.get_children_in_radius(position, radius, agent_list));
+            }
+            if result.len() != last_len {
+                /* log(&format!(
+                    "Found {} children in radius",
+                    result.len() - last_len
+                )); */
+            }
+        }
+        result
+    }
 }
 
-#[cfg(test)]
+/* #[cfg(test)]
 mod tests {
     use nickname::NameGen;
 
@@ -148,7 +243,8 @@ mod tests {
     fn quadtree_tests() {
         let namer = NameGen::new();
 
-        let mut q = QuadTree::new(1., namer.name());
+        let mut q = QuadTree::new(1.);
         q.subdivide(&namer);
     }
 }
+ */

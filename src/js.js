@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 4,
-    sheep_count: 40,
+    sheep_count: 8192,
     size: 1024
 }
 
@@ -57,111 +57,122 @@ class App {
     }
 
     update() {
-            /* requestAnimationFrame(this.update.bind(this)) */
-            /* log("update") */
+        /* requestAnimationFrame(this.update.bind(this)) */
+        /* log("update") */
+        const nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
+        if (nearby_points.positions.length > 0) {
+            log(nearby_points)
+        } else {
+            log("No nearby points.")
+        }
 
+        if (this.canvas) {
+            let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
+            /* if (active_quad) {
+                log(active_quad.name, active_quad.position)
+            } */
+            active_quad.name = active_quad.name == null ? "none" : active_quad.name
+            let then = performance.now();
+            let q = this.world.get_quadtree()
+            /* log(q); */
 
-            if (this.canvas) {
-                let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
-                log(active_quad)
-                active_quad = active_quad == null ? "none" : active_quad
-                let then = performance.now();
-                let q = this.world.get_quadtree()
-                /* log(q); */
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+            // Draw Quads
+            if (true) {
+                let i = 0;
+                q.forEach(quad => {
+                    /* log(quad) */
+                    let color = hexPalette[i % hexPalette.length];
+                    if (quad.name == active_quad.name) {
+                        color = "#ff00ff"
+                        /* console.log(active_quad) */
+                    }
+                    const rgb = transparent_hex(color, quad.level / 10);
+                    /* log(color) */
+                    this.ctx.lineWidth = 5;
+                    this.ctx.strokeStyle = color;
+                    this.ctx.fillStyle = rgb
+                    this.ctx.beginPath();
+                    this.ctx.rect(quad.position[0], quad.position[1], quad.size, quad.size);
+                    this.ctx.fill()
+                    this.ctx.stroke()
+                    this.ctx.closePath();
 
-                // Draw Quads
-                if (true) {
-                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-                    let i = 0;
-                    q.forEach(quad => {
-                        /* log(quad) */
-                        let color = hexPalette[i % hexPalette.length];
-                        if (quad.name == active_quad) {
-                            color = "#ff00ff"
-                            console.log(active_quad)
-                        } else {
-                            /* log(quad) */
-                        }
-                        const rgb = transparent_hex(color, quad.level / 10);
-                        /* log(color) */
-                        this.ctx.lineWidth = 5;
-                        this.ctx.strokeStyle = color;
-                        this.ctx.fillStyle = rgb
-                        this.ctx.beginPath();
-                        this.ctx.rect(quad.position[0], quad.position[1], quad.size, quad.size);
-                        this.ctx.fill()
-                        this.ctx.stroke()
-                        this.ctx.closePath();
-
-
+                    if (false) {
                         this.ctx.font = "12pt sans-serif"
                         this.ctx.fillStyle = "black"
-                        this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0], quad.position[1] + quad.size / 2);
+                        this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}+${quad.size}`, quad.position[0], quad.position[1] + quad.size / 2);
+                    }
+                    i++;
+                })
+            }
 
-                        i++;
-                    })
-                }
-
-                // Draw Agents
-                if (true) {
-                    const agents = this.world.get_agents();
-                    /* log(agents) */
-                    for (let i = 0; i < agents.positions.length; i++) {
-                        /* log(agents.positions[i], agents.types[i]) */
+            // Draw Agents
+            if (true) {
+                const agents = this.world.get_agents();
+                /* log(agents) */
+                for (let i = 0; i < agents.positions.length; i++) {
+                    /* log(agents.positions[i], agents.types[i]) */
+                    let radius = 2;
+                    if (nearby_points.indexes.includes(i)) {
+                        this.ctx.fillStyle = "#ff00ff"
+                        radius = 10;
+                        /* log(i) */
+                    } else {
                         switch (agents.types[i]) {
                             case 0: // Wolf
                                 this.ctx.fillStyle = "red"
                                 break;
                             case 1: // Sheep
-                                this.ctx.fillStyle = "white"
+                                this.ctx.fillStyle = "#aaaaaa"
                                 break;
                             case 2: // Grass
                                 this.ctx.fillStyle = "green"
                                 break;
                         }
-                        this.ctx.beginPath();
-                        this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 10, 0, Math.PI * 2);
-                        this.ctx.fill();
-                        this.ctx.closePath()
-                        /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
                     }
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.closePath()
+                    /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
                 }
 
                 // Draw Tree
-                if (true) {
+                if (false) {
                     /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                     /* log(q) */
                     let levels = []
                     let relationships = {}
-                    `
-                q.forEach(quad => {
-                    if (levels[quad.level]) {
-                        levels[quad.level].push(quad)
-                    } else {
-                        levels[quad.level] = [quad]
-                    }
-                })
+                    q.forEach(quad => {
+                        if (levels[quad.level]) {
+                            levels[quad.level].push(quad)
+                        } else {
+                            levels[quad.level] = [quad]
+                        }
+                    })
 
-                // Figure out node relationships
-                const then = performance.now();
-                for (let i = 0; i < levels.length; i++) {
-                    if (i > 0) {
-                        let parent;
-                        levels[i].forEach(node => {
-                            levels[i - 1].forEach(potential_parent => {
-                                potential_parent.child_nodes.forEach(child_node => {
-                                    if (child_node.name == node.name) {
-                                        parent = potential_parent.name
-                                        /* log(child_node.name, node.name, potential_parent.name) */
-                                        relationships[child_node.name] = parent
-                                    }
+                    // Figure out node relationships
+                    const then = performance.now();
+                    for (let i = 0; i < levels.length; i++) {
+                        if (i > 0) {
+                            let parent;
+                            levels[i].forEach(node => {
+                                levels[i - 1].forEach(potential_parent => {
+                                    potential_parent.child_nodes.forEach(child_node => {
+                                        if (child_node.name == node.name) {
+                                            parent = potential_parent.name
+                                            /* log(child_node.name, node.name, potential_parent.name) */
+                                            relationships[child_node.name] = parent
+                                        }
+                                    })
                                 })
                             })
-                        })
+                        }
                     }
-                }
-                log(relationships)
-                log(`
+                    log(relationships)
+                    log(`
                     Relationships
                     for $ {
                         q.length
@@ -172,65 +183,66 @@ class App {
                     ms.
                     `)
 
-                /* log(levels) */
-                log(q)
-                let _y = 60;
-                const side = 40;
-                this.ctx.font = "13pt sans-serif"
+                    /* log(levels) */
+                    log(q)
+                    let _y = 60;
+                    const side = 40;
+                    this.ctx.font = "13pt sans-serif"
 
-                let named_node_positions = {}
-                // Draw the levels of the QuadTree
-                levels.forEach(level => {
-                    /* log(level) */
-                    for (let i = -level.length / 2; i < level.length / 2; i++) {
-                        const index = (i + level.length / 2)
-                        /* log(level[index]) */
+                    let named_node_positions = {}
+                    // Draw the levels of the QuadTree
+                    levels.forEach(level => {
+                        /* log(level) */
+                        for (let i = -level.length / 2; i < level.length / 2; i++) {
+                            const index = (i + level.length / 2)
+                            /* log(level[index]) */
 
-                        const x = this.canvas.width / 2 + i * 50 - side / 2
-                        const y = _y - side / 2;
+                            const x = this.canvas.width / 2 + i * 50 - side / 2
+                            const y = _y - side / 2;
 
-                        named_node_positions[level[index].name] = [x, y]
+                            named_node_positions[level[index].name] = [x, y]
 
-                        this.ctx.fillStyle = "black"
-                        this.ctx.beginPath();
-                        this.ctx.fillRect(x, y, side, side)
-                        /* this.ctx.arc(this.canvas.width / 2 + i * 50, y, 2, 0, Math.PI * 2) */
-                        this.ctx.fill()
-                        this.ctx.closePath()
-
-
-                        const parent_name = relationships[level[index].name];
-                        const parent = named_node_positions[parent_name];
-                        if (parent) {
-                            /* log(parent_name, parent) */
-                            this.ctx.strokeStyle = "black"
-                            this.ctx.lineWidth = 1
+                            this.ctx.fillStyle = level[index].name == active_quad.name ? "green" : "black"
                             this.ctx.beginPath();
-                            this.ctx.moveTo(x, y);
-                            this.ctx.lineTo(parent[0] + side / 2, parent[1] + side)
-                            this.ctx.stroke()
+                            this.ctx.fillRect(x, y, side, side)
+                            /* this.ctx.arc(this.canvas.width / 2 + i * 50, y, 2, 0, Math.PI * 2) */
+                            this.ctx.fill()
                             this.ctx.closePath()
+
+
+                            const parent_name = relationships[level[index].name];
+                            const parent = named_node_positions[parent_name];
+                            if (parent) {
+                                /* log(parent_name, parent) */
+                                this.ctx.strokeStyle = "black"
+                                this.ctx.lineWidth = 1
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x, y);
+                                this.ctx.lineTo(parent[0] + side / 2, parent[1] + side)
+                                this.ctx.stroke()
+                                this.ctx.closePath()
+                            }
+
+
+                            this.ctx.translate(x + 10, y + 10)
+                            this.ctx.rotate(Math.PI / 3);
+                            this.ctx.fillStyle = "red"
+                            this.ctx.fillText(level[index].name, 0, 0)
+
+                            this.ctx.resetTransform();
                         }
-
-
-                        this.ctx.translate(x + 10, y + 10)
-                        this.ctx.rotate(Math.PI / 3);
-                        this.ctx.fillStyle = "red"
-                        this.ctx.fillText(level[index].name, 0, 0)
-
-                        this.ctx.resetTransform();
-                    }
-                    _y += 100;
-                })
+                        _y += 100;
+                    })
+                }
+                /* log(`
+                        Quadtree fetch & draw took $ {
+                            performance.now() - then
+                        }
+                        ms `) */
             }
-            /* log(`
-                    Quadtree fetch & draw took $ {
-                        performance.now() - then
-                    }
-                    ms `) */
-        }
 
-        /* this.renderer.render(); */
+            /* this.renderer.render(); */
+        }
     }
 }
 
