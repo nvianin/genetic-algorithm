@@ -1,14 +1,16 @@
 mod quadtree;
 use nickname::NameGen;
 use quadtree::QuadTree;
-mod utils;
+
+mod genes;
+use genes::{SheepGeneticInformation, WolfGeneticInformation};
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 use rand::Rng;
 
-use chrono;
+use std::collections::HashMap;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -52,48 +54,11 @@ impl SerializedQuadTree {
     }
 }
 
-pub struct WolfGeneticInformation {
-    pub movement_speed: f32,
-    pub sight_distance: f32,
-
-    pub hunger: f32,
-    pub health: f32,
-}
-
-impl WolfGeneticInformation {
-    pub fn default() -> WolfGeneticInformation {
-        WolfGeneticInformation {
-            movement_speed: 1.,
-            sight_distance: 1.,
-            hunger: 30.,
-            health: 100.,
-        }
-    }
-}
-
-pub struct SheepGeneticInformation {
-    pub movement_speed: f32,
-    pub sight_distance: f32,
-
-    pub hunger: f32,
-    pub health: f32,
-}
-
-impl SheepGeneticInformation {
-    pub fn default() -> SheepGeneticInformation {
-        SheepGeneticInformation {
-            movement_speed: 1.5,
-            sight_distance: 1.,
-            hunger: 30.,
-            health: 100.,
-        }
-    }
-}
-
-enum AgentType {
+#[derive(Clone)]
+pub enum AgentType {
     Wolf(WolfGeneticInformation),
     Sheep(SheepGeneticInformation),
-    Grass(f32),
+    Grass(f32), // growth stage normalized 0-1
 }
 
 impl AgentType {
@@ -105,7 +70,9 @@ impl AgentType {
         }
     }
 }
-struct Agent {
+
+#[derive(Clone)]
+pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),
 }
@@ -125,8 +92,8 @@ pub struct World {
 extern crate console_error_panic_hook;
 
 const MAX_GRASS: usize = 0;
-const MAX_CHILDREN: usize = 2;
-const MAX_LEVELS: usize = 8;
+const MAX_CHILDREN: usize = 10;
+const MAX_LEVELS: usize = 4;
 
 // Main JS interface to the simulation
 #[wasm_bindgen(inspectable)]
@@ -139,7 +106,7 @@ impl World {
 
         let mut rng = rand::thread_rng();
         let mut w = World {
-            quad: QuadTree::new(size, namer.name()),
+            quad: QuadTree::new(size),
             namer,
             size,
             seed: rng.gen(),
@@ -150,81 +117,42 @@ impl World {
             agents: Vec::new(),
         };
         w.spawn_entities();
-        w.build_quadtree();
+        w.build_quadtree_good();
         w
     }
 
     #[wasm_bindgen]
     pub fn step(&mut self) {
-        self.build_quadtree();
+        self.build_quadtree_good();
     }
 
-    fn build_quadtree(&mut self) {
-        let mut done = false;
-        let mut iterations = 0;
-        self.quad = QuadTree::new(self.size, self.namer.name());
-
-        while !done {
-            iterations += 1;
-            if iterations >= 10 {
-                log(&format!("Stopping after {iterations} iterations"));
-                break;
-            };
-            log(&format!("Iteration n° {iterations}"));
-            done = true;
-            let scheme = QuadTree::gather_children(&self.quad, Vec::new());
-            for quad in &scheme {
-                if quad.child_nodes.len() == 0 {
-                    /* log(&format!("Node at address {:#?} empty", quad.address)); */
-                    let mut contained_agents = Vec::new();
-                    let mut i = 0;
-                    for agent in &self.agents {
-                        if quad.contains(agent.position) {
-                            contained_agents.push(i);
-                            /* log(&format!(
-                                "Node at {:?} contains {} agents",
-                                quad.address,
-                                contained_agents.len()
-                            )); */
-                            /* log(&format!("{:?}", contained_agents)); */
-                        }
-                        i += 1;
-                    }
-                    if contained_agents.len() > MAX_CHILDREN && quad.level < MAX_LEVELS {
-                        log(&format!("{:#?} nodes in scheme", scheme.len()));
-                        let then = chrono::Local::now();
-                        self.quad
-                            .get_mut_child_at(quad.address.clone())
-                            .subdivide(&self.namer);
-                        log(&format!(
-                            "Quad access by address took {:?}",
-                            (chrono::Local::now() - then)
-                        ));
-                        /* log(&format!("{:#?}", quad)); */
-                        done = false;
-                    } else {
-                        self.quad
-                            .get_mut_child_at(quad.address.clone())
-                            .children
-                            .append(&mut contained_agents);
-                    }
-                    if !done {
-                        break;
-                    }
-                }
+    fn update_agents(&mut self) {
+        for agent in &mut self.agents {
+            match &mut agent.kind {
+                AgentType::Wolf(_) => {}
+                AgentType::Sheep(_) => {}
+                AgentType::Grass(_) => {}
             }
-            /* done = true; */
+        }
+    }
+
+    fn build_quadtree_good(&mut self) {
+        self.quad = QuadTree::new(self.size);
+        for i in 0..self.agents.len() {
+            self.quad
+                .insert(self.agents[i].position, i, &self.agents, &self.namer);
         }
     }
 
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
         let namer = NameGen::new();
+        let agent_list = Vec::new();
 
-        let mut q = QuadTree::new(1024., namer.name());
-        q.subdivide(&namer);
-        q.child_nodes[0].subdivide(&namer);
-        q.child_nodes[0].child_nodes[3].subdivide(&namer);
+        let mut q = QuadTree::new(1024.);
+        q.subdivide(&namer, &agent_list);
+        q.child_nodes[0].subdivide(&namer, &agent_list);
+        q.child_nodes[0].child_nodes[3].subdivide(&namer, &agent_list);
         log(&format!("{:#?}", q));
         self.seed
     }
@@ -316,29 +244,47 @@ impl World {
 
     #[wasm_bindgen]
     pub fn activate(&self, mouse_x: f32, mouse_y: f32) -> JsValue {
-        return serde_wasm_bindgen::to_value(
+        /* return serde_wasm_bindgen::to_value(
             &self
                 .quad
-                .get_child_at(vec![0, 1])
+                .get_child_at(vec![0])
                 .contains((mouse_x, mouse_y)),
         )
-        .unwrap();
+        .unwrap(); */
 
         match self.quad.find_quad_containing_point((mouse_x, mouse_y)) {
             Some(q) => serde_wasm_bindgen::to_value(q).unwrap(),
             None => wasm_bindgen::JsValue::NULL,
         }
     }
+
+    #[wasm_bindgen]
+    pub fn get_agents_in_radius(&self, x: f32, y: f32, radius: f32) -> JsValue {
+        let mut result = SerializedAgents::new();
+        let agent_indexes = self
+            .quad
+            .get_children_in_radius((x, y), radius, &self.agents);
+        for index in agent_indexes {
+            result.indexes.push(index);
+            result.positions.push(self.agents[index].position);
+            result.types.push(self.agents[index].kind.to_int());
+        }
+
+        /* log(&format!("{:#?}", &result.positions.len())); */
+        serde_wasm_bindgen::to_value(&result).unwrap()
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SerializedAgents {
+    pub indexes: Vec<usize>,
     pub positions: Vec<(f32, f32)>,
     pub types: Vec<u8>,
 }
 impl SerializedAgents {
     pub fn new() -> SerializedAgents {
         SerializedAgents {
+            indexes: Vec::new(),
             positions: Vec::new(),
             types: Vec::new(),
         }
