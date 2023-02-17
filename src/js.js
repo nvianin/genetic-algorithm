@@ -142,6 +142,7 @@ class App {
                 })
 
                 // Figure out node relationships
+                const then = performance.now();
                 for (let i = 0; i < levels.length; i++) {
                     if (i > 0) {
                         let parent;
@@ -159,6 +160,7 @@ class App {
                     }
                 }
                 log(relationships)
+                log(`Relationships for ${q.length} nodes computed in ${performance.now() - then}ms.`)
 
                 /* log(levels) */
                 log(q)

@@ -93,7 +93,7 @@ impl SheepGeneticInformation {
 enum AgentType {
     Wolf(WolfGeneticInformation),
     Sheep(SheepGeneticInformation),
-    Grass(f32),
+    Grass(f32), // growth stage normalized 0-1
 }
 
 impl AgentType {
@@ -150,13 +150,20 @@ impl World {
             agents: Vec::new(),
         };
         w.spawn_entities();
-        w.build_quadtree();
+        w.build_quadtree_good();
         w
     }
 
     #[wasm_bindgen]
     pub fn step(&mut self) {
         self.build_quadtree();
+    }
+
+    fn build_quadtree_good(&mut self) {
+        self.quad = QuadTree::new(self.size, self.quad.name.clone());
+        for i in 0..self.agents.len() {
+            self.quad.insert(self.agents[i].position, i);
+        }
     }
 
     fn build_quadtree(&mut self) {
