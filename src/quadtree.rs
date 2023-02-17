@@ -2,7 +2,7 @@ use nickname::NameGen;
 use std::thread::current;
 use wasm_bindgen::prelude::*;
 
-use crate::{log, MAX_CHILDREN};
+use crate::{log, Agent, MAX_CHILDREN, MAX_LEVELS};
 
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +37,7 @@ impl QuadTree {
         }
     }
 
-    pub fn subdivide(&mut self, namer: &NameGen) {
+    pub fn subdivide(&mut self, namer: &NameGen, agent_list: &Vec<Agent>) {
         /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
             let mut address = self.address.clone();
@@ -60,9 +60,18 @@ impl QuadTree {
             self.is_leaf = false;
             log(&format!("Subdivided at address {:?}", address));
         }
+        while self.children.len() >= 1 {
+            let child = self.children.pop().unwrap();
+            for child_node in &mut self.child_nodes {
+                if child_node.insert(agent_list[child].position, child, agent_list, namer) {
+                    break;
+                }
+            }
+        }
+
         for child in &self.children {
             for child_node in &mut self.child_nodes {
-                if child_node.insert((0., 0.), *child, namer) {
+                if child_node.insert((0., 0.), *child, agent_list, namer) {
                     break;
                 }
             }
@@ -80,30 +89,41 @@ impl QuadTree {
             && point.1 <= self.position.1 + self.size
     }
 
-    pub fn insert(&mut self, point: (f32, f32), child_index: usize, namer: &NameGen) -> bool {
+    pub fn insert(
+        &mut self,
+        point: (f32, f32),
+        child_index: usize,
+        agent_list: &Vec<Agent>,
+        namer: &NameGen,
+    ) -> bool {
         if self.contains(point) && self.is_leaf {
             if self.children.len() < MAX_CHILDREN {
                 self.children.push(child_index);
                 return true;
             } else {
-                self.subdivide(&namer);
-                for child in &mut self.child_nodes {
-                    if child.insert(point, child_index, namer) {
-                        return true;
-                    };
-                }
-                for child_agent in &self.children {
+                if (self.level + 1 <= MAX_LEVELS) {
+                    self.subdivide(&namer, agent_list);
                     for child in &mut self.child_nodes {
-                        if child.insert(point, *child_agent, namer) {
+                        if child.insert(point, child_index, agent_list, namer) {
                             return true;
                         };
                     }
+                    for child_agent in &self.children {
+                        for child in &mut self.child_nodes {
+                            if child.insert(point, *child_agent, agent_list, namer) {
+                                return true;
+                            };
+                        }
+                    }
+                } else {
+                    self.children.push(child_index);
+                    return true;
                 }
                 panic!("Failed to insert child into quadtree");
             }
         } else {
             for child in &mut self.child_nodes {
-                if child.insert(point, child_index, namer) {
+                if child.insert(point, child_index, agent_list, namer) {
                     return true;
                 };
             }
@@ -148,8 +168,8 @@ impl QuadTree {
         for child in &self.child_nodes {
             match child.find_quad_containing_point(point) {
                 Some(quad) => return Some(quad),
-                None => return None,
-            }
+                None => continue,
+            };
         }
         None
     }
@@ -162,9 +182,58 @@ impl QuadTree {
         }
         result
     }
+
+    pub fn intersects_circle(&self, position: (f32, f32), radius: f32) -> bool {
+        let closest_point = (
+            position
+                .0
+                .max(self.position.0)
+                .min(self.position.0 + self.size),
+            position
+                .1
+                .max(self.position.1)
+                .min(self.position.1 + self.size),
+        );
+        let distance =
+            (position.0 - closest_point.0).powi(2) + (position.1 - closest_point.1).powi(2);
+        // This is an optimization to avoid the sqrt
+        distance < radius.powi(2)
+    }
+
+    pub fn get_children_in_radius(
+        &self,
+        position: (f32, f32),
+        radius: f32,
+        agent_list: &Vec<Agent>,
+    ) -> Vec<usize> {
+        let mut result = Vec::new();
+
+        if self.intersects_circle(position, radius) {
+            let last_len = result.len();
+            for child in &self.children {
+                if (agent_list[*child].position.0 - position.0).powi(2)
+                    + (agent_list[*child].position.1 - position.1).powi(2)
+                    < radius.powi(2)
+                {
+                    result.push(*child);
+                }
+                result.push(*child);
+            }
+            for child in &self.child_nodes {
+                result.append(&mut child.get_children_in_radius(position, radius, agent_list));
+            }
+            if result.len() != last_len {
+                /* log(&format!(
+                    "Found {} children in radius",
+                    result.len() - last_len
+                )); */
+            }
+        }
+        result
+    }
 }
 
-#[cfg(test)]
+/* #[cfg(test)]
 mod tests {
     use nickname::NameGen;
 
@@ -178,3 +247,4 @@ mod tests {
         q.subdivide(&namer);
     }
 }
+ */

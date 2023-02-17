@@ -52,6 +52,7 @@ impl SerializedQuadTree {
     }
 }
 
+#[derive(Clone)]
 pub struct WolfGeneticInformation {
     pub movement_speed: f32,
     pub sight_distance: f32,
@@ -71,6 +72,7 @@ impl WolfGeneticInformation {
     }
 }
 
+#[derive(Clone)]
 pub struct SheepGeneticInformation {
     pub movement_speed: f32,
     pub sight_distance: f32,
@@ -90,7 +92,8 @@ impl SheepGeneticInformation {
     }
 }
 
-enum AgentType {
+#[derive(Clone)]
+pub enum AgentType {
     Wolf(WolfGeneticInformation),
     Sheep(SheepGeneticInformation),
     Grass(f32), // growth stage normalized 0-1
@@ -105,7 +108,9 @@ impl AgentType {
         }
     }
 }
-struct Agent {
+
+#[derive(Clone)]
+pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),
 }
@@ -162,15 +167,14 @@ impl World {
     fn build_quadtree_good(&mut self) {
         self.quad = QuadTree::new(self.size);
         for i in 0..self.agents.len() {
-            self.quad.insert(self.agents[i].position, i, &self.namer);
+            self.quad
+                .insert(self.agents[i].position, i, &self.agents, &self.namer);
         }
     }
 
     fn build_quadtree(&mut self) {
         self.quad = QuadTree::new(self.size);
-        for agent in &self.agents {
-
-        }
+        for agent in &self.agents {}
     }
 
     fn _build_quadtree_badly(&mut self) {
@@ -209,7 +213,7 @@ impl World {
                         let then = chrono::Local::now();
                         self.quad
                             .get_mut_child_at(quad.address.clone())
-                            .subdivide(&self.namer);
+                            .subdivide(&self.namer, &self.agents);
                         log(&format!(
                             "Quad access by address took {:?}",
                             (chrono::Local::now() - then)
@@ -234,11 +238,12 @@ impl World {
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
         let namer = NameGen::new();
+        let agent_list = Vec::new();
 
         let mut q = QuadTree::new(1024.);
-        q.subdivide(&namer);
-        q.child_nodes[0].subdivide(&namer);
-        q.child_nodes[0].child_nodes[3].subdivide(&namer);
+        q.subdivide(&namer, &agent_list);
+        q.child_nodes[0].subdivide(&namer, &agent_list);
+        q.child_nodes[0].child_nodes[3].subdivide(&namer, &agent_list);
         log(&format!("{:#?}", q));
         self.seed
     }
@@ -343,16 +348,33 @@ impl World {
             None => wasm_bindgen::JsValue::NULL,
         }
     }
+
+    #[wasm_bindgen]
+    pub fn get_agents_in_radius(&self, x: f32, y: f32, radius: f32) -> JsValue {
+
+        let mut result = SerializedAgents::new();
+        let agent_indexes = self.quad.get_children_in_radius((x, y), radius, &self.agents);
+        for index in agent_indexes {
+            result.indexes.push(index);
+            result.positions.push(self.agents[index].position);
+            result.types.push(self.agents[index].kind.to_int());
+        }
+
+        /* log(&format!("{:#?}", &result.positions.len())); */
+        serde_wasm_bindgen::to_value(&result).unwrap()
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SerializedAgents {
+    pub indexes: Vec<usize>,
     pub positions: Vec<(f32, f32)>,
     pub types: Vec<u8>,
 }
 impl SerializedAgents {
     pub fn new() -> SerializedAgents {
         SerializedAgents {
+            indexes: Vec::new(),
             positions: Vec::new(),
             types: Vec::new(),
         }

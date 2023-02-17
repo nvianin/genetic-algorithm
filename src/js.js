@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 4,
-    sheep_count: 12,
+    sheep_count: 8192,
     size: 1024
 }
 
@@ -59,30 +59,33 @@ class App {
     update() {
         /* requestAnimationFrame(this.update.bind(this)) */
         /* log("update") */
-
+        const nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
+        if (nearby_points.positions.length > 0) {
+            log(nearby_points)
+        } else {
+            log("No nearby points.")
+        }
 
         if (this.canvas) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
-            if (active_quad) {
+            /* if (active_quad) {
                 log(active_quad.name, active_quad.position)
-            }
-            active_quad = active_quad == null ? "none" : active_quad
+            } */
+            active_quad.name = active_quad.name == null ? "none" : active_quad.name
             let then = performance.now();
             let q = this.world.get_quadtree()
             /* log(q); */
 
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
             // Draw Quads
             if (true) {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
                 let i = 0;
                 q.forEach(quad => {
                     /* log(quad) */
                     let color = hexPalette[i % hexPalette.length];
-                    if (quad.name == active_quad) {
+                    if (quad.name == active_quad.name) {
                         color = "#ff00ff"
-                        console.log(active_quad)
-                    } else {
-                        /* log(quad) */
+                        /* console.log(active_quad) */
                     }
                     const rgb = transparent_hex(color, quad.level / 10);
                     /* log(color) */
@@ -95,11 +98,11 @@ class App {
                     this.ctx.stroke()
                     this.ctx.closePath();
 
-
-                    this.ctx.font = "12pt sans-serif"
-                    this.ctx.fillStyle = "black"
-                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}+${quad.size}`, quad.position[0], quad.position[1] + quad.size / 2);
-
+                    if (false) {
+                        this.ctx.font = "12pt sans-serif"
+                        this.ctx.fillStyle = "black"
+                        this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}+${quad.size}`, quad.position[0], quad.position[1] + quad.size / 2);
+                    }
                     i++;
                 })
             }
@@ -110,19 +113,27 @@ class App {
                 /* log(agents) */
                 for (let i = 0; i < agents.positions.length; i++) {
                     /* log(agents.positions[i], agents.types[i]) */
-                    switch (agents.types[i]) {
-                        case 0: // Wolf
-                            this.ctx.fillStyle = "red"
-                            break;
-                        case 1: // Sheep
-                            this.ctx.fillStyle = "white"
-                            break;
-                        case 2: // Grass
-                            this.ctx.fillStyle = "green"
-                            break;
+                    let radius = 2;
+                    if (nearby_points.indexes.includes(i)) {
+                        this.ctx.fillStyle = "#ff00ff"
+                        radius = 10;
+                        /* log(i) */
+                    } else {
+                        switch (agents.types[i]) {
+                            case 0: // Wolf
+                                this.ctx.fillStyle = "red"
+                                break;
+                            case 1: // Sheep
+                                this.ctx.fillStyle = "#aaaaaa"
+                                break;
+                            case 2: // Grass
+                                this.ctx.fillStyle = "green"
+                                break;
+                        }
                     }
+
                     this.ctx.beginPath();
-                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 5, 0, Math.PI * 2);
+                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], radius, 0, Math.PI * 2);
                     this.ctx.fill();
                     this.ctx.closePath()
                     /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
@@ -183,7 +194,7 @@ class App {
 
                         named_node_positions[level[index].name] = [x, y]
 
-                        this.ctx.fillStyle = "black"
+                        this.ctx.fillStyle = level[index].name == active_quad.name ? "green" : "black"
                         this.ctx.beginPath();
                         this.ctx.fillRect(x, y, side, side)
                         /* this.ctx.arc(this.canvas.width / 2 + i * 50, y, 2, 0, Math.PI * 2) */
