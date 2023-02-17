@@ -153,7 +153,7 @@ class App {
                 }
 
                 // Draw Tree
-                if (false) {
+                if (true) {
                     /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                     /* log(q) */
                     let levels = []
