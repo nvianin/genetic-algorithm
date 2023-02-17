@@ -20,6 +20,7 @@ class App {
         log(`Simulation world started with seed [${this.world.seed}].`)
         log(this.world.get_quadtree())
 
+        this.continue_render = true
 
         this.initDebugCanvas()
         this.initListeners()
@@ -45,6 +46,14 @@ class App {
                 /* this.update() */
             })
         }
+
+        window.addEventListener("keydown", e => {
+            switch (e.key) {
+                case " ": // Space
+                    this.continue_render = !this.continue_render
+                    break;
+            }
+        })
     }
 
     initDebugCanvas() {
@@ -58,7 +67,9 @@ class App {
 
     update() {
         requestAnimationFrame(this.update.bind(this))
-        this.world.step();
+        if (this.continue_render) {
+            this.world.step();
+        }
         /* log("update") */
         const nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
         if (nearby_points.positions.length > 0) {
