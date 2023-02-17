@@ -79,7 +79,7 @@ class App {
 
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
             // Draw Quads
-            if (false) {
+            if (true) {
                 let i = 0;
                 q.forEach(quad => {
                     /* log(quad) */
@@ -141,7 +141,7 @@ class App {
                 }
 
                 // Draw Tree
-                if (false) {
+                if (true) {
                     /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                     /* log(q) */
                     let levels = []
