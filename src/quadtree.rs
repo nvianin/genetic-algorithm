@@ -79,10 +79,19 @@ impl QuadTree {
         result
     }
 
+   pub fn get_child_at(&self, mut address: Vec<usize>) -> &QuadTree {
+        address.reverse();
+        let mut current_node = self;
+        while address.len() >= 1 {
+            current_node = &*current_node.child_nodes[address.pop().unwrap()]
+        }
+        current_node
+    }
+
     pub fn get_mut_child_at(&mut self, mut address: Vec<usize>) -> &mut QuadTree {
         address.reverse();
         let mut current_node = self;
-        while address.len() > 1 {
+        while address.len() >= 1 {
             current_node = &mut *current_node.child_nodes[address.pop().unwrap()]
         }
         current_node
@@ -99,15 +108,6 @@ impl QuadTree {
             }
         }
         None
-    }
-
-    pub fn get_child_at(&self, mut address: Vec<usize>) -> &QuadTree {
-        address.reverse();
-        let mut current_node = self;
-        while address.len() > 1 {
-            current_node = &*current_node.child_nodes[address.pop().unwrap()]
-        }
-        current_node
     }
 
     pub fn get_all(&self) -> Vec<QuadTree> {
