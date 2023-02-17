@@ -22,7 +22,7 @@ pub struct QuadTree {
 }
 
 impl QuadTree {
-    pub fn new(size: f32, name: String) -> QuadTree {
+    pub fn new(size: f32) -> QuadTree {
         QuadTree {
             children: Vec::new(),
             child_nodes: Vec::with_capacity(4),
@@ -31,7 +31,7 @@ impl QuadTree {
             level: 0,
             index: 0,
             address: vec![0],
-            name,
+            name: String::from("root"),
         }
     }
 
@@ -130,7 +130,7 @@ mod tests {
     fn quadtree_tests() {
         let namer = NameGen::new();
 
-        let mut q = QuadTree::new(1., namer.name());
+        let mut q = QuadTree::new(1.);
         q.subdivide(&namer);
     }
 }

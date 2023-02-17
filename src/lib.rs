@@ -139,7 +139,7 @@ impl World {
 
         let mut rng = rand::thread_rng();
         let mut w = World {
-            quad: QuadTree::new(size, namer.name()),
+            quad: QuadTree::new(size),
             namer,
             size,
             seed: rng.gen(),
@@ -160,9 +160,16 @@ impl World {
     }
 
     fn build_quadtree(&mut self) {
+        self.quad = QuadTree::new(self.size);
+        for agent in &self.agents {
+
+        }
+    }
+
+    fn _build_quadtree_badly(&mut self) {
         let mut done = false;
         let mut iterations = 0;
-        self.quad = QuadTree::new(self.size, self.namer.name());
+        self.quad = QuadTree::new(self.size);
 
         while !done {
             iterations += 1;
@@ -221,7 +228,7 @@ impl World {
     pub fn test(&self) -> u32 {
         let namer = NameGen::new();
 
-        let mut q = QuadTree::new(1024., namer.name());
+        let mut q = QuadTree::new(1024.);
         q.subdivide(&namer);
         q.child_nodes[0].subdivide(&namer);
         q.child_nodes[0].child_nodes[3].subdivide(&namer);
