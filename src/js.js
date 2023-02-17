@@ -51,6 +51,7 @@ class App {
             switch (e.key) {
                 case " ": // Space
                     this.continue_render = !this.continue_render
+                    log(this.continue_render ? "Continuing render." : "Pausing render.");
                     break;
             }
         })
@@ -66,10 +67,10 @@ class App {
     }
 
     update() {
-        requestAnimationFrame(this.update.bind(this))
         if (this.continue_render) {
             this.world.step();
         }
+        requestAnimationFrame(this.update.bind(this))
         /* log("update") */
         const nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
         if (nearby_points.positions.length > 0) {
