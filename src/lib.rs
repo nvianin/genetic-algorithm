@@ -160,9 +160,9 @@ impl World {
     }
 
     fn build_quadtree_good(&mut self) {
-        self.quad = QuadTree::new(self.size, self.quad.name.clone());
+        self.quad = QuadTree::new(self.size);
         for i in 0..self.agents.len() {
-            self.quad.insert(self.agents[i].position, i);
+            self.quad.insert(self.agents[i].position, i, &self.namer);
         }
     }
 
@@ -330,13 +330,13 @@ impl World {
 
     #[wasm_bindgen]
     pub fn activate(&self, mouse_x: f32, mouse_y: f32) -> JsValue {
-        return serde_wasm_bindgen::to_value(
+        /* return serde_wasm_bindgen::to_value(
             &self
                 .quad
-                .get_child_at(vec![0, 1])
+                .get_child_at(vec![0])
                 .contains((mouse_x, mouse_y)),
         )
-        .unwrap();
+        .unwrap(); */
 
         match self.quad.find_quad_containing_point((mouse_x, mouse_y)) {
             Some(q) => serde_wasm_bindgen::to_value(q).unwrap(),

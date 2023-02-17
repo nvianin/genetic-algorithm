@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 4,
-    sheep_count: 40,
+    sheep_count: 12,
     size: 1024
 }
 
@@ -63,7 +63,9 @@ class App {
 
         if (this.canvas) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
-            log(active_quad)
+            if (active_quad) {
+                log(active_quad.name, active_quad.position)
+            }
             active_quad = active_quad == null ? "none" : active_quad
             let then = performance.now();
             let q = this.world.get_quadtree()
@@ -120,7 +122,7 @@ class App {
                             break;
                     }
                     this.ctx.beginPath();
-                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 10, 0, Math.PI * 2);
+                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 5, 0, Math.PI * 2);
                     this.ctx.fill();
                     this.ctx.closePath()
                     /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
@@ -128,7 +130,7 @@ class App {
             }
 
             // Draw Tree
-            if (true) {
+            if (false) {
                 /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                 /* log(q) */
                 let levels = []
