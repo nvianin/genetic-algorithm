@@ -98,7 +98,7 @@ class App {
 
                     this.ctx.font = "12pt sans-serif"
                     this.ctx.fillStyle = "black"
-                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0], quad.position[1] + quad.size / 2);
+                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}+${quad.size}`, quad.position[0], quad.position[1] + quad.size / 2);
 
                     i++;
                 })
