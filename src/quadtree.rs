@@ -1,5 +1,5 @@
-use std::thread::current;
 use nickname::NameGen;
+use std::thread::current;
 use wasm_bindgen::prelude::*;
 
 use crate::log;
@@ -51,7 +51,7 @@ impl QuadTree {
                 level: self.level + 1,
                 index: i,
                 address: address.clone(),
-                name: namer.name()
+                name: namer.name(),
             };
             self.child_nodes.push(Box::new(q));
             log(&format!("Subdivided at address {:?}", address));
@@ -88,14 +88,14 @@ impl QuadTree {
         current_node
     }
 
-    pub fn find_quad_containing_point(&self, point:(f32,f32)) -> Option<&QuadTree> {
+    pub fn find_quad_containing_point(&self, point: (f32, f32)) -> Option<&QuadTree> {
         if self.child_nodes.len() == 0 && self.contains(point) {
             return Some(&self);
         }
         for child in &self.child_nodes {
             match child.find_quad_containing_point(point) {
-                Some(quad) => {return Some(quad)},
-                None => {return None}
+                Some(quad) => return Some(quad),
+                None => return None,
             }
         }
         None
