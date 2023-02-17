@@ -58,7 +58,7 @@ impl QuadTree {
             };
             self.child_nodes.push(Box::new(q));
             self.is_leaf = false;
-            log(&format!("Subdivided at address {:?}", address));
+            /* log(&format!("Subdivided at address {:?}", address)); */
         }
         while self.children.len() >= 1 {
             let child = self.children.pop().unwrap();
@@ -217,7 +217,6 @@ impl QuadTree {
                 {
                     result.push(*child);
                 }
-                result.push(*child);
             }
             for child in &self.child_nodes {
                 result.append(&mut child.get_children_in_radius(position, radius, agent_list));

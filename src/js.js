@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 4,
-    sheep_count: 8192,
+    sheep_count: 1024,
     size: 1024
 }
 
@@ -42,7 +42,7 @@ class App {
                 this.mouse.x = e.offsetX;
                 this.mouse.y = e.offsetY;
                 /* log(this.mouse) */
-                this.update()
+                /* this.update() */
             })
         }
     }
@@ -57,7 +57,8 @@ class App {
     }
 
     update() {
-        /* requestAnimationFrame(this.update.bind(this)) */
+        requestAnimationFrame(this.update.bind(this))
+        this.world.step();
         /* log("update") */
         const nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
         if (nearby_points.positions.length > 0) {
@@ -78,7 +79,7 @@ class App {
 
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
             // Draw Quads
-            if (true) {
+            if (false) {
                 let i = 0;
                 q.forEach(quad => {
                     /* log(quad) */
