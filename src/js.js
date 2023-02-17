@@ -57,82 +57,83 @@ class App {
     }
 
     update() {
-        /* requestAnimationFrame(this.update.bind(this)) */
-        /* log("update") */
+            /* requestAnimationFrame(this.update.bind(this)) */
+            /* log("update") */
 
 
-        if (this.canvas) {
-            let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
-            log(active_quad)
-            active_quad = active_quad == null ? "none" : active_quad
-            let then = performance.now();
-            let q = this.world.get_quadtree()
-            /* log(q); */
+            if (this.canvas) {
+                let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
+                log(active_quad)
+                active_quad = active_quad == null ? "none" : active_quad
+                let then = performance.now();
+                let q = this.world.get_quadtree()
+                /* log(q); */
 
-            // Draw Quads
-            if (true) {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-                let i = 0;
-                q.forEach(quad => {
-                    /* log(quad) */
-                    let color = hexPalette[i % hexPalette.length];
-                    if (quad.name == active_quad) {
-                        color = "#ff00ff"
-                        console.log(active_quad)
-                    } else {
+                // Draw Quads
+                if (true) {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+                    let i = 0;
+                    q.forEach(quad => {
                         /* log(quad) */
-                    }
-                    const rgb = transparent_hex(color, quad.level / 10);
-                    /* log(color) */
-                    this.ctx.lineWidth = 5;
-                    this.ctx.strokeStyle = color;
-                    this.ctx.fillStyle = rgb
-                    this.ctx.beginPath();
-                    this.ctx.rect(quad.position[0], quad.position[1], quad.size, quad.size);
-                    this.ctx.fill()
-                    this.ctx.stroke()
-                    this.ctx.closePath();
+                        let color = hexPalette[i % hexPalette.length];
+                        if (quad.name == active_quad) {
+                            color = "#ff00ff"
+                            console.log(active_quad)
+                        } else {
+                            /* log(quad) */
+                        }
+                        const rgb = transparent_hex(color, quad.level / 10);
+                        /* log(color) */
+                        this.ctx.lineWidth = 5;
+                        this.ctx.strokeStyle = color;
+                        this.ctx.fillStyle = rgb
+                        this.ctx.beginPath();
+                        this.ctx.rect(quad.position[0], quad.position[1], quad.size, quad.size);
+                        this.ctx.fill()
+                        this.ctx.stroke()
+                        this.ctx.closePath();
 
 
-                    this.ctx.font = "12pt sans-serif"
-                    this.ctx.fillStyle = "black"
-                    this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0], quad.position[1] + quad.size / 2);
+                        this.ctx.font = "12pt sans-serif"
+                        this.ctx.fillStyle = "black"
+                        this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}`, quad.position[0], quad.position[1] + quad.size / 2);
 
-                    i++;
-                })
-            }
-
-            // Draw Agents
-            if (true) {
-                const agents = this.world.get_agents();
-                /* log(agents) */
-                for (let i = 0; i < agents.positions.length; i++) {
-                    /* log(agents.positions[i], agents.types[i]) */
-                    switch (agents.types[i]) {
-                        case 0: // Wolf
-                            this.ctx.fillStyle = "red"
-                            break;
-                        case 1: // Sheep
-                            this.ctx.fillStyle = "white"
-                            break;
-                        case 2: // Grass
-                            this.ctx.fillStyle = "green"
-                            break;
-                    }
-                    this.ctx.beginPath();
-                    this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 10, 0, Math.PI * 2);
-                    this.ctx.fill();
-                    this.ctx.closePath()
-                    /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
+                        i++;
+                    })
                 }
-            }
 
-            // Draw Tree
-            if (true) {
-                /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
-                /* log(q) */
-                let levels = []
-                let relationships = {}
+                // Draw Agents
+                if (true) {
+                    const agents = this.world.get_agents();
+                    /* log(agents) */
+                    for (let i = 0; i < agents.positions.length; i++) {
+                        /* log(agents.positions[i], agents.types[i]) */
+                        switch (agents.types[i]) {
+                            case 0: // Wolf
+                                this.ctx.fillStyle = "red"
+                                break;
+                            case 1: // Sheep
+                                this.ctx.fillStyle = "white"
+                                break;
+                            case 2: // Grass
+                                this.ctx.fillStyle = "green"
+                                break;
+                        }
+                        this.ctx.beginPath();
+                        this.ctx.arc(agents.positions[i][0], agents.positions[i][1], 10, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.closePath()
+                        /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
+                    }
+                }
+
+                // Draw Tree
+                if (true) {
+                    /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
+                    /* log(q) */
+                    let levels = []
+                    let relationships = {}
+                    `
                 q.forEach(quad => {
                     if (levels[quad.level]) {
                         levels[quad.level].push(quad)
@@ -160,7 +161,16 @@ class App {
                     }
                 }
                 log(relationships)
-                log(`Relationships for ${q.length} nodes computed in ${performance.now() - then}ms.`)
+                log(`
+                    Relationships
+                    for $ {
+                        q.length
+                    }
+                    nodes computed in $ {
+                        performance.now() - then
+                    }
+                    ms.
+                    `)
 
                 /* log(levels) */
                 log(q)
@@ -213,7 +223,11 @@ class App {
                     _y += 100;
                 })
             }
-            /* log(`Quadtree fetch & draw took ${performance.now() - then} ms`) */
+            /* log(`
+                    Quadtree fetch & draw took $ {
+                        performance.now() - then
+                    }
+                    ms `) */
         }
 
         /* this.renderer.render(); */
@@ -243,7 +257,17 @@ function hexToRgb(hex) { // Thanks to Tim Down @ https://stackoverflow.com/a/562
 function transparent_hex(hex, alpha) {
     if (alpha > 1 || alpha < 0) console.error('Alpha must be normalized (is currently ${alpha})');
     const rgb = hexToRgb(hex);
-    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+    return `
+                    rgba($ {
+                        rgb.r
+                    }, $ {
+                        rgb.g
+                    }, $ {
+                        rgb.b
+                    }, $ {
+                        alpha
+                    })
+                    `
 }
 
 document.readyState == "complete" ? window.app = new App() :
