@@ -5,6 +5,7 @@
 
 UUIDs instead of indicies for agents
    -> store id inside agent
+Use hashmap for agent store, have max number of each agent type, extend hashmap by like 500 each time so reallocation is not oo tfrequent.
 AgentType specific quadtrees for cases where agent number varies greatly ?
   -> need for reliable benchmarking chronometer
 
