@@ -6,3 +6,9 @@
 UUIDs instead of indicies for agents
 AgentType specific quadtrees for cases where agent number varies greatly ?
   -> need for reliable benchmarking chronometer
+
+Performance comparison w/ mouse querying : red = js, green = wasm, toggle with mouseclick ? 
+
+Implement full-on debug mode, away from 3d rendering 
+   -> 3d/debug switch at the top ? 
+      -> aggressive context switching with pause mechanics needed for 3d
