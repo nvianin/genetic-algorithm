@@ -128,7 +128,7 @@ class App {
                 let nearby_points;
                 if (this.queryMethod) {
                     nearby_points = {
-                        indexes: [],
+                        ids: [],
                         positions: [],
                         types: []
                     }
@@ -145,7 +145,7 @@ class App {
                             + Math.pow(agents.positions[i][1] - this.mouse.y, 2)
                             < Math.pow(100, 2)) {
                             nearby_points.positions.push(agents.positions[i])
-                            nearby_points.indexes.push(agents.indexes[i])
+                            nearby_points.ids.push(agents.ids[i])
                             nearby_points.types.push(agents.types[i])
                         }
                     }
@@ -153,7 +153,7 @@ class App {
                 } else {
                     nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
                 }
-                if (nearby_points.positions.length > 0) {
+                if (nearby_points.positions.length > 0 && this.continue_render) {
                     log(nearby_points)
                 } else {
                     log("No nearby points.")
@@ -162,7 +162,7 @@ class App {
                 for (let i = 0; i < agents.positions.length; i++) {
                     /* log(agents.positions[i], agents.types[i]) */
                     let radius = 2;
-                    if (nearby_points.indexes.includes(i)) {
+                    if (nearby_points.ids.includes(agents.ids[i])) {
                         this.ctx.fillStyle = "#ff00ff"
                         radius = 10;
                         /* log(i) */

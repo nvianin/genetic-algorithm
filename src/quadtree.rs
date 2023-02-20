@@ -69,14 +69,6 @@ impl QuadTree {
                 }
             }
         }
-
-        for child in &self.children {
-            for child_node in &mut self.child_nodes {
-                if child_node.insert((0., 0.), child, agent_list, namer) {
-                    break;
-                }
-            }
-        }
         /* log(&format!("{:#?}", self)); */
         println!("{:#?}", self);
     }

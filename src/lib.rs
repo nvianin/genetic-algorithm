@@ -89,7 +89,7 @@ pub struct World {
     sheep_num: usize,
     wolf_num: usize,
 
-    agents: HashMap<Uuid, Agent>
+    agents: HashMap<Uuid, Agent>,
 }
 
 extern crate console_error_panic_hook;
@@ -130,7 +130,7 @@ impl World {
     }
 
     fn update_agents(&mut self) {
-        for agent in &mut self.agents.values() {
+        for agent in self.agents.values_mut() {
             match &mut agent.kind {
                 AgentType::Wolf(_) => {}
                 AgentType::Sheep(_) => {}
@@ -143,7 +143,7 @@ impl World {
         self.quad = QuadTree::new(self.size);
         for (id, agent) in self.agents.iter() {
             self.quad
-                .insert(agent.position, *id, &self.agents, &self.namer);
+                .insert(agent.position, id, &self.agents, &self.namer);
         }
     }
 
@@ -204,35 +204,50 @@ impl World {
     fn spawn_entities(&mut self) {
         let mut rng = rand::thread_rng();
         for _ in 0..self.wolf_num {
-            self.agents.push(Agent {
-                position: (
-                    rng.gen::<f32>() * self.quad.size + self.quad.position.0,
-                    rng.gen::<f32>() * self.quad.size + self.quad.position.1,
-                ),
-                kind: AgentType::Wolf(WolfGeneticInformation::default()),
-                id: Uuid::new_v4()
-            });
+            let id = Uuid::new_v4();
+            self.agents
+                .insert(
+                    id,
+                    Agent {
+                        position: (
+                            rng.gen::<f32>() * self.quad.size + self.quad.position.0,
+                            rng.gen::<f32>() * self.quad.size + self.quad.position.1,
+                        ),
+                        kind: AgentType::Wolf(WolfGeneticInformation::default()),
+                        id,
+                    },
+                );
         }
         for _ in 0..self.sheep_num {
-            self.agents.push(Agent {
-                position: (
-                    rng.gen::<f32>() * self.quad.size,
-                    rng.gen::<f32>() * self.quad.size,
-                ),
-                kind: AgentType::Sheep(SheepGeneticInformation::default()),
-                id: Uuid::new_v4()
-            });
+            let id = Uuid::new_v4();
+            self.agents
+                .insert(
+                    id,
+                    Agent {
+                        position: (
+                            rng.gen::<f32>() * self.quad.size,
+                            rng.gen::<f32>() * self.quad.size,
+                        ),
+                        kind: AgentType::Sheep(SheepGeneticInformation::default()),
+                        id,
+                    },
+                );
         }
 
         for _ in 0..MAX_GRASS {
-            self.agents.push(Agent {
-                position: (
-                    rng.gen::<f32>() * self.quad.size,
-                    rng.gen::<f32>() * self.quad.size,
-                ),
-                kind: AgentType::Grass(1.),
-                id: Uuid::new_v4()
-            })
+            let id = Uuid::new_v4();
+            self.agents
+                .insert(
+                    id,
+                    Agent {
+                        position: (
+                            rng.gen::<f32>() * self.quad.size,
+                            rng.gen::<f32>() * self.quad.size,
+                        ),
+                        kind: AgentType::Grass(1.),
+                        id,
+                    },
+                );
         }
     }
 
@@ -240,7 +255,8 @@ impl World {
     pub fn get_agents(&self) -> JsValue {
         let mut result = SerializedAgents::new();
 
-        for agent in &self.agents {
+        for agent in self.agents.values() {
+            result.ids.push(agent.id.to_string());
             result.positions.push(agent.position);
             result.types.push(agent.kind.to_int());
         }
@@ -270,10 +286,10 @@ impl World {
         let agent_indexes = self
             .quad
             .get_children_in_radius((x, y), radius, &self.agents);
-        for index in agent_indexes {
-            result.indexes.push(index);
-            result.positions.push(self.agents[index].position);
-            result.types.push(self.agents[index].kind.to_int());
+        for id in agent_indexes {
+            result.ids.push(id.to_string());
+            result.positions.push(self.agents[&id].position);
+            result.types.push(self.agents[&id].kind.to_int());
         }
 
         /* log(&format!("{:#?}", &result.positions.len())); */
@@ -283,14 +299,14 @@ impl World {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SerializedAgents {
-    pub indexes: Vec<usize>,
+    pub ids: Vec<String>,
     pub positions: Vec<(f32, f32)>,
     pub types: Vec<u8>,
 }
 impl SerializedAgents {
     pub fn new() -> SerializedAgents {
         SerializedAgents {
-            indexes: Vec::new(),
+            ids: Vec::new(),
             positions: Vec::new(),
             types: Vec::new(),
         }
