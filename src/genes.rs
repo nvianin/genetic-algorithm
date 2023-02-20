@@ -1,6 +1,6 @@
-use rand::{Rng, rngs::ThreadRng};
+use rand::{rngs::ThreadRng, Rng};
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Genotype {
     // Genotype Variables
     pub body_size: f32,
@@ -10,10 +10,10 @@ pub struct Genotype {
     pub hunger_rate: f32,
     pub health_scale: f32,
     pub movement_speed: f32,
-    pub gestation_duration: f32
+    pub gestation_duration: f32,
 }
 impl Genotype {
-    pub fn new(thread_rng: ThreadRng) -> Genotype {
+    pub fn new(thread_rng: &mut ThreadRng) -> Genotype {
         let body_size = thread_rng.gen_range(0.1..0.9);
         let sight_distance = thread_rng.gen_range(0.1..0.9);
         let muscle_mass = thread_rng.gen_range(0.1..0.9);

@@ -8,9 +8,6 @@ use genes::Genotype;
 mod agent;
 use agent::{Agent, AgentType};
 
-mod state_machine;
-use state_machine::{State, StateMachine};
-
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -121,6 +118,7 @@ impl World {
 
     fn update_agents(&mut self, optimized: bool) {
         let old_agents = self.agents.clone();
+        let mut to_remove = Vec::new();
         for agent in self.agents.values_mut() {
             match &mut agent.kind {
                 AgentType::Wolf(_) => {}
@@ -149,38 +147,45 @@ impl World {
 
             match agent.kind {
                 AgentType::Sheep(genotype) => {
+                    let mut nearby_agents_ids = Vec::new();
+                    nearby_agents_ids.append(&mut self.wolf_quad.get_children_in_radius(
+                        agent.position,
+                        genotype.sight_distance,
+                        &old_agents,
+                    ));
+                    nearby_agents_ids.append(&mut self.grass_quad.get_children_in_radius(
+                        agent.position,
+                        genotype.sight_distance,
+                        &old_agents,
+                    ));
                     let mut nearby_agents = Vec::new();
-                    nearby_agents.push(self.wolf_quad.get_children_in_radius(
-                        agent.position,
-                        genotype.sight_distance,
-                        &old_agents,
-                    ));
-                    nearby_agents.push(self.grass_quad.get_children_in_radius(
-                        agent.position,
-                        genotype.sight_distance,
-                        &old_agents,
-                    ));
-                    // Move the agent
+                    for id in &nearby_agents_ids {
+                        nearby_agents.push(old_agents.get(id).unwrap());
+                    }
+
+                    agent.update(&mut nearby_agents);
+
                     agent.position.0 += agent.acceleration.0;
                     agent.position.1 += agent.acceleration.1;
 
                     agent.acceleration.0 *= 0.9;
                     agent.acceleration.1 *= 0.9;
-                    if let AgentType::Sheep(_) = agent.kind {
+                    /* if let AgentType::Sheep(_) = agent.kind {
                         log(&format!("{:?}, {:?}", agent.position, agent.acceleration));
-                    }
+                    } */
                 }
                 AgentType::Wolf(genotype) => {}
                 AgentType::Grass() => {}
             }
+            if agent.dead {
+                to_remove.push(agent.id);
+            }
         }
+        // Delete marked agents
 
-        self.agents
-            .values()
-            .filter(|a| a.dead)
-            .for_each(|to_delete| {
-                self.agents.remove(&to_delete.id);
-            });
+        for dead in &to_remove {
+            self.agents.remove(dead);
+        }
     }
 
     fn build_quadtree_good(&mut self) {
@@ -267,7 +272,7 @@ impl World {
             self.agents.insert(
                 id,
                 Agent::new(
-                    AgentType::Wolf(Genotype::new(self.rng)),
+                    AgentType::Wolf(Genotype::new(&mut self.rng)),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
                 ),
@@ -279,7 +284,7 @@ impl World {
             self.agents.insert(
                 id,
                 Agent::new(
-                    AgentType::Sheep(Genotype::new(self.rng)),
+                    AgentType::Sheep(Genotype::new(&mut self.rng)),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
                 ),
