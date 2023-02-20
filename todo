@@ -4,6 +4,7 @@
 
 
 UUIDs instead of indicies for agents
+   -> store id inside agent
 AgentType specific quadtrees for cases where agent number varies greatly ?
   -> need for reliable benchmarking chronometer
 
