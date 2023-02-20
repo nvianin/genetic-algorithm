@@ -14,7 +14,7 @@ use state_machine::{State, StateMachine};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-use rand::Rng;
+use rand::{Rng, rngs::ThreadRng};
 
 use uuid::Uuid;
 
@@ -70,6 +70,7 @@ pub struct World {
     namer: NameGen,
     size: f32,
     pub seed: u32,
+    rng: ThreadRng,
     sheep_num: usize,
     wolf_num: usize,
 
@@ -99,6 +100,7 @@ impl World {
             namer,
             size,
             seed: rng.gen(),
+            rng: rand::thread_rng(),
 
             sheep_num,
             wolf_num,
