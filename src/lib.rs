@@ -10,7 +10,9 @@ use wasm_bindgen::prelude::*;
 
 use rand::Rng;
 
-use std::collections::HashMap;
+use uuid::Uuid;
+
+use std::{collections::HashMap, hash::Hash};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -75,6 +77,7 @@ impl AgentType {
 pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),
+    pub id: Uuid,
 }
 
 #[wasm_bindgen]
@@ -86,7 +89,7 @@ pub struct World {
     sheep_num: usize,
     wolf_num: usize,
 
-    agents: Vec<Agent>,
+    agents: HashMap<Uuid, Agent>
 }
 
 extern crate console_error_panic_hook;
@@ -114,7 +117,7 @@ impl World {
             sheep_num,
             wolf_num,
 
-            agents: Vec::new(),
+            agents: HashMap::with_capacity(sheep_num + wolf_num + MAX_GRASS),
         };
         w.spawn_entities();
         w.build_quadtree_good();
@@ -127,7 +130,7 @@ impl World {
     }
 
     fn update_agents(&mut self) {
-        for agent in &mut self.agents {
+        for agent in &mut self.agents.values() {
             match &mut agent.kind {
                 AgentType::Wolf(_) => {}
                 AgentType::Sheep(_) => {}
@@ -138,16 +141,16 @@ impl World {
 
     fn build_quadtree_good(&mut self) {
         self.quad = QuadTree::new(self.size);
-        for i in 0..self.agents.len() {
+        for (id, agent) in self.agents.iter() {
             self.quad
-                .insert(self.agents[i].position, i, &self.agents, &self.namer);
+                .insert(agent.position, *id, &self.agents, &self.namer);
         }
     }
 
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
         let namer = NameGen::new();
-        let agent_list = Vec::new();
+        let agent_list = HashMap::new();
 
         let mut q = QuadTree::new(1024.);
         q.subdivide(&namer, &agent_list);
@@ -168,8 +171,8 @@ impl World {
         let mut children_position = Vec::new();
         let mut children_type = Vec::new();
         for child in &node.children {
-            children_position.push(self.agents[*child].position);
-            children_type.push(self.agents[*child].kind.to_int());
+            children_position.push(self.agents[child].position);
+            children_type.push(self.agents[child].kind.to_int());
         }
         result.children.push(children_position);
         result.children_type.push(children_type);
@@ -207,6 +210,7 @@ impl World {
                     rng.gen::<f32>() * self.quad.size + self.quad.position.1,
                 ),
                 kind: AgentType::Wolf(WolfGeneticInformation::default()),
+                id: Uuid::new_v4()
             });
         }
         for _ in 0..self.sheep_num {
@@ -216,6 +220,7 @@ impl World {
                     rng.gen::<f32>() * self.quad.size,
                 ),
                 kind: AgentType::Sheep(SheepGeneticInformation::default()),
+                id: Uuid::new_v4()
             });
         }
 
@@ -226,6 +231,7 @@ impl World {
                     rng.gen::<f32>() * self.quad.size,
                 ),
                 kind: AgentType::Grass(1.),
+                id: Uuid::new_v4()
             })
         }
     }

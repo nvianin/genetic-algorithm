@@ -1,5 +1,6 @@
 use nickname::NameGen;
-use std::thread::current;
+use uuid::Uuid;
+use std::{thread::current, collections::HashMap};
 use wasm_bindgen::prelude::*;
 
 use crate::{log, Agent, MAX_CHILDREN, MAX_LEVELS};
@@ -11,7 +12,7 @@ const QUAD_ORDER: [(f32, f32); 4] = [(0., 0.), (1., 0.), (1., 1.), (0., 1.)];
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct QuadTree {
-    pub children: Vec<usize>,
+    pub children: Vec<Uuid>,
     pub child_nodes: Vec<Box<QuadTree>>,
     pub is_leaf: bool,
     pub position: (f32, f32),
@@ -37,7 +38,7 @@ impl QuadTree {
         }
     }
 
-    pub fn subdivide(&mut self, namer: &NameGen, agent_list: &Vec<Agent>) {
+    pub fn subdivide(&mut self, namer: &NameGen, agent_list: &HashMap<Uuid, Agent>) {
         /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
             let mut address = self.address.clone();
@@ -63,7 +64,7 @@ impl QuadTree {
         while self.children.len() >= 1 {
             let child = self.children.pop().unwrap();
             for child_node in &mut self.child_nodes {
-                if child_node.insert(agent_list[child].position, child, agent_list, namer) {
+                if child_node.insert(agent_list[&child].position, &child, agent_list, namer) {
                     break;
                 }
             }
@@ -71,7 +72,7 @@ impl QuadTree {
 
         for child in &self.children {
             for child_node in &mut self.child_nodes {
-                if child_node.insert((0., 0.), *child, agent_list, namer) {
+                if child_node.insert((0., 0.), child, agent_list, namer) {
                     break;
                 }
             }
@@ -92,38 +93,38 @@ impl QuadTree {
     pub fn insert(
         &mut self,
         point: (f32, f32),
-        child_index: usize,
-        agent_list: &Vec<Agent>,
+        child_id: &Uuid,
+        agent_list: &HashMap<Uuid, Agent>,
         namer: &NameGen,
     ) -> bool {
         if self.contains(point) && self.is_leaf {
             if self.children.len() < MAX_CHILDREN {
-                self.children.push(child_index);
+                self.children.push(child_id.clone());
                 return true;
             } else {
                 if (self.level + 1 <= MAX_LEVELS) {
                     self.subdivide(&namer, agent_list);
                     for child in &mut self.child_nodes {
-                        if child.insert(point, child_index, agent_list, namer) {
+                        if child.insert(point, child_id, agent_list, namer) {
                             return true;
                         };
                     }
                     for child_agent in &self.children {
                         for child in &mut self.child_nodes {
-                            if child.insert(point, *child_agent, agent_list, namer) {
+                            if child.insert(point, child_agent, agent_list, namer) {
                                 return true;
                             };
                         }
                     }
                 } else {
-                    self.children.push(child_index);
+                    self.children.push(child_id.clone());
                     return true;
                 }
                 panic!("Failed to insert child into quadtree");
             }
         } else {
             for child in &mut self.child_nodes {
-                if child.insert(point, child_index, agent_list, namer) {
+                if child.insert(point, child_id, agent_list, namer) {
                     return true;
                 };
             }
@@ -204,15 +205,15 @@ impl QuadTree {
         &self,
         position: (f32, f32),
         radius: f32,
-        agent_list: &Vec<Agent>,
-    ) -> Vec<usize> {
+        agent_list:&HashMap<Uuid, Agent>
+    ) -> Vec<Uuid> {
         let mut result = Vec::new();
 
         if self.intersects_circle(position, radius) {
             let last_len = result.len();
             for child in &self.children {
-                if (agent_list[*child].position.0 - position.0).powi(2)
-                    + (agent_list[*child].position.1 - position.1).powi(2)
+                if (agent_list[child].position.0 - position.0).powi(2)
+                    + (agent_list[child].position.1 - position.1).powi(2)
                     < radius.powi(2)
                 {
                     result.push(*child);

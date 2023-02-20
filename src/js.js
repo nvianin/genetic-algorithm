@@ -123,24 +123,38 @@ class App {
             // Draw Agents
             if (true) {
                 const agents = this.world.get_agents();
-                /* log(agents) */
+                log(agents)
 
                 let nearby_points;
                 if (this.queryMethod) {
-                    nearby_points = agents.positions.find(p => {
-                        let then = performance.now();
-                        Math.sqrt(Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2)) < 100
-                        log(`Brute force sqrt took ${performance.now() - then}ms.`);
+                    nearby_points = {
+                        indexes: [],
+                        positions: [],
+                        types: []
+                    }
+                    for (let i = 0; i < agents.positions.length; i++) {
+                        /* let then = performance.now();
+                        let condition = Math.sqrt(Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2)) < 100
+                        log(`Brute force sqrt took ${performance.now() - then}ms with result ${condition}.`);
 
                         then = performance.now();
-                        Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2) < Math.pow(100, 2)
-                        log(`Brute force pow took ${performance.now() - then}ms.`);
-                    })
+                        condition = Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2) < Math.pow(100, 2)
+                        log(`Brute force pow took ${performance.now() - then}ms with result ${condition}.`); */
+
+                        if (Math.pow(agents.positions[i][0] - this.mouse.x, 2)
+                            + Math.pow(agents.positions[i][1] - this.mouse.y, 2)
+                            < Math.pow(100, 2)) {
+                            nearby_points.positions.push(agents.positions[i])
+                            nearby_points.indexes.push(agents.indexes[i])
+                            nearby_points.types.push(agents.types[i])
+                        }
+                    }
+                    /* log(nearby_points) */
                 } else {
                     nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
                 }
                 if (nearby_points.positions.length > 0) {
-                    /* log(nearby_points) */
+                    log(nearby_points)
                 } else {
                     log("No nearby points.")
                 }
