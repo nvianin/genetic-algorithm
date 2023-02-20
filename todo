@@ -12,3 +12,8 @@ Performance comparison w/ mouse querying : red = js, green = wasm, toggle with m
 Implement full-on debug mode, away from 3d rendering 
    -> 3d/debug switch at the top ? 
       -> aggressive context switching with pause mechanics needed for 3d
+
+Implement statistical analysis
+   -> getters for medians/average 
+   -> js graph drawing each x ms 
+   -> interface to change visualization 
