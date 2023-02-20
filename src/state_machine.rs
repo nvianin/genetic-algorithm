@@ -15,20 +15,18 @@ impl StateMachine {
         }
     }
 
-    pub fn update(&mut self, agent: &mut Agent) {
+    pub fn update(&mut self, agent: &mut Agent, nearby_agents: &Vec<Agent>) {
         match self.state {
             State::Idle => {
                 if agent.hunger < 0. {
-                    self.state = State::Hunting(agent.get_closest_food());
+                    self.state = State::Hunting(agent.get_closest_food(nearby_agents));
                 }
             }
             State::Hunting(target) => {
                 
             }
             State::Fleeing => {
-                if agent.hunger > 0. {
-                    self.state = State::Hunting(agent.get_closest_food());
-                }
+                let mut 
             }
             State::Eating(target) => {
                 if agent.hunger <= 0. {

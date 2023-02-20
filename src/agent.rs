@@ -1,14 +1,14 @@
 use std::fmt::Display;
 
-use crate::genes::{SheepGeneticInformation, WolfGeneticInformation};
+use crate::genes::Genotype;
 use crate::StateMachine;
 
 use uuid::Uuid;
 
 #[derive(Clone)]
 pub enum AgentType {
-    Wolf(WolfGeneticInformation),
-    Sheep(SheepGeneticInformation),
+    Wolf(Genotype),
+    Sheep(Genotype),
     Grass(),
 }
 
@@ -44,6 +44,7 @@ pub struct Agent {
     pub id: Uuid,
     pub health: f32,
     pub hunger: f32,
+    pub life: f32,
     pub state_machine: StateMachine,
     pub dead: bool,
 }
@@ -57,8 +58,18 @@ impl Agent {
             id,
             health: 100.,
             hunger: 30.,
+            life: 100.,
             state_machine: StateMachine::new(),
             dead: false,
+        }
+    }
+
+    pub fn update(&mut self, agent_list: Vec<Agent>) {
+        self.state_machine.update(self);
+        self.hunger -= 1.;
+        /* self.health -= 1.; */
+        if self.health <= 0. {
+            self.dead = true;
         }
     }
 

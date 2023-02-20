@@ -3,7 +3,7 @@ use nickname::NameGen;
 use quadtree::QuadTree;
 
 mod genes;
-use genes::{SheepGeneticInformation, WolfGeneticInformation};
+use genes::Genotype;
 
 mod agent;
 use agent::{Agent, AgentType};
@@ -14,7 +14,7 @@ use state_machine::{State, StateMachine};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-use rand::{Rng, rngs::ThreadRng};
+use rand::{rngs::ThreadRng, Rng};
 
 use uuid::Uuid;
 
@@ -175,9 +175,12 @@ impl World {
             }
         }
 
-        self.agents.values().filter(|a| a.dead).for_each(|to_delete| {
-            self.agents.remove(&to_delete.id);
-        });
+        self.agents
+            .values()
+            .filter(|a| a.dead)
+            .for_each(|to_delete| {
+                self.agents.remove(&to_delete.id);
+            });
     }
 
     fn build_quadtree_good(&mut self) {
@@ -264,7 +267,7 @@ impl World {
             self.agents.insert(
                 id,
                 Agent::new(
-                    AgentType::Wolf(WolfGeneticInformation::default()),
+                    AgentType::Wolf(Genotype::new(self.rng)),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
                 ),
@@ -276,7 +279,7 @@ impl World {
             self.agents.insert(
                 id,
                 Agent::new(
-                    AgentType::Sheep(SheepGeneticInformation::default()),
+                    AgentType::Sheep(Genotype::new(self.rng)),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
                 ),
@@ -369,4 +372,13 @@ pub struct Test {
 #[wasm_bindgen]
 pub fn greet() {
     alert("Hello, genetic-algorithm!");
+}
+
+fn vector_length(vec: (f32, f32)) -> f32 {
+    (vec.0.powi(2) + vec.1.powi(2)).sqrt()
+}
+
+fn normalize_vector(vec: (f32, f32)) -> (f32, f32) {
+    let length = vector_length(vec);
+    (vec.0 / length, vec.1 / length)
 }

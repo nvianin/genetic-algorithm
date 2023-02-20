@@ -1,39 +1,6 @@
 use rand::{Rng, rngs::ThreadRng};
 
 #[derive(Clone)]
-pub struct WolfGeneticInformation {
-    // Genotype Variables
-    pub movement_speed: f32,
-    pub sight_distance: f32,
-    // Derived Variables
-}
-
-impl WolfGeneticInformation {
-    pub fn default() -> WolfGeneticInformation {
-        WolfGeneticInformation {
-            movement_speed: 1.,
-            sight_distance: 1.,
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct SheepGeneticInformation {
-    // Genotype Variables
-    pub movement_speed: f32,
-    pub sight_distance: f32,
-    // Derived Variables
-}
-
-impl SheepGeneticInformation {
-    pub fn default() -> SheepGeneticInformation {
-        SheepGeneticInformation {
-            movement_speed: 1.5,
-            sight_distance: 1.,
-        }
-    }
-}
-
 pub struct Genotype {
     // Genotype Variables
     pub body_size: f32,
@@ -57,8 +24,8 @@ impl Genotype {
             // Derived variables
             hunger_rate: body_size * muscle_mass,
             health_scale: body_size * muscle_mass,
-            movement_speed: body_size * muscle_mass,
-            gestation_duration: body_size,
+            movement_speed: muscle_mass / body_size,
+            gestation_duration: body_size * muscle_mass,
         }
     }
 }
