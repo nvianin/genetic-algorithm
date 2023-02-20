@@ -1,6 +1,6 @@
-use std::{f32::MIN, fmt::Display};
+use std::{collections::HashMap, f32::MIN, fmt::Display};
 
-use crate::genes::Genotype;
+use crate::genes::{self, Genotype};
 
 use uuid::Uuid;
 
@@ -36,6 +36,7 @@ impl Display for AgentType {
 }
 
 const MIN_HUNGER: f32 = 30.;
+const HUNGER_RATE: f32 = 0.05;
 
 #[derive(Clone)]
 pub struct Agent {
@@ -65,67 +66,97 @@ impl Agent {
         }
     }
 
-    pub fn update(&mut self, nearby_agents: &mut Vec<&Agent>) {
+    pub fn update(&mut self, nearby_agents: Vec<Uuid>, agents: &mut HashMap<Uuid, Agent>) {
         self.position.0 + self.acceleration.0;
         self.position.1 + self.acceleration.1;
 
         self.acceleration.0 *= 0.9;
         self.acceleration.1 *= 0.9;
+        match self.kind {
+            AgentType::Sheep(genotype) => {
+                match self.state {
+                    State::Idle => {
+                        for id in nearby_agents.iter() {
+                            match agents.get(id).unwrap().kind {
+                                AgentType::Wolf(_) => {
+                                    self.state = State::Fleeing;
+                                }
+                                _ => {}
+                            }
+                        }
 
-        match self.state {
-            State::Idle => {
-                if self.hunger < MIN_HUNGER {
-                    // Get nearby food
-                    nearby_agents.iter().find(|a| match a.kind {
-                        AgentType::Grass() => true,
-                        _ => false,
-                    });
-                }
-            }
-            State::Hunting(target) => {
-                match nearby_agents.iter_mut().find(|a| a.id == target) {
-                    Some(a) => {
-                        // Found prey, continuing predator routine
-                        self.acceleration.0 += a.position.0 - self.position.0;
-                        self.acceleration.1 += a.position.1 - self.position.1;
-                        if (a.position.0 - self.position.0).abs() < 10.
-                            && (a.position.1 - self.position.1).abs() < 10.
-                        {
-                            // Eat prey
-                            self.hunger += a.eat(10.);
-                            if self.hunger > MIN_HUNGER {
-                                self.state = State::Idle;
+                        if self.hunger < MIN_HUNGER {
+                            // Get nearby food
+                            for id in nearby_agents.iter() {
+                                match agents.get(id).unwrap().kind {
+                                    AgentType::Grass() => {
+                                        self.state = State::Hunting(*id);
+                                    }
+                                    _ => {}
+                                }
                             }
                         }
                     }
-                    None => {}
-                }
-            }
-            State::Fleeing => {
-                match self.kind {
-                    AgentType::Sheep(_) => {
-                        // Get nearby wolves
-                        match nearby_agents.iter().find(|a| match a.kind {
-                            AgentType::Wolf(_) => true,
-                            _ => false,
-                        }) {
+                    State::Hunting(target) => {
+                        // Check if target is still nearby
+                        match nearby_agents.iter().find(|a| **a == target) {
                             Some(a) => {
-                                // Found predator, fleeing
-                                self.acceleration.0 += self.position.0 - a.position.0;
-                                self.acceleration.1 += self.position.1 - a.position.1;
+                                let prey = agents.get(a).unwrap();
+                                // Found prey, continuing predator routine
+                                self.acceleration.0 += prey.position.0 - self.position.0;
+                                self.acceleration.1 += prey.position.1 - self.position.1;
+                                if (prey.position.0 - self.position.0).abs() < 1.
+                                    && (prey.position.1 - self.position.1).abs() < 1.
+                                {
+                                    // Eat prey
+                                    self.hunger += prey.eat(10.);
+                                    if self.hunger > MIN_HUNGER {
+                                        self.state = State::Idle;
+                                    }
+                                }
                             }
                             None => {
-                                // No predators nearby, return to idle
                                 self.state = State::Idle;
                             }
                         }
                     }
-                    _ => {}
+                    State::Fleeing => {
+                        match self.kind {
+                            AgentType::Sheep(_) => {
+                                // Get nearby wolves
+                                let mut med_dir = (0., 0.);
+                                let mut predator_count = 0;
+                                for id in nearby_agents.iter() {
+                                    match agents.get(id).unwrap().kind {
+                                        AgentType::Wolf(_) => {
+                                            let pos = agents.get(id).unwrap().position;
+                                            med_dir.0 += pos.0;
+                                            med_dir.1 += pos.1;
+                                            predator_count += 1;
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                                if predator_count > 0 {
+                                    med_dir.0 /= predator_count as f32;
+                                    med_dir.1 /= predator_count as f32;
+                                    self.acceleration.0 += med_dir.0;
+                                    self.acceleration.1 += med_dir.1;
+                                } else {
+                                    self.state = State::Idle;
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    State::Eating(target) => {}
                 }
+                self.hunger -= HUNGER_RATE * genotype.hunger_rate;
             }
-            State::Eating(target) => {}
+            AgentType::Wolf(genotype) => {}
+            AgentType::Grass() => {}
         }
-        self.hunger -= 1.;
+
         /* self.health -= 1.; */
         if self.health <= 0. {
             self.dead = true;
@@ -136,12 +167,13 @@ impl Agent {
         agent_list.iter().find(|a| a.kind.to_int() == 2).unwrap().id
     }
 
-    pub fn eat(&mut self, bite: f32) -> f32 {
+    pub fn eat(&self, bite: f32) -> f32 {
         if let AgentType::Grass() = self.kind {
             if self.health - bite < 0. {
                 self.dead = true;
                 return self.health % bite;
             } else {
+                self.health -= bite;
                 return self.health - bite;
             }
         } else {

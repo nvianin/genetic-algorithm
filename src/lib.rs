@@ -158,12 +158,8 @@ impl World {
                         genotype.sight_distance,
                         &old_agents,
                     ));
-                    let mut nearby_agents = Vec::new();
-                    for id in &nearby_agents_ids {
-                        nearby_agents.push(old_agents.get(id).unwrap());
-                    }
 
-                    agent.update(&mut nearby_agents);
+                    agent.update(nearby_agents_ids, &mut self.agents);
 
                     agent.position.0 += agent.acceleration.0;
                     agent.position.1 += agent.acceleration.1;
