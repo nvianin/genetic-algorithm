@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 256,
-    sheep_count: 1024,
+    wolf_count: 1,
+    sheep_count: 1,
     size: 1024
 }
 
@@ -17,8 +17,8 @@ class App {
 
         this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count)
         this.world = new wasm.World(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
-        log(`Simulation world started with seed [${this.world.seed}].`)
-        log(this.world.get_quadtree())
+        log(`Simulation world started with seed [${this.world.seed}].`);
+        log(this.world.get_quadtree());
 
         this.continue_render = true
 
@@ -64,6 +64,11 @@ class App {
     }
 
     initDebugCanvas() {
+        this.benchmarking_data = {
+            quadtree: [],
+            brute_force: []
+        }
+
         this.canvas = document.createElement("canvas");
         this.ctx = this.canvas.getContext("2d");
         document.body.appendChild(this.canvas);
@@ -74,7 +79,9 @@ class App {
 
     update() {
         if (this.continue_render) {
+            const then = performance.now();
             this.world.step();
+            /* log(`Step took ${performance.now() - then}ms.`); */
         }
         requestAnimationFrame(this.update.bind(this))
         /* log("update") */
@@ -122,11 +129,12 @@ class App {
 
             // Draw Agents
             if (true) {
-                const agents = this.world.get_agents();
-                log(agents)
+                /* log(agents) */
 
+                let then = performance.now();
+                const agents = this.world.get_agents();
                 let nearby_points;
-                if (this.queryMethod) {
+                if (this.queryMethod && false) {
                     nearby_points = {
                         ids: [],
                         positions: [],
@@ -143,7 +151,7 @@ class App {
 
                         if (Math.pow(agents.positions[i][0] - this.mouse.x, 2)
                             + Math.pow(agents.positions[i][1] - this.mouse.y, 2)
-                            < Math.pow(100, 2)) {
+                            < Math.pow(50, 2)) {
                             nearby_points.positions.push(agents.positions[i])
                             nearby_points.ids.push(agents.ids[i])
                             nearby_points.types.push(agents.types[i])
@@ -151,13 +159,37 @@ class App {
                     }
                     /* log(nearby_points) */
                 } else {
-                    nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
+                    nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 50);
+                }
+                if (this.queryMethod) {
+                    /* log(`Brute force took ${performance.now() - then}ms.`) */
+                    this.benchmarking_data.brute_force.push(performance.now() - then);
+                } else {
+                    /* log(`Quadtree took ${performance.now() - then}ms.`) */
+                    this.benchmarking_data.quadtree.push(performance.now() - then);
                 }
                 if (nearby_points.positions.length > 0 && this.continue_render) {
-                    log(nearby_points)
+                    /* log(nearby_points) */
                 } else {
-                    log("No nearby points.")
+                    /* log("No nearby points.") */
                 }
+
+                // log the average time taken for each query method
+                /* if (this.benchmarking_data.quadtree.length > 100) {
+                    let sum = 0;
+                    for (let i = 0; i < this.benchmarking_data.quadtree.length; i++) {
+                        sum += this.benchmarking_data.quadtree[i];
+                    }
+                    log(`Average time taken for quadtree: ${sum / this.benchmarking_data.quadtree.length}ms.`)
+                }
+                if (this.benchmarking_data.brute_force.length > 100) {
+                    let sum = 0;
+                    for (let i = 0; i < this.benchmarking_data.brute_force.length; i++) {
+                        sum += this.benchmarking_data.brute_force[i];
+                    }
+                    log(`Average time taken for brute force: ${sum / this.benchmarking_data.brute_force.length}ms.`)
+                } */
+
 
                 for (let i = 0; i < agents.positions.length; i++) {
                     /* log(agents.positions[i], agents.types[i]) */
@@ -188,7 +220,7 @@ class App {
                 }
 
                 // Draw Tree
-                if (true) {
+                if (false) {
                     /* this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); */
                     /* log(q) */
                     let levels = []
@@ -309,13 +341,12 @@ function transparent_hex(hex, alpha) {
     if (alpha > 1 || alpha < 0) console.error('Alpha must be normalized (is currently ${alpha})');
     const rgb = hexToRgb(hex);
     return `
-                    rgba($ {
-                        rgb.r
-                    }, $ {
+                    rgba(${rgb.r
+                    }, ${
                         rgb.g
-                    }, $ {
+                    }, ${
                         rgb.b
-                    }, $ {
+                    }, ${
                         alpha
                     })
                     `

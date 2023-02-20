@@ -77,12 +77,30 @@ impl AgentType {
 pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),
+    pub acceleration: (f32, f32),
     pub id: Uuid,
+    pub health: f32,
+    pub hunger: f32,
+}
+
+impl Agent {
+    pub fn new(kind: AgentType, position: (f32, f32), id: Uuid) -> Agent {
+        Agent {
+            kind,
+            position,
+            acceleration: (0., 0.),
+            id,
+            health: 100.,
+            hunger: 30.,
+        }
+    }
 }
 
 #[wasm_bindgen]
 pub struct World {
-    quad: QuadTree,
+    wolf_quad: QuadTree,
+    sheep_quad: QuadTree,
+    grass_quad: QuadTree,
     namer: NameGen,
     size: f32,
     pub seed: u32,
@@ -94,9 +112,9 @@ pub struct World {
 
 extern crate console_error_panic_hook;
 
-const MAX_GRASS: usize = 0;
-const MAX_CHILDREN: usize = 10;
-const MAX_LEVELS: usize = 4;
+const MAX_GRASS: usize = 8;
+const MAX_CHILDREN: usize = 4;
+const MAX_LEVELS: usize = 6;
 
 // Main JS interface to the simulation
 #[wasm_bindgen(inspectable)]
@@ -109,7 +127,9 @@ impl World {
 
         let mut rng = rand::thread_rng();
         let mut w = World {
-            quad: QuadTree::new(size),
+            wolf_quad: QuadTree::new(size),
+            sheep_quad: QuadTree::new(size),
+            grass_quad: QuadTree::new(size),
             namer,
             size,
             seed: rng.gen(),
@@ -125,25 +145,75 @@ impl World {
     }
 
     #[wasm_bindgen]
-    pub fn step(&mut self) {
+    pub fn step(&mut self, optimized: bool) {
         self.build_quadtree_good();
+
+        self.update_agents(optimized);
     }
 
-    fn update_agents(&mut self) {
+    fn update_agents(&mut self, optimized: bool) {
+        let old_agents = self.agents.clone();
         for agent in self.agents.values_mut() {
             match &mut agent.kind {
                 AgentType::Wolf(_) => {}
-                AgentType::Sheep(_) => {}
+                AgentType::Sheep(genotype) => {
+                    // Try to avoid wolves
+                    let mut nearby_wolves = self.wolf_quad.get_children_in_radius(
+                        agent.position,
+                        genotype.sight_distance,
+                        &old_agents,
+                    );
+                    let mut direction = (0., 0.);
+                    if nearby_wolves.len() > 0 {
+                        for wolf in nearby_wolves.iter() {
+                            direction.0 += agent.position.0 - old_agents[wolf].position.0;
+                            direction.1 += agent.position.1 - old_agents[wolf].position.1;
+                        }
+                        direction.0 /= nearby_wolves.len() as f32;
+                        direction.1 /= nearby_wolves.len() as f32;
+
+                        agent.acceleration.0 += direction.0 * 0.01;
+                        agent.acceleration.1 += direction.1 * 0.01;
+                    }
+                }
+                AgentType::Grass(_) => {}
+            }
+
+            match agent.kind {
+                AgentType::Sheep(_) | AgentType::Wolf(_) => {
+                    // Move the agent
+                    agent.position.0 += agent.acceleration.0;
+                    agent.position.1 += agent.acceleration.1;
+
+                    agent.acceleration.0 *= 0.9;
+                    agent.acceleration.1 *= 0.9;
+                    log(&format!("{:?}, {:?}", agent.position, agent.acceleration));
+                }
                 AgentType::Grass(_) => {}
             }
         }
     }
 
     fn build_quadtree_good(&mut self) {
-        self.quad = QuadTree::new(self.size);
+        self.wolf_quad = QuadTree::new(self.size);
+        self.sheep_quad = QuadTree::new(self.size);
+        self.grass_quad = QuadTree::new(self.size);
+
         for (id, agent) in self.agents.iter() {
-            self.quad
-                .insert(agent.position, id, &self.agents, &self.namer);
+            match agent.kind {
+                AgentType::Wolf(_) => {
+                    self.wolf_quad
+                        .insert(agent.position, id, &self.agents, &self.namer);
+                }
+                AgentType::Sheep(_) => {
+                    self.sheep_quad
+                        .insert(agent.position, id, &self.agents, &self.namer);
+                }
+                AgentType::Grass(_) => {
+                    self.grass_quad
+                        .insert(agent.position, id, &self.agents, &self.namer);
+                }
+            }
         }
     }
 
@@ -192,7 +262,7 @@ impl World {
 
     #[wasm_bindgen]
     pub fn get_quadtree(&self) -> JsValue {
-        let result = self.quad.get_all();
+        let result = self.sheep_quad.get_all();
         /* log(&format!("{:?}", result)); */
 
         /* let mut result = SerializedQuadTree::new();
@@ -205,49 +275,38 @@ impl World {
         let mut rng = rand::thread_rng();
         for _ in 0..self.wolf_num {
             let id = Uuid::new_v4();
-            self.agents
-                .insert(
+            self.agents.insert(
+                id,
+                Agent::new(
+                    AgentType::Wolf(WolfGeneticInformation::default()),
+                    (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
-                    Agent {
-                        position: (
-                            rng.gen::<f32>() * self.quad.size + self.quad.position.0,
-                            rng.gen::<f32>() * self.quad.size + self.quad.position.1,
-                        ),
-                        kind: AgentType::Wolf(WolfGeneticInformation::default()),
-                        id,
-                    },
-                );
+                ),
+            );
         }
+
         for _ in 0..self.sheep_num {
             let id = Uuid::new_v4();
-            self.agents
-                .insert(
+            self.agents.insert(
+                id,
+                Agent::new(
+                    AgentType::Sheep(SheepGeneticInformation::default()),
+                    (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
-                    Agent {
-                        position: (
-                            rng.gen::<f32>() * self.quad.size,
-                            rng.gen::<f32>() * self.quad.size,
-                        ),
-                        kind: AgentType::Sheep(SheepGeneticInformation::default()),
-                        id,
-                    },
-                );
+                ),
+            );
         }
 
         for _ in 0..MAX_GRASS {
             let id = Uuid::new_v4();
-            self.agents
-                .insert(
+            self.agents.insert(
+                id,
+                Agent::new(
+                    AgentType::Grass(1.),
+                    (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
-                    Agent {
-                        position: (
-                            rng.gen::<f32>() * self.quad.size,
-                            rng.gen::<f32>() * self.quad.size,
-                        ),
-                        kind: AgentType::Grass(1.),
-                        id,
-                    },
-                );
+                ),
+            );
         }
     }
 
@@ -274,7 +333,10 @@ impl World {
         )
         .unwrap(); */
 
-        match self.quad.find_quad_containing_point((mouse_x, mouse_y)) {
+        match self
+            .sheep_quad
+            .find_quad_containing_point((mouse_x, mouse_y))
+        {
             Some(q) => serde_wasm_bindgen::to_value(q).unwrap(),
             None => wasm_bindgen::JsValue::NULL,
         }
@@ -284,7 +346,7 @@ impl World {
     pub fn get_agents_in_radius(&self, x: f32, y: f32, radius: f32) -> JsValue {
         let mut result = SerializedAgents::new();
         let agent_indexes = self
-            .quad
+            .sheep_quad
             .get_children_in_radius((x, y), radius, &self.agents);
         for id in agent_indexes {
             result.ids.push(id.to_string());
