@@ -37,6 +37,7 @@ impl Display for AgentType {
 
 const MIN_HUNGER: f32 = 30.;
 const HUNGER_RATE: f32 = 0.05;
+const BITE_SIZE: f32 = 10.;
 
 #[derive(Clone)]
 pub struct Agent {
@@ -101,7 +102,7 @@ impl Agent {
                         // Check if target is still nearby
                         match nearby_agents.iter().find(|a| **a == target) {
                             Some(a) => {
-                                let prey = agents.get(a).unwrap();
+                                let prey = agents.get_mut(a).unwrap();
                                 // Found prey, continuing predator routine
                                 self.acceleration.0 += prey.position.0 - self.position.0;
                                 self.acceleration.1 += prey.position.1 - self.position.1;
@@ -109,7 +110,12 @@ impl Agent {
                                     && (prey.position.1 - self.position.1).abs() < 1.
                                 {
                                     // Eat prey
-                                    self.hunger += prey.eat(10.);
+                                    let (bitten, remaining) = prey.eat(BITE_SIZE);
+                                    self.hunger += bitten;
+                                    prey.health = remaining;
+                                    if prey.health <= 0. {
+                                        prey.dead = true;
+                                    }
                                     if self.hunger > MIN_HUNGER {
                                         self.state = State::Idle;
                                     }
@@ -167,14 +173,13 @@ impl Agent {
         agent_list.iter().find(|a| a.kind.to_int() == 2).unwrap().id
     }
 
-    pub fn eat(&self, bite: f32) -> f32 {
+    /// Takes a bite from the agent and returns the bite taken and the remaining health;
+    pub fn eat(&self, bite: f32) -> (f32, f32) {
         if let AgentType::Grass() = self.kind {
             if self.health - bite < 0. {
-                self.dead = true;
-                return self.health % bite;
+                return (self.health % bite, self.health - bite);
             } else {
-                self.health -= bite;
-                return self.health - bite;
+                return (self.health - bite, self.health - bite);
             }
         } else {
             panic!("Tried to eat non-food agent {}!", self.kind);
