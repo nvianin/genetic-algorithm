@@ -34,6 +34,8 @@ class App {
             this.renderer.setSize(innerWidth, innerHeight)
         })
 
+        this.queryMethod = 0; // 0 = quadtree, 1 = brute force
+
         if (this.canvas) {
             this.mouse = {
                 x: 0,
@@ -44,6 +46,10 @@ class App {
                 this.mouse.y = e.offsetY;
                 /* log(this.mouse) */
                 /* this.update() */
+            })
+            this.canvas.addEventListener("mousedown", e => {
+                this.queryMethod = !this.queryMethod
+                log(this.queryMethod)
             })
         }
 
@@ -72,12 +78,6 @@ class App {
         }
         requestAnimationFrame(this.update.bind(this))
         /* log("update") */
-        const nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
-        if (nearby_points.positions.length > 0) {
-            log(nearby_points)
-        } else {
-            log("No nearby points.")
-        }
 
         if (this.canvas) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
@@ -124,6 +124,27 @@ class App {
             if (true) {
                 const agents = this.world.get_agents();
                 /* log(agents) */
+
+                let nearby_points;
+                if (this.queryMethod) {
+                    nearby_points = agents.positions.find(p => {
+                        let then = performance.now();
+                        Math.sqrt(Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2)) < 100
+                        log(`Brute force sqrt took ${performance.now() - then}ms.`);
+
+                        then = performance.now();
+                        Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2) < Math.pow(100, 2)
+                        log(`Brute force pow took ${performance.now() - then}ms.`);
+                    })
+                } else {
+                    nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 100);
+                }
+                if (nearby_points.positions.length > 0) {
+                    /* log(nearby_points) */
+                } else {
+                    log("No nearby points.")
+                }
+
                 for (let i = 0; i < agents.positions.length; i++) {
                     /* log(agents.positions[i], agents.types[i]) */
                     let radius = 2;
@@ -184,20 +205,11 @@ class App {
                             })
                         }
                     }
-                    log(relationships)
-                    log(`
-                    Relationships
-                    for $ {
-                        q.length
-                    }
-                    nodes computed in $ {
-                        performance.now() - then
-                    }
-                    ms.
-                    `)
+                    /* log(relationships) */
+                    /* log(`Relationships for ${q.length} nodes computed in ${performance.now() - then}ms.`) */
 
                     /* log(levels) */
-                    log(q)
+                    /* log(q) */
                     let _y = 60;
                     const side = 40;
                     this.ctx.font = "13pt sans-serif"
