@@ -19,3 +19,18 @@ Implement statistical analysis
    -> getters for medians/average 
    -> js graph drawing each x ms 
    -> interface to change visualization 
+
+
+Implement genotypes to evolve / crossbreed / mutate
+
+## Genotype variables: 
+
+Size : Influences Speed and Gestation Duration
+Sight : Influences environmental awareness (food, predators)
+Muscle Mass : Influences Speed and Hunger Rate
+
+## Genotype derived variables:
+
+Gestation Duration
+Speed
+Hunger Rate

@@ -1,7 +1,9 @@
 #[derive(Clone)]
 pub struct WolfGeneticInformation {
+    // Genotype Variables
     pub movement_speed: f32,
     pub sight_distance: f32,
+    // Derived Variables
 }
 
 impl WolfGeneticInformation {
@@ -15,8 +17,10 @@ impl WolfGeneticInformation {
 
 #[derive(Clone)]
 pub struct SheepGeneticInformation {
+    // Genotype Variables
     pub movement_speed: f32,
     pub sight_distance: f32,
+    // Derived Variables
 }
 
 impl SheepGeneticInformation {

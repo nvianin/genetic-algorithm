@@ -5,6 +5,12 @@ use quadtree::QuadTree;
 mod genes;
 use genes::{SheepGeneticInformation, WolfGeneticInformation};
 
+mod agent;
+use agent::{Agent, AgentType};
+
+mod state_machine;
+use state_machine::{State, StateMachine};
+
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -52,46 +58,6 @@ impl SerializedQuadTree {
             has_child_nodes: Vec::new(),
             child_nodes: Vec::new(),
             address: Vec::new(),
-        }
-    }
-}
-
-#[derive(Clone)]
-pub enum AgentType {
-    Wolf(WolfGeneticInformation),
-    Sheep(SheepGeneticInformation),
-    Grass(f32), // growth stage normalized 0-1
-}
-
-impl AgentType {
-    pub fn to_int(&self) -> u8 {
-        match self {
-            AgentType::Wolf(_) => 0,
-            AgentType::Sheep(_) => 1,
-            AgentType::Grass(_) => 2,
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct Agent {
-    pub kind: AgentType,
-    pub position: (f32, f32),
-    pub acceleration: (f32, f32),
-    pub id: Uuid,
-    pub health: f32,
-    pub hunger: f32,
-}
-
-impl Agent {
-    pub fn new(kind: AgentType, position: (f32, f32), id: Uuid) -> Agent {
-        Agent {
-            kind,
-            position,
-            acceleration: (0., 0.),
-            id,
-            health: 100.,
-            hunger: 30.,
         }
     }
 }
@@ -176,22 +142,40 @@ impl World {
                         agent.acceleration.1 += direction.1 * 0.01;
                     }
                 }
-                AgentType::Grass(_) => {}
+                AgentType::Grass() => {}
             }
 
             match agent.kind {
-                AgentType::Sheep(_) | AgentType::Wolf(_) => {
+                AgentType::Sheep(genotype) => {
+                    let mut nearby_agents = Vec::new();
+                    nearby_agents.push(self.wolf_quad.get_children_in_radius(
+                        agent.position,
+                        genotype.sight_distance,
+                        &old_agents,
+                    ));
+                    nearby_agents.push(self.grass_quad.get_children_in_radius(
+                        agent.position,
+                        genotype.sight_distance,
+                        &old_agents,
+                    ));
                     // Move the agent
                     agent.position.0 += agent.acceleration.0;
                     agent.position.1 += agent.acceleration.1;
 
                     agent.acceleration.0 *= 0.9;
                     agent.acceleration.1 *= 0.9;
-                    log(&format!("{:?}, {:?}", agent.position, agent.acceleration));
+                    if let AgentType::Sheep(_) = agent.kind {
+                        log(&format!("{:?}, {:?}", agent.position, agent.acceleration));
+                    }
                 }
-                AgentType::Grass(_) => {}
+                AgentType::Wolf(genotype) => {}
+                AgentType::Grass() => {}
             }
         }
+
+        self.agents.values().filter(|a| a.dead).for_each(|to_delete| {
+            self.agents.remove(&to_delete.id);
+        });
     }
 
     fn build_quadtree_good(&mut self) {
@@ -209,7 +193,7 @@ impl World {
                     self.sheep_quad
                         .insert(agent.position, id, &self.agents, &self.namer);
                 }
-                AgentType::Grass(_) => {
+                AgentType::Grass() => {
                     self.grass_quad
                         .insert(agent.position, id, &self.agents, &self.namer);
                 }
@@ -302,7 +286,7 @@ impl World {
             self.agents.insert(
                 id,
                 Agent::new(
-                    AgentType::Grass(1.),
+                    AgentType::Grass(),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
                 ),
