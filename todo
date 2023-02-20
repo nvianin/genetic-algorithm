@@ -1,2 +1,8 @@
 * Activate function to interact with the mouse
 * Build and insert methods on the QuadTree
+---
+
+
+UUIDs instead of indicies for agents
+AgentType specific quadtrees for cases where agent number varies greatly ?
+  -> need for reliable benchmarking chronometer
