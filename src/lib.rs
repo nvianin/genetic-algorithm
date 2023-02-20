@@ -117,9 +117,9 @@ impl World {
     }
 
     fn update_agents(&mut self, optimized: bool) {
-        let old_agents = self.agents.clone();
+        let mut old_agents = self.agents.clone();
         let mut to_remove = Vec::new();
-        for agent in self.agents.values_mut() {
+        for agent in old_agents.values_mut() {
             match &mut agent.kind {
                 AgentType::Wolf(_) => {}
                 AgentType::Sheep(genotype) => {
@@ -158,7 +158,6 @@ impl World {
                         genotype.sight_distance,
                         &old_agents,
                     ));
-
                     agent.update(nearby_agents_ids, &mut self.agents);
 
                     agent.position.0 += agent.acceleration.0;
