@@ -158,7 +158,10 @@ impl World {
                     ));
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
-                    agent.update(nearby_agents_ids, &self.agents);
+                    let mutated_agents = agent.update(nearby_agents_ids, &self.agents);
+                    for (id, agent) in mutated_agents {
+                        self.agents.insert(id, agent);
+                    }
 
                     agent.position.0 += agent.acceleration.0;
                     agent.position.1 += agent.acceleration.1;
@@ -307,6 +310,18 @@ impl World {
             result.ids.push(agent.id.to_string());
             result.positions.push(agent.position);
             result.types.push(agent.kind.to_int());
+            match agent.kind {
+                AgentType::Sheep(genotype) => {
+                    result.genotypes.push(genotype.to_hashmap());
+                }
+                AgentType::Wolf(genotype) => {
+                    result.genotypes.push(genotype.to_hashmap());
+                }
+                AgentType::Grass() => {
+                    result.genotypes.push(HashMap::new());
+                }
+            }
+            result.states.push(agent.state.to_int());
         }
 
         serde_wasm_bindgen::to_value(&result).unwrap()
@@ -340,7 +355,9 @@ impl World {
         for agent in agent_indexes {
             result.ids.push(agent.0.to_string());
             result.positions.push(agent.1);
-            result.types.push(self.agents.get(&agent.0).unwrap().kind.to_int());
+            let a = self.agents.get(&agent.0).unwrap();
+            result.types.push(a.kind.to_int());
+            result.vitals.push((a.health, a.hunger));
         }
 
         /* log(&format!("{:#?}", &result.positions.len())); */
@@ -353,6 +370,9 @@ pub struct SerializedAgents {
     pub ids: Vec<String>,
     pub positions: Vec<(f32, f32)>,
     pub types: Vec<u8>,
+    pub genotypes: Vec<HashMap<String, f32>>,
+    pub states: Vec<u8>,
+    pub vitals: Vec<(f32,f32)> // Health, hunger
 }
 impl SerializedAgents {
     pub fn new() -> SerializedAgents {
@@ -360,6 +380,9 @@ impl SerializedAgents {
             ids: Vec::new(),
             positions: Vec::new(),
             types: Vec::new(),
+            genotypes: Vec::new(),
+            states: Vec::new(),
+            vitals: Vec::new(),
         }
     }
 }

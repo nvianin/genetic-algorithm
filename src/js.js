@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 1,
-    sheep_count: 1,
+    wolf_count: 32,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -22,6 +22,7 @@ class App {
 
         this.continue_render = true
 
+        this.initInterface()
         this.initDebugCanvas()
         this.initListeners()
 
@@ -63,6 +64,138 @@ class App {
         })
     }
 
+    initInterface() {
+        this.agent_inspector = document.createElement("div");
+        this.agent_inspector.id = "agent_inspector";
+        document.body.appendChild(this.agent_inspector);
+
+        this.inspected_agents = []
+
+        this.agent_element_template = document.createElement("button")
+        this.agent_element_template.className = `agent_element`
+        this.agent_element_template.innerText = `Agent`
+        this.agent_element_template.uuid = "lol";
+
+        this.agent_info_template = document.createElement("span");
+        this.agent_info_template.className = "agent_info";
+
+        this.agent_inspector.onclick = e => {
+            if (!e.target.child) return
+            log(e.target.child)
+            e.target.classList.toggle("active")
+            e.target.child.style.display = e.target.classList.contains("active") ? "flex" : "none"
+        }
+    }
+
+    refreshInterface(agents) {
+        /* if (agents.positions.length == this.inspected_agents.length) return; */
+
+        if (agents.positions.length < this.inspected_agents.length) {
+            while (agents.positions.length != this.inspected_agents.length) {
+                const to_remove = this.inspected_agents.pop();
+                this.agent_inspector.removeChild(to_remove);
+            }
+        } else {
+            while (agents.positions.length != this.inspected_agents.length) {
+                const agent_element = this.agent_element_template.cloneNode(false);
+                const agent_info = this.agent_info_template.cloneNode(false);
+                agent_info.style.display = "none"
+                agent_element.child = agent_info;
+                const i = this.inspected_agents.push(agent_element) - 1;
+                this.agent_inspector.appendChild(agent_element);
+                this.agent_inspector.appendChild(agent_info)
+
+                let type = "none"
+                let imgsrc = "none"
+                switch (agents.types[i]) {
+                    case 0:
+                        type = "Wolf"
+                        imgsrc = "./rsc/textures/wolf_icon.png"
+                        break;
+                    case 1:
+                        type = "Sheep"
+                        imgsrc = "./rsc/textures/sheep_icon.png"
+                        break;
+                    case 2:
+                        type = "Grass"
+                        imgsrc = "./rsc/textures/grass_icon.png"
+                        break;
+                }
+
+                agent_element.innerText = type;
+                agent_element.uuid = agents.ids[i]
+                const img = document.createElement("img");
+                img.src = imgsrc;
+                if (imgsrc == "none") log(agents.types[i])
+                agent_info.appendChild(img)
+
+                const healthbar = document.createElement("span");
+                healthbar.innerText = "Health"
+                healthbar.classList.add("healthbar", "stat_bar")
+                const hungerbar = document.createElement("span");
+                hungerbar.innerText = "Hunger"
+                hungerbar.classList.add("hungerbar","stat_bar")
+                agent_info.healthbar = healthbar
+                agent_info.appendChild(healthbar)
+                agent_info.hungerbar = hungerbar
+                agent_info.appendChild(hungerbar)
+
+                const agent_info_text = document.createElement("span")
+                agent_info_text.classList.add("agent_info_text")
+                agent_info.appendChild(agent_info_text);
+                agent_element.text = agent_info_text;
+            }
+        }
+
+        for (let i = 0; i < agents.positions.length; i++) {
+            if (this.inspected_agents[i].innerText == "Grass") continue;
+            let bgCol = "#eeeeee"
+            switch (agents.states[i]) {
+                case 1: // Hunting
+                    bgCol = "red"
+                    break;
+                case 2: // Fleeing
+                    bgCol = "yellow"
+                    break;
+                case 3: // Eating
+                    bgCol = "green"
+                    break;
+            }
+
+            this.inspected_agents[i].style.backgroundColor = bgCol;
+
+            if (this.inspected_agents[i].child.style.display == "none") continue;
+            let state_name = "Idle"
+            switch (agents.states[i]) {
+                case 1:
+                    state_name = "Hunting"
+                    break;
+                case 2:
+                    state_name = "Fleeing"
+                    break
+                case 3:
+                    state_name = "Eating"
+                    break;
+            }
+            this.inspected_agents[i].text.innerText =
+                `
+                State: ${state_name}
+                Position: ${Math.floor(agents.positions[i][0] * 100) / 100},${Math.floor(agents.positions[i][1] * 100) / 100}
+                Genotype:
+                Body size: ${Math.floor(agents.genotypes[i].get("body_size") * 100) / 100} 
+                Sight: ${Math.floor(agents.genotypes[i].get("sight_distance") * 100) / 100}
+                Muscle mass: ${Math.floor(agents.genotypes[i].get("muscle_mass") * 100) / 100}
+                ---
+                Hunger rate: ${Math.floor(agents.genotypes[i].get("hunger_rate") * 100) / 100}
+                Health scale: ${Math.floor(agents.genotypes[i].get("health_scale") * 100) / 100}
+                Speed: ${Math.floor(agents.genotypes[i].get("movement_speed") * 100) / 100}
+                Gestation time: ${Math.floor(agents.genotypes[i].get("gestation_duration") * 100) / 100}
+
+
+            `
+        }
+    }
+
     initDebugCanvas() {
         this.benchmarking_data = {
             quadtree: [],
@@ -80,11 +213,14 @@ class App {
     update() {
         if (this.continue_render) {
             const then = performance.now();
-            this.world.step();
+            this.world.step(true);
             /* log(`Step took ${performance.now() - then}ms.`); */
         }
         requestAnimationFrame(this.update.bind(this))
         /* log("update") */
+
+        const agents = this.world.get_agents();
+        this.refreshInterface(agents);
 
         if (this.canvas) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
@@ -132,7 +268,6 @@ class App {
                 /* log(agents) */
 
                 let then = performance.now();
-                const agents = this.world.get_agents();
                 let nearby_points;
                 if (this.queryMethod && false) {
                     nearby_points = {
@@ -342,13 +477,10 @@ function transparent_hex(hex, alpha) {
     const rgb = hexToRgb(hex);
     return `
                     rgba(${rgb.r
-                    }, ${
-                        rgb.g
-                    }, ${
-                        rgb.b
-                    }, ${
-                        alpha
-                    })
+        }, ${rgb.g
+        }, ${rgb.b
+        }, ${alpha
+        })
                     `
 }
 

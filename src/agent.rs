@@ -76,6 +76,8 @@ impl Agent {
         self.position.0 + self.acceleration.0;
         self.position.1 + self.acceleration.1;
 
+        /* self.hunger -= HUNGER_RATE; */
+
         self.acceleration.0 *= 0.9;
         self.acceleration.1 *= 0.9;
         match self.kind {
@@ -112,7 +114,7 @@ impl Agent {
                                 self.acceleration.0 += prey.position.0 - self.position.0;
                                 self.acceleration.1 += prey.position.1 - self.position.1;
                                 if (prey.position.0 - self.position.0).abs() < 1.
-                                && (prey.position.1 - self.position.1).abs() < 1.
+                                    && (prey.position.1 - self.position.1).abs() < 1.
                                 {
                                     // Eat prey
                                     self.hunger += prey.eat(BITE_SIZE);
@@ -197,4 +199,14 @@ pub enum State {
     Hunting(Uuid),
     Fleeing,
     Eating(Uuid),
+}
+impl State {
+    pub fn to_int(&self) -> u8 {
+        match self {
+            State::Idle => 0,
+            State::Hunting(_) => 1,
+            State::Fleeing => 2,
+            State::Eating(_) => 3,
+        }
+    }
 }
