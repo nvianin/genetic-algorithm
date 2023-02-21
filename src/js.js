@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 16,
-    sheep_count: 16,
+    sheep_count: 1024,
     size: 1024
 }
 
@@ -21,6 +21,9 @@ class App {
         log(this.world.get_quadtree());
 
         this.continue_render = true
+
+        performance = performance ? performance : Date;
+        this.start_time = performance.now();
 
         this.initInterface()
         this.initDebugCanvas()
@@ -166,6 +169,9 @@ class App {
                     case 3: // Eating
                         bgCol = "green"
                         break;
+                    case 4: // Dead
+                        bgCol = "black"
+                        break;
                 }
 
                 this.inspected_agents[i].style.backgroundColor = bgCol;
@@ -183,6 +189,9 @@ class App {
                     break
                 case 3:
                     state_name = "Eating"
+                    break;
+                case 4:
+                    state_name = "Dead"
                     break;
             }
             this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
@@ -222,12 +231,13 @@ class App {
     }
 
     update() {
+        this.time = performance.now() - this.start_time;
         if (!this.continue_render) {
             /* log(`Step took ${performance.now() - then}ms.`); */
             return
         }
         const then = performance.now();
-        this.world.step(true);
+        this.world.step(true, this.time);
         requestAnimationFrame(this.update.bind(this))
         /* log("update") */
 

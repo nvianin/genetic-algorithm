@@ -15,7 +15,7 @@ use rand::{rngs::ThreadRng, Rng};
 
 use uuid::Uuid;
 
-use std::{collections::HashMap, hash::Hash, thread::current};
+use std::collections::HashMap;
 
 use noise::{NoiseFn, OpenSimplex};
 
@@ -74,6 +74,7 @@ pub struct World {
     wolf_num: usize,
     noise: noise::OpenSimplex,
     agents: HashMap<Uuid, Agent>,
+    to_remove: Vec<Uuid>,
 }
 
 extern crate console_error_panic_hook;
@@ -108,6 +109,7 @@ impl World {
             noise: OpenSimplex::new(seed),
 
             agents: HashMap::with_capacity(sheep_num + wolf_num + MAX_GRASS),
+            to_remove: Vec::new(),
         };
         w.spawn_entities();
         w.build_quadtree_good();
@@ -115,15 +117,15 @@ impl World {
     }
 
     #[wasm_bindgen]
-    pub fn step(&mut self, optimized: bool) {
+    pub fn step(&mut self, optimized: bool, time: f32) {
         self.build_quadtree_good();
 
-        self.update_agents(optimized);
+        self.update_agents(optimized, time);
     }
 
-    fn update_agents(&mut self, optimized: bool) {
+    fn update_agents(&mut self, optimized: bool, time: f32) {
+        /* log(&self.agents.len().to_string()); */
         let mut old_agents = self.agents.clone();
-        let mut to_remove = Vec::new();
         for (id, agent) in old_agents.iter_mut() {
             log(&format!(
                 "{}:{:?}",
@@ -172,8 +174,13 @@ impl World {
                     );
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
-                    let modified_agents =
-                        current_agent.update(nearby_agents, &self.agents, genotype, &self.noise);
+                    let modified_agents = current_agent.update(
+                        nearby_agents,
+                        &self.agents,
+                        genotype,
+                        &self.noise,
+                        time,
+                    );
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }
@@ -188,8 +195,13 @@ impl World {
                             .sheep_quad
                             .get_children_in_radius(agent.position, genotype.sight_distance),
                     );
-                    let modified_agents =
-                        current_agent.update(nearby_agents, &self.agents, genotype, &self.noise);
+                    let modified_agents = current_agent.update(
+                        nearby_agents,
+                        &self.agents,
+                        genotype,
+                        &self.noise,
+                        time,
+                    );
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }
@@ -197,14 +209,9 @@ impl World {
                 AgentType::Grass() => {}
             }
             if agent.dead {
-                to_remove.push(agent.id);
+                self.to_remove.push(agent.id);
             }
             self.agents.insert(agent.id, current_agent);
-        }
-        // Delete marked agents4
-
-        for dead in &to_remove {
-            self.agents.remove(dead);
         }
     }
 
@@ -325,7 +332,7 @@ impl World {
     }
 
     #[wasm_bindgen]
-    pub fn get_agents(&self) -> JsValue {
+    pub fn get_agents(&mut self) -> JsValue {
         let mut result = SerializedAgents::new();
 
         for agent in self.agents.values() {
@@ -345,6 +352,11 @@ impl World {
             }
             result.states.push(agent.state.to_int());
             result.vitals.push((agent.health, agent.hunger))
+        }
+
+        // Delete marked agents after having sent them in a dead state
+        for dead in &mut self.to_remove {
+            self.agents.remove(dead);
         }
 
         serde_wasm_bindgen::to_value(&result).unwrap()

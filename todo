@@ -1,29 +1,28 @@
-* Activate function to interact with the mouse
-* Build and insert methods on the QuadTree
+- Activate function to interact with the mouse
+- Build and insert methods on the QuadTree
+
 ---
 
-
 UUIDs instead of indicies for agents
-   -> store id inside agent
+-> store id inside agent
 Use hashmap for agent store, have max number of each agent type, extend hashmap by like 500 each time so reallocation is not oo tfrequent.
 AgentType specific quadtrees for cases where agent number varies greatly ?
-  -> need for reliable benchmarking chronometer
+-> need for reliable benchmarking chronometer
 
-Performance comparison w/ mouse querying : red = js, green = wasm, toggle with mouseclick ? 
+Performance comparison w/ mouse querying : red = js, green = wasm, toggle with mouseclick ?
 
-Implement full-on debug mode, away from 3d rendering 
-   -> 3d/debug switch at the top ? 
-      -> aggressive context switching with pause mechanics needed for 3d
+Implement full-on debug mode, away from 3d rendering
+-> 3d/debug switch at the top ?
+-> aggressive context switching with pause mechanics needed for 3d
 
 Implement statistical analysis
-   -> getters for medians/average 
-   -> js graph drawing each x ms 
-   -> interface to change visualization 
-
+-> getters for medians/average
+-> js graph drawing each x ms
+-> interface to change visualization
 
 Implement genotypes to evolve / crossbreed / mutate
 
-## Genotype variables: 
+## Genotype variables:
 
 Size : Influences Speed and Gestation Duration
 Sight : Influences environmental awareness (food, predators)
@@ -34,3 +33,23 @@ Muscle Mass : Influences Speed and Hunger Rate
 Gestation Duration
 Speed
 Hunger Rate
+
+---
+
+Put a green circle around agent you're hovering/last selected agent
+-> make it a circle with a radius of 1.5 _ agent size
+-> make it a circle with a radius of 1.5 _ agent sight
+
+Put a texture on the ground
+
+Displace the ground to make it look like a hill with a river
+
+Handle agent death
+
+Implement a "pause" button
+-> implement a "step" button
+-> implement a "reset" button
+
+Implement a speed slider
+
+Handle boundary crossing

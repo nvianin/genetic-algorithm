@@ -46,6 +46,10 @@ class Renderer {
 
         this.load_models()
 
+        /* setInterval(() => {
+            window.location.reload()
+        }, 10000); */
+
         /* this.render() */
     }
 
@@ -58,13 +62,13 @@ class Renderer {
         for (let i = 0; i < agents.positions.length; i++) {
             switch (agents.types[i]) {
                 case 0:
-                    this.sheep.setMatrixAt(i, new THREE.Matrix4()
+                    this.wolves.setMatrixAt(i, new THREE.Matrix4()
                         .makeTranslation(agents.positions[i][0] - this.size / 2,
                             0,
                             agents.positions[i][1] - this.size / 2))
                     break;
                 case 1:
-                    this.wolves.setMatrixAt(i, new THREE.Matrix4()
+                    this.sheep.setMatrixAt(i, new THREE.Matrix4()
                         .makeTranslation(agents.positions[i][0] - this.size / 2,
                             0,
                             agents.positions[i][1] - this.size / 2))
