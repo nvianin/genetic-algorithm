@@ -54,14 +54,26 @@ pub struct Agent {
 
 impl Agent {
     pub fn new(kind: AgentType, position: (f32, f32), id: Uuid) -> Agent {
+        let genes = match kind {
+            AgentType::Wolf(genes) => Some(genes),
+            AgentType::Sheep(genes) => Some(genes),
+            AgentType::Grass() => None,
+        };
+        let mut health_mult = 1.;
+        match genes {
+            Some(genes) => {
+                health_mult = genes.health_scale;
+            }
+            None => {}
+        }
         Agent {
             kind,
             position,
             acceleration: (0., 0.),
             id,
-            health: 100.,
+            health: 100. * health_mult,
             hunger: MIN_HUNGER,
-            life: 100.,
+            life: 0.,
             dead: false,
             state: State::Idle,
         }
@@ -71,12 +83,13 @@ impl Agent {
         &mut self,
         nearby_agents: Vec<(Uuid, (f32, f32))>,
         agents: &HashMap<Uuid, Agent>,
+        genotype: Genotype,
     ) -> HashMap<Uuid, Agent> {
         let mut modified_agents = HashMap::new();
-        self.position.0 + self.acceleration.0;
-        self.position.1 + self.acceleration.1;
+        self.position.0 += self.acceleration.0 * genotype.movement_speed;
+        self.position.1 += self.acceleration.1 * genotype.movement_speed;
 
-        /* self.hunger -= HUNGER_RATE; */
+        self.hunger -= HUNGER_RATE * genotype.hunger_rate;
 
         self.acceleration.0 *= 0.9;
         self.acceleration.1 *= 0.9;
@@ -84,6 +97,7 @@ impl Agent {
             AgentType::Sheep(genotype) => {
                 match self.state {
                     State::Idle => {
+                        // Check if nearby wolf
                         for nearby_agent in nearby_agents.iter() {
                             match agents.get(&nearby_agent.0).unwrap().kind {
                                 AgentType::Wolf(_) => {

@@ -163,6 +163,7 @@ class App {
             }
 
             this.inspected_agents[i].style.backgroundColor = bgCol;
+            /* log(bgCol) */
 
             if (this.inspected_agents[i].child.style.display == "none") continue;
             let state_name = "Idle"
@@ -177,6 +178,8 @@ class App {
                     state_name = "Eating"
                     break;
             }
+            this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
+            this.inspected_agents[i].child.hungerbar.style.width = `${agents.vitals[i][1] * .9}%`
             this.inspected_agents[i].text.innerText =
                 `
                 State: ${state_name}
