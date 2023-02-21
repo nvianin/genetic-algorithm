@@ -159,7 +159,9 @@ impl World {
                         genotype.sight_distance,
                         &old_agents,
                     ));
-                    agent.update(nearby_agents_ids, &mut self.agents);
+
+                    // Pass a non mutable reeference, return mutations to the agents hashmaps
+                    agent.update(nearby_agents_ids, &self.agents);
 
                     agent.position.0 += agent.acceleration.0;
                     agent.position.1 += agent.acceleration.1;
@@ -177,7 +179,7 @@ impl World {
                 to_remove.push(agent.id);
             }
         }
-        // Delete marked agents
+        // Delete marked agents4
 
         for dead in &to_remove {
             self.agents.remove(dead);

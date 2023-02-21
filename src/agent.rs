@@ -67,7 +67,11 @@ impl Agent {
         }
     }
 
-    pub fn update(&mut self, nearby_agents: Vec<Uuid>, agents: &mut HashMap<Uuid, Agent>) {
+    pub fn update(
+        &mut self,
+        nearby_agents: Vec<(Uuid, (f32, f32))>,
+        agents: &HashMap<Uuid, Agent>,
+    ) -> HashMap<Uuid, Agent> {
         self.position.0 + self.acceleration.0;
         self.position.1 + self.acceleration.1;
 
