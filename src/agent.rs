@@ -50,9 +50,11 @@ impl Display for AgentType {
 }
 
 const MIN_HUNGER: f32 = 30.;
-const HUNGER_RATE: f32 = 0.01;
+const SATIETY: f32 = 40.;
+const HUNGER_RATE: f32 = 0.001;
 const BITE_SIZE: f32 = 10.;
-const WANDER_SPEED: f32 = 0.001;
+const WANDER_SPEED: f32 = 0.1;
+/* const MAX_WANDER_SPEED: f32 = 0.1; */
 
 #[derive(Clone)]
 pub struct Agent {
@@ -94,7 +96,7 @@ impl Agent {
             life: 0.,
             dead: false,
             state: State::Idle,
-            seed,
+            seed: seed * 10000.,
         }
     }
 
@@ -107,8 +109,12 @@ impl Agent {
         time: f32,
     ) -> HashMap<Uuid, Agent> {
         let mut modified_agents = HashMap::new();
-        self.position.0 += self.acceleration.0 * genotype.movement_speed;
-        self.position.1 += self.acceleration.1 * genotype.movement_speed;
+        self.position.0 += (self.acceleration.0)
+            .max(-genotype.movement_speed)
+            .min(genotype.movement_speed);
+        self.position.1 += (self.acceleration.1)
+            .max(-genotype.movement_speed)
+            .min(genotype.movement_speed);
 
         self.hunger -= HUNGER_RATE * genotype.hunger_rate;
         if self.hunger <= 0. {
@@ -144,7 +150,7 @@ impl Agent {
                             }
                         }
 
-                        self.direction += (noise.get([self.seed, time as f64]) as f32) * 0.02;
+                        self.direction += (noise.get([self.seed, time as f64]) as f32) * 0.1;
 
                         self.acceleration.0 +=
                             self.direction.cos() * genotype.movement_speed * WANDER_SPEED;
@@ -171,7 +177,7 @@ impl Agent {
 
                                     // Eat prey
                                     self.hunger += prey.eat(BITE_SIZE);
-                                    if self.hunger > MIN_HUNGER {
+                                    if self.hunger > SATIETY {
                                         self.state = State::Idle;
                                     }
                                     if self.hunger > 100. {

@@ -80,7 +80,7 @@ class Renderer {
     update_agents(agents) {
         if (!this.done_loading) return;
 
-        /* log(`Updating ${agents.positions.length} agents.`); */
+        log(`Updating ${agents.positions.length} agents' matrices.`);
         for (let i = 0; i < agents.positions.length; i++) {
             switch (agents.types[i]) {
                 case 0:
@@ -193,8 +193,6 @@ class Renderer {
         log(this.ground.material)
 
         this.done_loading = true;
-
-        this.render();
     }
 
     async load_lights() {
