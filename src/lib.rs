@@ -338,6 +338,7 @@ impl World {
         for agent in self.agents.values() {
             result.ids.push(agent.id.to_string());
             result.positions.push(agent.position);
+            result.accelerations.push(agent.acceleration);
             result.types.push(agent.kind.to_int());
             match agent.kind {
                 AgentType::Sheep(genotype) => {
@@ -402,6 +403,7 @@ impl World {
 pub struct SerializedAgents {
     pub ids: Vec<String>,
     pub positions: Vec<(f32, f32)>,
+    pub accelerations: Vec<(f32, f32)>,
     pub types: Vec<u8>,
     pub genotypes: Vec<HashMap<String, f32>>,
     pub states: Vec<u8>,
@@ -412,6 +414,7 @@ impl SerializedAgents {
         SerializedAgents {
             ids: Vec::new(),
             positions: Vec::new(),
+            accelerations: Vec::new(),
             types: Vec::new(),
             genotypes: Vec::new(),
             states: Vec::new(),
