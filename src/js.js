@@ -222,16 +222,18 @@ class App {
     }
 
     update() {
-        if (this.continue_render) {
-            const then = performance.now();
-            this.world.step(true);
+        if (!this.continue_render) {
             /* log(`Step took ${performance.now() - then}ms.`); */
+            return
         }
+        const then = performance.now();
+        this.world.step(true);
         requestAnimationFrame(this.update.bind(this))
         /* log("update") */
-
+        
         const agents = this.world.get_agents();
         this.refreshInterface(agents);
+        this.renderer.update_agents(agents);
 
         if (this.canvas) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
