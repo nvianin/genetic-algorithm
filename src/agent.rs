@@ -5,6 +5,7 @@ use crate::{
     normalize_vector,
 };
 
+use rand::rngs::ThreadRng;
 use uuid::Uuid;
 
 use noise::{NoiseFn, OpenSimplex};
@@ -49,7 +50,7 @@ impl Display for AgentType {
 }
 
 const MIN_HUNGER: f32 = 30.;
-const HUNGER_RATE: f32 = 0.0001;
+const HUNGER_RATE: f32 = 0.01;
 const BITE_SIZE: f32 = 10.;
 const WANDER_SPEED: f32 = 0.001;
 
@@ -58,16 +59,18 @@ pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),
     pub acceleration: (f32, f32),
+    pub direction: f32,
     pub id: Uuid,
     pub health: f32,
     pub hunger: f32,
     pub life: f32,
     pub dead: bool,
     pub state: State,
+    pub seed: f64,
 }
 
 impl Agent {
-    pub fn new(kind: AgentType, position: (f32, f32), id: Uuid) -> Agent {
+    pub fn new(kind: AgentType, position: (f32, f32), id: Uuid, seed: f64) -> Agent {
         let genes = match kind {
             AgentType::Wolf(genes) => Some(genes),
             AgentType::Sheep(genes) => Some(genes),
@@ -84,12 +87,14 @@ impl Agent {
             kind,
             position,
             acceleration: (0., 0.),
+            direction: 0.,
             id,
             health: health_mult,
             hunger: MIN_HUNGER,
             life: 0.,
             dead: false,
             state: State::Idle,
+            seed,
         }
     }
 
@@ -139,15 +144,12 @@ impl Agent {
                             }
                         }
 
-                        let theta = noise.get([
-                            self.position.0 as f64,
-                            self.position.1 as f64,
-                            time as f64,
-                        ]) as f32
-                            * WANDER_SPEED;
+                        self.direction += (noise.get([self.seed, time as f64]) as f32) * 0.02;
 
-                        self.acceleration.0 += theta.cos() * genotype.movement_speed * WANDER_SPEED;
-                        self.acceleration.1 += theta.sin() * genotype.movement_speed * WANDER_SPEED;
+                        self.acceleration.0 +=
+                            self.direction.cos() * genotype.movement_speed * WANDER_SPEED;
+                        self.acceleration.1 +=
+                            self.direction.sin() * genotype.movement_speed * WANDER_SPEED;
                     }
                     State::Hunting(target) => {
                         // Check if target is still nearby

@@ -302,6 +302,7 @@ impl World {
                     AgentType::Wolf(Genotype::new(&mut self.rng)),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
+                    rng.gen::<f64>(),
                 ),
             );
         }
@@ -314,6 +315,7 @@ impl World {
                     AgentType::Sheep(Genotype::new(&mut self.rng)),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
+                    rng.gen::<f64>(),
                 ),
             );
         }
@@ -326,6 +328,7 @@ impl World {
                     AgentType::Grass(),
                     (rng.gen::<f32>() * self.size, rng.gen::<f32>() * self.size),
                     id,
+                    rng.gen::<f64>(),
                 ),
             );
         }
