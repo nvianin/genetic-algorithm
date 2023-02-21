@@ -130,7 +130,9 @@ impl Agent {
                             }
                         }
 
-                        let theta = noise.get([self.position.0 as f64, self.position.1 as f64]) as f32 * WANDER_SPEED;
+                        let theta = noise.get([self.position.0 as f64, self.position.1 as f64])
+                            as f32
+                            * WANDER_SPEED;
 
                         self.acceleration.0 += theta.cos() * genotype.movement_speed * WANDER_SPEED;
                         self.acceleration.1 += theta.sin() * genotype.movement_speed * WANDER_SPEED;
@@ -152,7 +154,7 @@ impl Agent {
                                 {
                                     self.acceleration.0 = 0.;
                                     self.acceleration.1 = 0.;
-                                    
+
                                     // Eat prey
                                     self.hunger += prey.eat(BITE_SIZE);
                                     if self.hunger > MIN_HUNGER {
