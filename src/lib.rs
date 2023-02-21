@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 use std::{collections::HashMap, hash::Hash, thread::current};
 
-use noise::{OpenSimplex, NoiseFn};
+use noise::{NoiseFn, OpenSimplex};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -78,8 +78,8 @@ pub struct World {
 
 extern crate console_error_panic_hook;
 
-const MAX_GRASS: usize = 8;
-const MAX_CHILDREN: usize = 4;
+const MAX_GRASS: usize = 1024;
+const MAX_CHILDREN: usize = 16;
 const MAX_LEVELS: usize = 6;
 
 // Main JS interface to the simulation
