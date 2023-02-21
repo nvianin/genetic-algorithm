@@ -231,7 +231,7 @@ class App {
     }
 
     update() {
-        this.time = performance.now() - this.start_time;
+        this.time = (performance.now() - this.start_time) / 1000;
         if (!this.continue_render) {
             /* log(`Step took ${performance.now() - then}ms.`); */
             return
@@ -242,9 +242,9 @@ class App {
         /* log("update") */
 
         const agents = this.world.get_agents();
-        log(agents.positions.length)
+        /* log(agents.positions.length) */
         this.refreshInterface(agents);
-        this.renderer.update_agents(agents);
+        this.renderer.render(agents);
 
         if (this.canvas) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)

@@ -56,8 +56,6 @@ class Renderer {
     update_agents(agents) {
         if (!this.done_loading) return;
 
-
-
         /* log(`Updating ${agents.positions.length} agents.`); */
         for (let i = 0; i < agents.positions.length; i++) {
             switch (agents.types[i]) {
@@ -112,7 +110,7 @@ class Renderer {
         this.scene.add(this.wolves)
 
         this.grass = new THREE.InstancedMesh(
-            this.grass_model.geometry.scale(4, 4, 4),
+            this.grass_model.geometry.scale(16, 16, 16),
             this.grass_model.material,
             MAX_GRASS
         )
@@ -161,11 +159,11 @@ class Renderer {
     }
 
 
-    render() {
+    render(agents) {
         /* log("rendering") */
         /* this.controller.update() */
+        this.update_agents(agents)
         this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame(this.render.bind(this));
     }
 }
 
