@@ -1,6 +1,6 @@
 const THREE = require("three")
 const { GLTFLoader } = require("three/examples/jsm/loaders/GLTFLoader")
-/* const {MapControls} = require("three/examples/jsm/controls/") */
+const { OrbitControls } = require("three/examples/jsm/controls/OrbitControls")
 
 class Renderer {
     constructor(sheepNumber, wolfNumber, size) {
@@ -8,42 +8,33 @@ class Renderer {
         this.load_models();
         this.start = performance.now()
         this.size = size;
+        this.sheepNumber = sheepNumber;
+        this.wolfNumber = wolfNumber;
 
         this.renderer = new THREE.WebGLRenderer();
         this.camera = new THREE.PerspectiveCamera();
+        this.camera.y = 100;
+        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         this.scene = new THREE.Scene();
 
-        /* this.controller = new  */
+        this.controller = new OrbitControls(this.camera, this.renderer.domElement);
+
+        this.ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(this.size, this.size),
+            new THREE.MeshBasicMaterial({
+                color: 0x00ff00
+            })
+        )
+        this.ground.rotation.x = -Math.PI / 2
+        this.scene.add(this.ground)
 
         this.setSize()
         document.body.appendChild(this.renderer.domElement)
         this.renderer.domElement.id = "three"
 
-        this.sheep = new THREE.InstancedMesh(
-            new THREE.SphereGeometry(),
-            new THREE.MeshBasicMaterial({
-                color: 0xaaaaaa
-            }),
-            sheepNumber
-        )
+        this.load_models()
 
-        this.wolves = new THREE.InstancedMesh(
-            new THREE.SphereGeometry(.25, 16, 32),
-            new THREE.MeshBasicMaterial({
-                color: 0xff0000
-            }),
-            wolfNumber
-        )
-
-        this.grass = new THREE.InstancedMesh(
-            new THREE.BoxGeometry(.1, 1, .1),
-            new THREE.MeshBasicMaterial({
-                color: 0x00ff00
-            }),
-            1024
-        )
-
-        this.render()
+        /* this.render() */
     }
 
     async load_models() {
@@ -55,6 +46,30 @@ class Renderer {
         log("wolf", this.wolf_model)
         this.grass_model = (await loader.loadAsync("./rsc/models/grass.glb")).scene.children[0]
         log("grass", this.grass_model)
+
+        this.sheep = new THREE.InstancedMesh(
+            this.sheep_model.geometry,
+            this.sheep_model.material,
+            this.sheepNumber
+        )
+
+        this.wolves = new THREE.InstancedMesh(
+            new THREE.SphereGeometry(.25, 16, 32),
+            new THREE.MeshBasicMaterial({
+                color: 0xff0000
+            }),
+            this.wolfNumber
+        )
+
+        this.grass = new THREE.InstancedMesh(
+            new THREE.BoxGeometry(.1, 1, .1),
+            new THREE.MeshBasicMaterial({
+                color: 0x00ff00
+            }),
+            1024
+        )
+
+        this.render();
     }
 
     setSize(width = innerWidth, height = innerHeight) {
@@ -66,6 +81,7 @@ class Renderer {
 
     render() {
         /* log("rendering") */
+        this.controller.update()
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(this.render.bind(this));
     }
