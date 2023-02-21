@@ -117,13 +117,13 @@ impl World {
     }
 
     #[wasm_bindgen]
-    pub fn step(&mut self, optimized: bool) {
+    pub fn step(&mut self, optimized: bool, time: f32) {
         self.build_quadtree_good();
 
-        self.update_agents(optimized);
+        self.update_agents(optimized, time);
     }
 
-    fn update_agents(&mut self, optimized: bool) {
+    fn update_agents(&mut self, optimized: bool, time: f32) {
         /* log(&self.agents.len().to_string()); */
         let mut old_agents = self.agents.clone();
         for (id, agent) in old_agents.iter_mut() {
@@ -174,8 +174,13 @@ impl World {
                     );
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
-                    let modified_agents =
-                        current_agent.update(nearby_agents, &self.agents, genotype, &self.noise);
+                    let modified_agents = current_agent.update(
+                        nearby_agents,
+                        &self.agents,
+                        genotype,
+                        &self.noise,
+                        time,
+                    );
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }
@@ -190,8 +195,13 @@ impl World {
                             .sheep_quad
                             .get_children_in_radius(agent.position, genotype.sight_distance),
                     );
-                    let modified_agents =
-                        current_agent.update(nearby_agents, &self.agents, genotype, &self.noise);
+                    let modified_agents = current_agent.update(
+                        nearby_agents,
+                        &self.agents,
+                        genotype,
+                        &self.noise,
+                        time,
+                    );
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }

@@ -99,6 +99,7 @@ impl Agent {
         agents: &HashMap<Uuid, Agent>,
         genotype: Genotype,
         noise: &OpenSimplex,
+        time: f32,
     ) -> HashMap<Uuid, Agent> {
         let mut modified_agents = HashMap::new();
         self.position.0 += self.acceleration.0 * genotype.movement_speed;
@@ -138,8 +139,11 @@ impl Agent {
                             }
                         }
 
-                        let theta = noise.get([self.position.0 as f64, self.position.1 as f64])
-                            as f32
+                        let theta = noise.get([
+                            self.position.0 as f64,
+                            self.position.1 as f64,
+                            time as f64,
+                        ]) as f32
                             * WANDER_SPEED;
 
                         self.acceleration.0 += theta.cos() * genotype.movement_speed * WANDER_SPEED;
