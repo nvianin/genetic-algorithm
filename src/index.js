@@ -14,13 +14,13 @@ const MAX_GRASS = 1024;
 
 THREE.MapControls = function (object, domElement) {
 
-    let fuck = new OrbitControls(object, domElement);
+    let control = new OrbitControls(object, domElement);
 
-    fuck.mouseButtons.LEFT = THREE.MOUSE.PAN;
-    fuck.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+    control.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    control.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
 
-    fuck.touches.ONE = THREE.TOUCH.PAN;
-    fuck.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+    control.touches.ONE = THREE.TOUCH.PAN;
+    control.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
 
     return this
 
