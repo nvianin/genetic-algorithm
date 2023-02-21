@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 use std::{collections::HashMap, hash::Hash, thread::current};
 
-use noise::OpenSimplex;
+use noise::{OpenSimplex, NoiseFn};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -92,17 +92,20 @@ impl World {
         let namer = NameGen::new();
 
         let mut rng = rand::thread_rng();
+        let seed = rng.gen();
         let mut w = World {
             wolf_quad: QuadTree::new(size),
             sheep_quad: QuadTree::new(size),
             grass_quad: QuadTree::new(size),
             namer,
             size,
-            seed: rng.gen(),
+            seed,
             rng: rand::thread_rng(),
 
             sheep_num,
             wolf_num,
+
+            noise: OpenSimplex::new(seed),
 
             agents: HashMap::with_capacity(sheep_num + wolf_num + MAX_GRASS),
         };
@@ -165,7 +168,7 @@ impl World {
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
                     let modified_agents =
-                        current_agent.update(nearby_agents, &self.agents, genotype);
+                        current_agent.update(nearby_agents, &self.agents, genotype, &self.noise);
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }
@@ -181,7 +184,7 @@ impl World {
                             .get_children_in_radius(agent.position, genotype.sight_distance),
                     );
                     let modified_agents =
-                        current_agent.update(nearby_agents, &self.agents, genotype);
+                        current_agent.update(nearby_agents, &self.agents, genotype, &self.noise);
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }

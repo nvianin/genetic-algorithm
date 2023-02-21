@@ -134,7 +134,7 @@ class App {
                 healthbar.classList.add("healthbar", "stat_bar")
                 const hungerbar = document.createElement("span");
                 hungerbar.innerText = "Hunger"
-                hungerbar.classList.add("hungerbar","stat_bar")
+                hungerbar.classList.add("hungerbar", "stat_bar")
                 agent_info.healthbar = healthbar
                 agent_info.appendChild(healthbar)
                 agent_info.hungerbar = hungerbar
@@ -148,21 +148,28 @@ class App {
         }
 
         for (let i = 0; i < agents.positions.length; i++) {
-            if (this.inspected_agents[i].innerText == "Grass") continue;
-            let bgCol = "#eeeeee"
-            switch (agents.states[i]) {
-                case 1: // Hunting
-                    bgCol = "red"
-                    break;
-                case 2: // Fleeing
-                    bgCol = "yellow"
-                    break;
-                case 3: // Eating
-                    bgCol = "green"
-                    break;
-            }
+            if (this.inspected_agents[i].innerText == "Grass") {
+                if(agents.vitals[i][0] != 100){
+                    log(agents.vitals[i][0])
+                }
+                continue
+            };
+            if (agents.states[i] != 0) {
+                let bgCol = "#eeeeee"
+                switch (agents.states[i]) {
+                    case 1: // Hunting
+                        bgCol = "red"
+                        break;
+                    case 2: // Fleeing
+                        bgCol = "yellow"
+                        break;
+                    case 3: // Eating
+                        bgCol = "green"
+                        break;
+                }
 
-            this.inspected_agents[i].style.backgroundColor = bgCol;
+                this.inspected_agents[i].style.backgroundColor = bgCol;
+            }
             /* log(bgCol) */
 
             if (this.inspected_agents[i].child.style.display == "none") continue;
@@ -180,7 +187,7 @@ class App {
             }
             this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
             this.inspected_agents[i].child.hungerbar.style.width = `${agents.vitals[i][1] * .9}%`
-            log(agents.vitals[i][1])
+            /* log(agents.vitals[i][1]) */
             this.inspected_agents[i].text.innerText =
                 `
                 State: ${state_name}
@@ -238,7 +245,7 @@ class App {
 
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
             // Draw Quads
-            if (true) {
+            if (false) {
                 let i = 0;
                 q.forEach(quad => {
                     /* log(quad) */
@@ -268,7 +275,7 @@ class App {
             }
 
             // Draw Agents
-            if (true) {
+            if (false) {
                 /* log(agents) */
 
                 let then = performance.now();

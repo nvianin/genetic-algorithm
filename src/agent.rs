@@ -7,6 +7,8 @@ use crate::{
 
 use uuid::Uuid;
 
+use noise::{NoiseFn, OpenSimplex};
+
 #[derive(Clone)]
 pub enum AgentType {
     Wolf(Genotype),
@@ -41,7 +43,7 @@ impl Display for AgentType {
 const MIN_HUNGER: f32 = 30.;
 const HUNGER_RATE: f32 = 0.0001;
 const BITE_SIZE: f32 = 10.;
-const WANDER_SPEED: f32 = 0.5;
+const WANDER_SPEED: f32 = 0.001;
 
 #[derive(Clone)]
 pub struct Agent {
@@ -75,7 +77,7 @@ impl Agent {
             position,
             acceleration: (0., 0.),
             id,
-            health: 100. * health_mult,
+            health: health_mult,
             hunger: MIN_HUNGER,
             life: 0.,
             dead: false,
@@ -88,6 +90,7 @@ impl Agent {
         nearby_agents: Vec<(Uuid, (f32, f32))>,
         agents: &HashMap<Uuid, Agent>,
         genotype: Genotype,
+        noise: &OpenSimplex,
     ) -> HashMap<Uuid, Agent> {
         let mut modified_agents = HashMap::new();
         self.position.0 += self.acceleration.0 * genotype.movement_speed;
@@ -127,7 +130,10 @@ impl Agent {
                             }
                         }
 
-                        self.acceleration.0 += 
+                        let theta = noise.get([self.position.0 as f64, self.position.1 as f64]) as f32 * WANDER_SPEED;
+
+                        self.acceleration.0 += theta.cos() * genotype.movement_speed * WANDER_SPEED;
+                        self.acceleration.1 += theta.sin() * genotype.movement_speed * WANDER_SPEED;
                     }
                     State::Hunting(target) => {
                         // Check if target is still nearby
@@ -144,6 +150,9 @@ impl Agent {
                                 if (prey.position.0 - self.position.0).abs() < 1.
                                     && (prey.position.1 - self.position.1).abs() < 1.
                                 {
+                                    self.acceleration.0 = 0.;
+                                    self.acceleration.1 = 0.;
+                                    
                                     // Eat prey
                                     self.hunger += prey.eat(BITE_SIZE);
                                     if self.hunger > MIN_HUNGER {
