@@ -1,6 +1,9 @@
 use std::{collections::HashMap, f32::MIN, fmt::Display};
 
-use crate::{genes::{self, Genotype}, normalize_vector};
+use crate::{
+    genes::{self, Genotype},
+    normalize_vector,
+};
 
 use uuid::Uuid;
 
@@ -38,6 +41,7 @@ impl Display for AgentType {
 const MIN_HUNGER: f32 = 30.;
 const HUNGER_RATE: f32 = 0.0001;
 const BITE_SIZE: f32 = 10.;
+const WANDER_SPEED: f32 = 0.5;
 
 #[derive(Clone)]
 pub struct Agent {
@@ -122,6 +126,8 @@ impl Agent {
                                 }
                             }
                         }
+
+                        self.acceleration.0 += 
                     }
                     State::Hunting(target) => {
                         // Check if target is still nearby
@@ -129,7 +135,10 @@ impl Agent {
                             Some(a) => {
                                 let mut prey = agents.get(&a.0).unwrap().clone();
                                 // Found prey, continuing predator routine
-                                let prey_direction = normalize_vector((prey.position.0 - self.position.0, prey.position.1 - self.position.1));
+                                let prey_direction = normalize_vector((
+                                    prey.position.0 - self.position.0,
+                                    prey.position.1 - self.position.1,
+                                ));
                                 self.acceleration.0 += prey_direction.0;
                                 self.acceleration.1 += prey_direction.1;
                                 if (prey.position.0 - self.position.0).abs() < 1.
