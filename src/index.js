@@ -1,6 +1,7 @@
 const THREE = require("three")
 const { GLTFLoader } = require("three/examples/jsm/loaders/GLTFLoader")
 const { OrbitControls } = require("three/examples/jsm/controls/OrbitControls")
+const {EXRLoader} = require("three/examples/jsm/loaders/EXRLoader")
 
 class Renderer {
     constructor(sheepNumber, wolfNumber, size) {
@@ -18,18 +19,15 @@ class Renderer {
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         this.scene = new THREE.Scene();
 
-        this.sun = new THREE.DirectionalLight(0xffffff, 1);
-        this.scene.add(this.sun)
-        this.sun.position.x = this.size;
-        this.sun.position.y = this.size;
-        this.sun.lookAt(new THREE.Vector3(0, 0, 0));
+        this.load_lights();
 
         this.controller = new OrbitControls(this.camera, this.renderer.domElement);
 
         this.ground = new THREE.Mesh(
             new THREE.PlaneGeometry(this.size, this.size),
-            new THREE.MeshBasicMaterial({
-                color: 0x00ff00
+            new THREE.MeshPhysicalMaterial({
+                color: 0x00ff00,
+                roughness: 0.1
             })
         )
         this.ground.rotation.x = -Math.PI / 2
@@ -75,7 +73,26 @@ class Renderer {
         )
         this.scene.add(this.grass)
 
+        this.wolf_model.material.envMap = this.exr;
+        this.sheep_model.material.envMap = this.exr;
+        this.grass_model.material.envMap = this.exr;
+        this.ground.material.envMap = this.exr;
+        this.ground.material.needsUpdate = true
+
         this.render();
+    }
+
+    async load_lights() {
+        this.sun = new THREE.DirectionalLight(0xffffff, 4.5);
+        this.scene.add(this.sun)
+        this.sun.position.x = this.size;
+        this.sun.position.y = this.size;
+        this.sun.lookAt(new THREE.Vector3(0, 0, 0));
+
+        const exr_loader = new EXRLoader();
+        this.exr = (await exr_loader.loadAsync("./rsc/textures/scythian_tombs_2_1k.exr"));
+        exr.mapping = THREE.EquirectangularReflectionMapping;
+        this.scene.background = exr;
     }
 
     setSize(width = innerWidth, height = innerHeight) {
