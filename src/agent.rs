@@ -54,6 +54,7 @@ const SATIETY: f32 = 40.;
 const HUNGER_RATE: f32 = 0.001;
 const BITE_SIZE: f32 = 10.;
 const WANDER_SPEED: f32 = 0.1;
+const STARVING_DAMAGE: f32 = 0.1;
 /* const MAX_WANDER_SPEED: f32 = 0.1; */
 
 #[derive(Clone)]
@@ -119,7 +120,7 @@ impl Agent {
         self.hunger -= HUNGER_RATE * genotype.hunger_rate;
         if self.hunger <= 0. {
             self.hunger = 0.;
-            self.dead = true;
+            self.health -= STARVING_DAMAGE;
         }
 
         self.acceleration.0 *= 0.9;
@@ -232,6 +233,7 @@ impl Agent {
         /* self.health -= 1.; */
         if self.health <= 0. {
             self.dead = true;
+            self.state = State::Dead;
         }
 
         modified_agents

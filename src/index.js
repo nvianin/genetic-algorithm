@@ -90,7 +90,7 @@ class Renderer {
                             new THREE.Euler(
                                 0,
                                 Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                0
+                                1.4
                             )
                         )
                         .setPosition(agents.positions[i][0] - this.size / 2,

@@ -1,92 +1,93 @@
 body {
-    margin     : 0;
-    padding    : 0;
-    overflow   : hidden;
-    font-family: Helvetica;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
-
+* {
+  font-family: Helvetica;
+}
 #debugCanvas {
-    z-index         : -1;
-    position        : fixed;
-    top             : 0;
-    left            : 0;
-    transform-origin: top left;
-    transform       : scale(.9);
+  z-index: -1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  transform: scale(0.9);
 }
 
 #agent_inspector {
-    z-index       : 1000;
-    position      : fixed;
-    top           : 0;
-    right         : 0;
-    display       : flex;
-    flex-direction: column;
-    height        : 100vh;
-    overflow-y    : scroll;
-    width         : 150px;
-    border-radius : 10px;
-    transition    : .3s ease-in-out;
+  z-index: 1000;
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: scroll;
+  width: 150px;
+  border-radius: 10px;
+  transition: 0.3s ease-in-out;
 }
 
 #agent_inspector:hover {
-    width: 200px;
+  width: 200px;
 }
 
 .agent_element {
-    border          : unset;
-    margin          : 1px;
-    padding         : 2px;
-    /* font-weight  : bold; */
-    border-radius   : inherit;
+  border: unset;
+  margin: 1px;
+  padding: 2px;
+  font-weight: bold;
+  border-radius: inherit;
+  color: black;
 }
 
 .agent_element:hover,
 .active {
-    background-color: white;
-    font-weight     : bold;
+  background-color: white;
+  font-weight: bold;
 }
 
 .agent_info {
-    display         : none;
-    flex-direction: column;
-    align-items: baseline;
-    background-color: #eee;
-    width           : 100%;
-    border-radius   : inherit;
-    font-size       : 10pt;
-    padding:5%;
+  display: none;
+  flex-direction: column;
+  align-items: baseline;
+  background-color: #eee;
+  width: 100%;
+  border-radius: inherit;
+  font-size: 10pt;
+  padding: 5%;
 }
 
 .agent_info img {
-    width        : 100%;
-    object-fit   : contain;
-    border-radius: inherit;
+  width: 100%;
+  object-fit: contain;
+  border-radius: inherit;
 }
 
 .agent_info_text {
-    display    : block;
-    /* padding    : 4px; */
-    white-space: pre-line;
+  display: block;
+  /* padding    : 4px; */
+  white-space: pre-line;
 }
 
 .stat_bar {
-    display      : block;
-    border-radius: 10px;
-    margin-bottom: 2px;
-    width        : 90%;
-    /* transform    : translate(5%); */
-    height       : auto;
-    text-align   : center;
-    font-size    : 8pt;
-    font-weight  : bold;
-    color        : white;
+  display: block;
+  border-radius: 10px;
+  margin-bottom: 2px;
+  width: 90%;
+  /* transform    : translate(5%); */
+  height: auto;
+  text-align: center;
+  font-size: 8pt;
+  font-weight: bold;
+  color: white;
 }
 
-
 .healthbar {
-    background-color: red;
+  background-color: red;
 }
 
 .hungerbar {
-    background-color: brown;
+  background-color: brown;
 }

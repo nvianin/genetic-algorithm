@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 0,
-    sheep_count: 128,
+    wolf_count: 128,
+    sheep_count: 0,
     size: 1024
 }
 
@@ -170,7 +170,7 @@ class App {
                         bgCol = "green"
                         break;
                     case 4: // Dead
-                        bgCol = "black"
+                        bgCol = "grey"
                         break;
                 }
 
