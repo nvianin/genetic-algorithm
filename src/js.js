@@ -15,7 +15,7 @@ const WORLD_SETTINGS = {
 class App {
     constructor() {
 
-        this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count)
+        this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
         this.world = new wasm.World(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
         log(`Simulation world started with seed [${this.world.seed}].`);
         log(this.world.get_quadtree());
@@ -149,9 +149,9 @@ class App {
 
         for (let i = 0; i < agents.positions.length; i++) {
             if (this.inspected_agents[i].innerText == "Grass") {
-                if(agents.vitals[i][0] != 100){
+                /* if(agents.vitals[i][0] != 100){
                     log(agents.vitals[i][0])
-                }
+                } */
                 continue
             };
             if (agents.states[i] != 0) {
