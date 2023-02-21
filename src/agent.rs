@@ -72,6 +72,7 @@ impl Agent {
         nearby_agents: Vec<(Uuid, (f32, f32))>,
         agents: &HashMap<Uuid, Agent>,
     ) -> HashMap<Uuid, Agent> {
+        let mut modified_agents = HashMap::new();
         self.position.0 + self.acceleration.0;
         self.position.1 + self.acceleration.1;
 
@@ -81,8 +82,8 @@ impl Agent {
             AgentType::Sheep(genotype) => {
                 match self.state {
                     State::Idle => {
-                        for id in nearby_agents.iter() {
-                            match agents.get(id).unwrap().kind {
+                        for nearby_agent in nearby_agents.iter() {
+                            match agents.get(&nearby_agent.0).unwrap().kind {
                                 AgentType::Wolf(_) => {
                                     self.state = State::Fleeing;
                                 }
@@ -92,10 +93,10 @@ impl Agent {
 
                         if self.hunger < MIN_HUNGER {
                             // Get nearby food
-                            for id in nearby_agents.iter() {
-                                match agents.get(id).unwrap().kind {
+                            for nearby_agent in nearby_agents.iter() {
+                                match agents.get(&nearby_agent.0).unwrap().kind {
                                     AgentType::Grass() => {
-                                        self.state = State::Hunting(*id);
+                                        self.state = State::Hunting(nearby_agent.0);
                                     }
                                     _ => {}
                                 }
@@ -104,26 +105,22 @@ impl Agent {
                     }
                     State::Hunting(target) => {
                         // Check if target is still nearby
-                        match nearby_agents.iter().find(|a| **a == target) {
+                        match nearby_agents.iter().find(|a| a.0 == target) {
                             Some(a) => {
-                                let prey = agents.get_mut(a).unwrap();
+                                let mut prey = agents.get(&a.0).unwrap().clone();
                                 // Found prey, continuing predator routine
                                 self.acceleration.0 += prey.position.0 - self.position.0;
                                 self.acceleration.1 += prey.position.1 - self.position.1;
                                 if (prey.position.0 - self.position.0).abs() < 1.
-                                    && (prey.position.1 - self.position.1).abs() < 1.
+                                && (prey.position.1 - self.position.1).abs() < 1.
                                 {
                                     // Eat prey
-                                    let (bitten, remaining) = prey.eat(BITE_SIZE);
-                                    self.hunger += bitten;
-                                    prey.health = remaining;
-                                    if prey.health <= 0. {
-                                        prey.dead = true;
-                                    }
+                                    self.hunger += prey.eat(BITE_SIZE);
                                     if self.hunger > MIN_HUNGER {
                                         self.state = State::Idle;
                                     }
                                 }
+                                modified_agents.insert(a.0, prey);
                             }
                             None => {
                                 self.state = State::Idle;
@@ -137,9 +134,9 @@ impl Agent {
                                 let mut med_dir = (0., 0.);
                                 let mut predator_count = 0;
                                 for id in nearby_agents.iter() {
-                                    match agents.get(id).unwrap().kind {
+                                    match agents.get(&id.0).unwrap().kind {
                                         AgentType::Wolf(_) => {
-                                            let pos = agents.get(id).unwrap().position;
+                                            let pos = agents.get(&id.0).unwrap().position;
                                             med_dir.0 += pos.0;
                                             med_dir.1 += pos.1;
                                             predator_count += 1;
@@ -171,19 +168,22 @@ impl Agent {
         if self.health <= 0. {
             self.dead = true;
         }
+
+        modified_agents
     }
 
     pub fn get_closest_food(&self, agent_list: Vec<Agent>) -> Uuid {
         agent_list.iter().find(|a| a.kind.to_int() == 2).unwrap().id
     }
 
-    /// Takes a bite from the agent and returns the bite taken and the remaining health;
-    pub fn eat(&self, bite: f32) -> (f32, f32) {
+    pub fn eat(&mut self, bite: f32) -> f32 {
         if let AgentType::Grass() = self.kind {
             if self.health - bite < 0. {
-                return (self.health % bite, self.health - bite);
+                self.dead = true;
+                return self.health % bite;
             } else {
-                return (self.health - bite, self.health - bite);
+                self.health -= bite;
+                return self.health;
             }
         } else {
             panic!("Tried to eat non-food agent {}!", self.kind);

@@ -196,22 +196,21 @@ impl QuadTree {
         &self,
         position: (f32, f32),
         radius: f32,
-        agent_list: &HashMap<Uuid, Agent>,
     ) -> Vec<(Uuid, (f32, f32))> {
         let mut result = Vec::new();
 
         if self.intersects_circle(position, radius) {
             let last_len = result.len();
             for child in &self.children {
-                if (agent_list[&child.0].position.0 - position.0).powi(2)
-                    + (agent_list[&child.0].position.1 - position.1).powi(2)
+                if (child.1.0 - position.0).powi(2)
+                    + (child.1.1 - position.1).powi(2)
                     < radius.powi(2)
                 {
                     result.push(*child);
                 }
             }
             for child in &self.child_nodes {
-                result.append(&mut child.get_children_in_radius(position, radius, agent_list));
+                result.append(&mut child.get_children_in_radius(position, radius));
             }
             if result.len() != last_len {
                 /* log(&format!(
@@ -242,7 +241,7 @@ impl QuadTree {
                 }
             }
             for child in &self.child_nodes {
-                result.append(&mut child.get_children_in_radius(position, radius, agent_list));
+                result.append(&mut child.get_children_in_radius(position, radius));
             }
             if result.len() != last_len {
                 /* log(&format!(

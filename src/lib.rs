@@ -127,14 +127,13 @@ impl World {
                     // Try to avoid wolves
                     let mut nearby_wolves = self.wolf_quad.get_children_in_radius(
                         agent.position,
-                        genotype.sight_distance,
-                        &self.agents,
+                        genotype.sight_distance
                     );
                     let mut direction = (0., 0.);
                     if nearby_wolves.len() > 0 {
                         for wolf in nearby_wolves.iter() {
-                            direction.0 += agent.position.0 - old_agents[&wolf.0].position.0;
-                            direction.1 += agent.position.1 - old_agents[&wolf.0].position.1;
+                            direction.0 += agent.position.0 - wolf.1.0;
+                            direction.1 += agent.position.1 - wolf.1.1;
                         }
                         direction.0 /= nearby_wolves.len() as f32;
                         direction.1 /= nearby_wolves.len() as f32;
@@ -151,13 +150,11 @@ impl World {
                     let mut nearby_agents_ids = Vec::new();
                     nearby_agents_ids.append(&mut self.wolf_quad.get_children_in_radius(
                         agent.position,
-                        genotype.sight_distance,
-                        &old_agents,
+                        genotype.sight_distance
                     ));
                     nearby_agents_ids.append(&mut self.grass_quad.get_children_in_radius(
                         agent.position,
-                        genotype.sight_distance,
-                        &old_agents,
+                        genotype.sight_distance
                     ));
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
@@ -195,15 +192,15 @@ impl World {
             match agent.kind {
                 AgentType::Wolf(_) => {
                     self.wolf_quad
-                        .insert(agent.position, id, &self.agents, &self.namer);
+                        .insert((agent.id, agent.position), &self.agents, &self.namer);
                 }
                 AgentType::Sheep(_) => {
                     self.sheep_quad
-                        .insert(agent.position, id, &self.agents, &self.namer);
+                        .insert((agent.id, agent.position), &self.agents, &self.namer);
                 }
                 AgentType::Grass() => {
                     self.grass_quad
-                        .insert(agent.position, id, &self.agents, &self.namer);
+                        .insert((agent.id, agent.position), &self.agents, &self.namer);
                 }
             }
         }
@@ -233,8 +230,8 @@ impl World {
         let mut children_position = Vec::new();
         let mut children_type = Vec::new();
         for child in &node.children {
-            children_position.push(self.agents[child].position);
-            children_type.push(self.agents[child].kind.to_int());
+            children_position.push(child.1);
+            children_type.push(self.agents.get(&child.0).unwrap().kind.to_int());
         }
         result.children.push(children_position);
         result.children_type.push(children_type);
@@ -339,11 +336,11 @@ impl World {
         let mut result = SerializedAgents::new();
         let agent_indexes = self
             .sheep_quad
-            .get_children_in_radius((x, y), radius, &self.agents);
-        for id in agent_indexes {
-            result.ids.push(id.to_string());
-            result.positions.push(self.agents[&id].position);
-            result.types.push(self.agents[&id].kind.to_int());
+            .get_children_in_radius((x, y), radius);
+        for agent in agent_indexes {
+            result.ids.push(agent.0.to_string());
+            result.positions.push(agent.1);
+            result.types.push(self.agents.get(&agent.0).unwrap().kind.to_int());
         }
 
         /* log(&format!("{:#?}", &result.positions.len())); */
