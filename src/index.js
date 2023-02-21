@@ -11,6 +11,25 @@ const {
 
 const MAX_GRASS = 1024;
 
+
+THREE.MapControls = function (object, domElement) {
+
+    let fuck = new OrbitControls(object, domElement);
+
+    fuck.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    fuck.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+
+    fuck.touches.ONE = THREE.TOUCH.PAN;
+    fuck.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+
+    return this
+
+};
+
+THREE.MapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
+THREE.MapControls.prototype.constructor = THREE.MapControls;
+
+
 class Renderer {
     constructor(sheepNumber, wolfNumber, size) {
         log(`Renderer started with ${wolfNumber} wolves and ${sheepNumber} sheep.`)
@@ -30,7 +49,7 @@ class Renderer {
 
         this.load_lights();
 
-        this.controller = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controller = THREE.MapControls(this.camera, this.renderer.domElement);
 
         this.ground = new THREE.Mesh(
             new THREE.PlaneGeometry(this.size, this.size),
