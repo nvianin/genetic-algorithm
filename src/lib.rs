@@ -128,13 +128,13 @@ impl World {
                     let mut nearby_wolves = self.wolf_quad.get_children_in_radius(
                         agent.position,
                         genotype.sight_distance,
-                        &old_agents,
+                        &self.agents,
                     );
                     let mut direction = (0., 0.);
                     if nearby_wolves.len() > 0 {
                         for wolf in nearby_wolves.iter() {
-                            direction.0 += agent.position.0 - old_agents[wolf].position.0;
-                            direction.1 += agent.position.1 - old_agents[wolf].position.1;
+                            direction.0 += agent.position.0 - old_agents[&wolf.0].position.0;
+                            direction.1 += agent.position.1 - old_agents[&wolf.0].position.1;
                         }
                         direction.0 /= nearby_wolves.len() as f32;
                         direction.1 /= nearby_wolves.len() as f32;

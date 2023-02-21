@@ -1,6 +1,6 @@
 use nickname::NameGen;
+use std::{collections::HashMap, thread::current};
 use uuid::Uuid;
-use std::{thread::current, collections::HashMap};
 use wasm_bindgen::prelude::*;
 
 use crate::{log, Agent, MAX_CHILDREN, MAX_LEVELS};
@@ -12,7 +12,7 @@ const QUAD_ORDER: [(f32, f32); 4] = [(0., 0.), (1., 0.), (1., 1.), (0., 1.)];
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct QuadTree {
-    pub children: Vec<Uuid>,
+    pub children: Vec<(Uuid, (f32, f32))>,
     pub child_nodes: Vec<Box<QuadTree>>,
     pub is_leaf: bool,
     pub position: (f32, f32),
@@ -64,7 +64,7 @@ impl QuadTree {
         while self.children.len() >= 1 {
             let child = self.children.pop().unwrap();
             for child_node in &mut self.child_nodes {
-                if child_node.insert(agent_list[&child].position, &child, agent_list, namer) {
+                if child_node.insert(child.clone(), agent_list, namer) {
                     break;
                 }
             }
@@ -84,39 +84,38 @@ impl QuadTree {
 
     pub fn insert(
         &mut self,
-        point: (f32, f32),
-        child_id: &Uuid,
+        point: (Uuid, (f32, f32)),
         agent_list: &HashMap<Uuid, Agent>,
         namer: &NameGen,
     ) -> bool {
-        if self.contains(point) && self.is_leaf {
+        if self.contains(point.1) && self.is_leaf {
             if self.children.len() < MAX_CHILDREN {
-                self.children.push(child_id.clone());
+                self.children.push(point.clone());
                 return true;
             } else {
-                if (self.level + 1 <= MAX_LEVELS) {
+                if self.level + 1 <= MAX_LEVELS {
                     self.subdivide(&namer, agent_list);
                     for child in &mut self.child_nodes {
-                        if child.insert(point, child_id, agent_list, namer) {
+                        if child.insert(point, agent_list, namer) {
                             return true;
                         };
                     }
                     for child_agent in &self.children {
                         for child in &mut self.child_nodes {
-                            if child.insert(point, child_agent, agent_list, namer) {
+                            if child.insert(point, agent_list, namer) {
                                 return true;
                             };
                         }
                     }
                 } else {
-                    self.children.push(child_id.clone());
+                    self.children.push(point.clone());
                     return true;
                 }
                 panic!("Failed to insert child into quadtree");
             }
         } else {
             for child in &mut self.child_nodes {
-                if child.insert(point, child_id, agent_list, namer) {
+                if child.insert(point, agent_list, namer) {
                     return true;
                 };
             }
@@ -197,15 +196,46 @@ impl QuadTree {
         &self,
         position: (f32, f32),
         radius: f32,
-        agent_list:&HashMap<Uuid, Agent>
-    ) -> Vec<Uuid> {
+        agent_list: &HashMap<Uuid, Agent>,
+    ) -> Vec<(Uuid, (f32, f32))> {
         let mut result = Vec::new();
 
         if self.intersects_circle(position, radius) {
             let last_len = result.len();
             for child in &self.children {
-                if (agent_list[child].position.0 - position.0).powi(2)
-                    + (agent_list[child].position.1 - position.1).powi(2)
+                if (agent_list[&child.0].position.0 - position.0).powi(2)
+                    + (agent_list[&child.0].position.1 - position.1).powi(2)
+                    < radius.powi(2)
+                {
+                    result.push(*child);
+                }
+            }
+            for child in &self.child_nodes {
+                result.append(&mut child.get_children_in_radius(position, radius, agent_list));
+            }
+            if result.len() != last_len {
+                /* log(&format!(
+                    "Found {} children in radius",
+                    result.len() - last_len
+                )); */
+            }
+        }
+        result
+    }
+
+    pub fn get_mut_children_in_radius(
+        &self,
+        position: (f32, f32),
+        radius: f32,
+        agent_list: &mut HashMap<Uuid, Agent>,
+    ) -> Vec<(Uuid, (f32, f32))> {
+        let mut result = Vec::new();
+
+        if self.intersects_circle(position, radius) {
+            let last_len = result.len();
+            for child in &self.children {
+                if (agent_list[&child.0].position.0 - position.0).powi(2)
+                    + (agent_list[&child.0].position.1 - position.1).powi(2)
                     < radius.powi(2)
                 {
                     result.push(*child);
