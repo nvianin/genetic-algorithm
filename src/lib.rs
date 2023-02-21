@@ -127,11 +127,11 @@ impl World {
         /* log(&self.agents.len().to_string()); */
         let mut old_agents = self.agents.clone();
         for (id, agent) in old_agents.iter_mut() {
-            log(&format!(
+            /* log(&format!(
                 "{}:{:?}",
                 agent.kind.to_name(),
                 agent.state.to_string()
-            ));
+            )); */
             let mut current_agent = self.agents.get(id).unwrap().clone();
             if current_agent.dead {
                 continue;

@@ -98,21 +98,21 @@ class Renderer {
         log("grass", this.grass_model)
 
         this.sheep = new THREE.InstancedMesh(
-            this.sheep_model.geometry.applyMatrix4(new THREE.Matrix4().makeScale(3, 3, 3)),
+            this.sheep_model.geometry.scale(4, 4, 4),
             this.sheep_model.material,
             this.sheepNumber
         )
         this.scene.add(this.sheep)
 
         this.wolves = new THREE.InstancedMesh(
-            this.wolf_model.geometry.applyMatrix4(new THREE.Matrix4().makeScale(3, 3, 3)),
+            this.wolf_model.geometry.scale(4, 4, 4),
             this.wolf_model.material,
             this.wolfNumber
         )
         this.scene.add(this.wolves)
 
         this.grass = new THREE.InstancedMesh(
-            this.grass_model.geometry.applyMatrix4(new THREE.Matrix4().makeScale(3, 3, 3)),
+            this.grass_model.geometry.scale(4, 4, 4),
             this.grass_model.material,
             MAX_GRASS
         )
