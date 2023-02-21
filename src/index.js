@@ -13,9 +13,16 @@ class Renderer {
 
         this.renderer = new THREE.WebGLRenderer();
         this.camera = new THREE.PerspectiveCamera();
-        this.camera.y = 100;
+        this.camera.position.z = this.size;
+        this.camera.position.y = this.size;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         this.scene = new THREE.Scene();
+
+        this.sun = new THREE.DirectionalLight(0xffffff, 1);
+        this.scene.add(this.sun)
+        this.sun.position.x = this.size;
+        this.sun.position.y = this.size;
+        this.sun.lookAt(new THREE.Vector3(0, 0, 0));
 
         this.controller = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -52,22 +59,21 @@ class Renderer {
             this.sheep_model.material,
             this.sheepNumber
         )
+        this.scene.add(this.sheep)
 
         this.wolves = new THREE.InstancedMesh(
-            new THREE.SphereGeometry(.25, 16, 32),
-            new THREE.MeshBasicMaterial({
-                color: 0xff0000
-            }),
+            this.wolf_model.geometry,
+            this.wolf_model.material,
             this.wolfNumber
         )
+        this.scene.add(this.wolves)
 
         this.grass = new THREE.InstancedMesh(
-            new THREE.BoxGeometry(.1, 1, .1),
-            new THREE.MeshBasicMaterial({
-                color: 0x00ff00
-            }),
+            this.grass_model.geometry,
+            this.grass_model.material,
             1024
         )
+        this.scene.add(this.grass)
 
         this.render();
     }
@@ -81,7 +87,7 @@ class Renderer {
 
     render() {
         /* log("rendering") */
-        this.controller.update()
+        /* this.controller.update() */
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(this.render.bind(this));
     }
