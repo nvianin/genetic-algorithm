@@ -138,7 +138,7 @@ impl World {
                 AgentType::Wolf(_) => {}
                 AgentType::Sheep(genotype) => {
                     // Try to avoid wolves
-                    let mut nearby_wolves = self
+                    let nearby_wolves = self
                         .wolf_quad
                         .get_children_in_radius(agent.position, genotype.sight_distance);
                     let mut direction = (0., 0.);
