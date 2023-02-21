@@ -51,17 +51,7 @@ class Renderer {
 
     update_agents(agents) {
         if (!this.done_loading) return;
-        // Put each matrix's children at nil position
-        const nil = new THREE.Matrix4().makeTranslation(0, -10000, 0);
-        for (let i = 0; i < this.sheepNumber; i++) {
-            this.sheep.setMatrixAt(i, nil);
-        }
-        for (let i = 0; i < this.wolfNumber; i++) {
-            this.wolves.setMatrixAt(i, nil);
-        }
-        for (let i = 0; i < this.grass.count; i++) {
-            this.grass.setMatrixAt(i, nil)
-        }
+
 
 
         /* log(`Updating ${agents.positions.length} agents.`); */
@@ -123,6 +113,18 @@ class Renderer {
             MAX_GRASS
         )
         this.scene.add(this.grass)
+
+        // Put each matrix's children at nil position
+        const nil = new THREE.Matrix4().makeTranslation(0, -10000, 0);
+        for (let i = 0; i < this.sheepNumber; i++) {
+            this.sheep.setMatrixAt(i, nil);
+        }
+        for (let i = 0; i < this.wolfNumber; i++) {
+            this.wolves.setMatrixAt(i, nil);
+        }
+        for (let i = 0; i < this.grass.count; i++) {
+            this.grass.setMatrixAt(i, nil)
+        }
 
         this.wolf_model.material.envMap = this.exr;
         this.sheep_model.material.envMap = this.exr;

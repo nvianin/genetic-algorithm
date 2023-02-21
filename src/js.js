@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 1024,
-    sheep_count: 1024,
+    wolf_count: 16,
+    sheep_count: 16,
     size: 1024
 }
 
@@ -232,6 +232,7 @@ class App {
         /* log("update") */
 
         const agents = this.world.get_agents();
+        log(agents.positions.length)
         this.refreshInterface(agents);
         this.renderer.update_agents(agents);
 

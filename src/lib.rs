@@ -78,7 +78,7 @@ pub struct World {
 
 extern crate console_error_panic_hook;
 
-const MAX_GRASS: usize = 1024;
+const MAX_GRASS: usize = 16;
 const MAX_CHILDREN: usize = 16;
 const MAX_LEVELS: usize = 6;
 
@@ -125,6 +125,11 @@ impl World {
         let mut old_agents = self.agents.clone();
         let mut to_remove = Vec::new();
         for (id, agent) in old_agents.iter_mut() {
+            log(&format!(
+                "{}:{:?}",
+                agent.kind.to_name(),
+                agent.state.to_string()
+            ));
             let mut current_agent = self.agents.get(id).unwrap().clone();
             if current_agent.dead {
                 continue;

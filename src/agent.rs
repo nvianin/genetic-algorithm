@@ -24,6 +24,14 @@ impl AgentType {
             AgentType::Grass() => 2,
         }
     }
+
+    pub fn to_name(&self) -> String {
+        match self {
+            AgentType::Wolf(_) => "Wolf".to_string(),
+            AgentType::Sheep(_) => "Sheep".to_string(),
+            AgentType::Grass() => "Grass".to_string(),
+        }
+    }
 }
 
 impl Display for AgentType {
@@ -249,6 +257,17 @@ impl State {
             State::Hunting(_) => 1,
             State::Fleeing => 2,
             State::Eating(_) => 3,
+        }
+    }
+}
+
+impl Display for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            State::Idle => write!(f, "Idle"),
+            State::Hunting(_) => write!(f, "Hunting"),
+            State::Fleeing => write!(f, "Fleeing"),
+            State::Eating(_) => write!(f, "Eating"),
         }
     }
 }
