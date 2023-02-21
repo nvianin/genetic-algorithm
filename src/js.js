@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 128,
-    sheep_count: 0,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -157,26 +157,24 @@ class App {
                 } */
                 continue
             };
-            if (agents.states[i] != 0) {
-                let bgCol = "#eeeeee"
-                switch (agents.states[i]) {
-                    case 1: // Hunting
-                        bgCol = "red"
-                        break;
-                    case 2: // Fleeing
-                        bgCol = "yellow"
-                        break;
-                    case 3: // Eating
-                        bgCol = "green"
-                        break;
-                    case 4: // Dead
-                        bgCol = "grey"
-                        break;
-                }
-
-                this.inspected_agents[i].style.backgroundColor = bgCol;
+            let col = "#eeeeee"
+            switch (agents.states[i]) {
+                case 1: // Hunting
+                    col = "red"
+                    break;
+                case 2: // Fleeing
+                    col = "yellow"
+                    break;
+                case 3: // Eating
+                    col = "green"
+                    break;
+                case 4: // Dead
+                    col = "grey"
+                    break;
             }
-            /* log(bgCol) */
+
+            this.inspected_agents[i].style.backgroundColor = col;
+            /* log(col) */
 
             if (this.inspected_agents[i].child.style.display == "none") continue;
             let state_name = "Idle"
@@ -231,6 +229,7 @@ class App {
     }
 
     update() {
+        requestAnimationFrame(this.update.bind(this))
         this.time = (performance.now() - this.start_time) / 1000;
         if (!this.continue_render) {
             /* log(`Step took ${performance.now() - then}ms.`); */
@@ -238,7 +237,6 @@ class App {
         }
         const then = performance.now();
         this.world.step(true, this.time);
-        requestAnimationFrame(this.update.bind(this))
         /* log("update") */
 
         const agents = this.world.get_agents();

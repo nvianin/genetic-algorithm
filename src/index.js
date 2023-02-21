@@ -86,46 +86,46 @@ class Renderer {
                 case 0:
                     this.wolves.setMatrixAt(i,
                         new THREE.Matrix4()
-                        .makeRotationFromEuler(
-                            new THREE.Euler(
-                                0,
-                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                1.4
+                            .makeRotationFromEuler(
+                                new THREE.Euler(
+                                    0,
+                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                    0
+                                )
                             )
-                        )
-                        .setPosition(agents.positions[i][0] - this.size / 2,
-                            0,
-                            agents.positions[i][1] - this.size / 2)
+                            .setPosition(agents.positions[i][0] - this.size / 2,
+                                0,
+                                agents.positions[i][1] - this.size / 2)
                     )
                     break;
                 case 1:
                     this.sheep.setMatrixAt(i,
                         new THREE.Matrix4()
-                        .makeRotationFromEuler(
-                            new THREE.Euler(
-                                0,
-                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                0
+                            .makeRotationFromEuler(
+                                new THREE.Euler(
+                                    0,
+                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                    0
+                                )
                             )
-                        )
-                        .setPosition(agents.positions[i][0] - this.size / 2,
-                            0,
-                            agents.positions[i][1] - this.size / 2)
+                            .setPosition(agents.positions[i][0] - this.size / 2,
+                                0,
+                                agents.positions[i][1] - this.size / 2)
                     )
                     break;
                 case 2:
                     this.grass.setMatrixAt(i,
                         new THREE.Matrix4()
-                        .makeRotationFromEuler(
-                            new THREE.Euler(
-                                0,
-                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                0
+                            .makeRotationFromEuler(
+                                new THREE.Euler(
+                                    0,
+                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                    0
+                                )
                             )
-                        )
-                        .setPosition(agents.positions[i][0] - this.size / 2,
-                            0,
-                            agents.positions[i][1] - this.size / 2)
+                            .setPosition(agents.positions[i][0] - this.size / 2,
+                                0,
+                                agents.positions[i][1] - this.size / 2)
                     )
                     break;
             }

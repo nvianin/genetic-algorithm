@@ -75,6 +75,7 @@ pub struct World {
     noise: noise::OpenSimplex,
     agents: HashMap<Uuid, Agent>,
     to_remove: Vec<Uuid>,
+    optimized_query: bool,
 }
 
 extern crate console_error_panic_hook;
@@ -110,6 +111,7 @@ impl World {
 
             agents: HashMap::with_capacity(sheep_num + wolf_num + MAX_GRASS),
             to_remove: Vec::new(),
+            optimized_query: true,
         };
         w.spawn_entities();
         w.build_quadtree_good();

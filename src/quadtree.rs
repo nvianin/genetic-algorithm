@@ -202,8 +202,7 @@ impl QuadTree {
         if self.intersects_circle(position, radius) {
             let last_len = result.len();
             for child in &self.children {
-                if (child.1.0 - position.0).powi(2)
-                    + (child.1.1 - position.1).powi(2)
+                if (child.1 .0 - position.0).powi(2) + (child.1 .1 - position.1).powi(2)
                     < radius.powi(2)
                 {
                     result.push(*child);

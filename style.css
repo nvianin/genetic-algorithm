@@ -40,12 +40,14 @@ body {
   font-weight: bold;
   border-radius: inherit;
   color: black;
+  border: 2px solid white;
 }
 
 .agent_element:hover,
 .active {
   background-color: white;
   font-weight: bold;
+  cursor: col-resize;
 }
 
 .agent_info {
