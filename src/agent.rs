@@ -1,6 +1,6 @@
 use std::{collections::HashMap, f32::MIN, fmt::Display};
 
-use crate::genes::{self, Genotype};
+use crate::{genes::{self, Genotype}, normalize_vector};
 
 use uuid::Uuid;
 
@@ -36,7 +36,7 @@ impl Display for AgentType {
 }
 
 const MIN_HUNGER: f32 = 30.;
-const HUNGER_RATE: f32 = 0.05;
+const HUNGER_RATE: f32 = 0.0001;
 const BITE_SIZE: f32 = 10.;
 
 #[derive(Clone)]
@@ -90,6 +90,10 @@ impl Agent {
         self.position.1 += self.acceleration.1 * genotype.movement_speed;
 
         self.hunger -= HUNGER_RATE * genotype.hunger_rate;
+        if self.hunger <= 0. {
+            self.hunger = 0.;
+            self.dead = true;
+        }
 
         self.acceleration.0 *= 0.9;
         self.acceleration.1 *= 0.9;
@@ -125,8 +129,9 @@ impl Agent {
                             Some(a) => {
                                 let mut prey = agents.get(&a.0).unwrap().clone();
                                 // Found prey, continuing predator routine
-                                self.acceleration.0 += prey.position.0 - self.position.0;
-                                self.acceleration.1 += prey.position.1 - self.position.1;
+                                let prey_direction = normalize_vector((prey.position.0 - self.position.0, prey.position.1 - self.position.1));
+                                self.acceleration.0 += prey_direction.0;
+                                self.acceleration.1 += prey_direction.1;
                                 if (prey.position.0 - self.position.0).abs() < 1.
                                     && (prey.position.1 - self.position.1).abs() < 1.
                                 {
@@ -134,6 +139,9 @@ impl Agent {
                                     self.hunger += prey.eat(BITE_SIZE);
                                     if self.hunger > MIN_HUNGER {
                                         self.state = State::Idle;
+                                    }
+                                    if self.hunger > 100. {
+                                        self.hunger = 100.
                                     }
                                 }
                                 modified_agents.insert(a.0, prey);

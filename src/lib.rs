@@ -15,7 +15,7 @@ use rand::{rngs::ThreadRng, Rng};
 
 use uuid::Uuid;
 
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash, thread::current};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -120,7 +120,10 @@ impl World {
         let mut old_agents = self.agents.clone();
         let mut to_remove = Vec::new();
         for (id, agent) in old_agents.iter_mut() {
-            let mut current_agent = self.agents.get_mut(id).unwrap();
+            let mut current_agent = self.agents.get(id).unwrap().clone();
+            if current_agent.dead {
+                continue;
+            };
             match &agent.kind {
                 AgentType::Wolf(_) => {}
                 AgentType::Sheep(genotype) => {
@@ -159,7 +162,7 @@ impl World {
                     );
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
-                    let modified_agents = agent.update(nearby_agents, &self.agents, genotype);
+                    let modified_agents = current_agent.update(nearby_agents, &self.agents, genotype);
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }
@@ -174,7 +177,7 @@ impl World {
                             .sheep_quad
                             .get_children_in_radius(agent.position, genotype.sight_distance),
                     );
-                    let modified_agents = agent.update(nearby_agents, &self.agents, genotype);
+                    let modified_agents = current_agent.update(nearby_agents, &self.agents, genotype);
                     for (id, agent) in modified_agents {
                         self.agents.insert(id, agent);
                     }
@@ -184,6 +187,7 @@ impl World {
             if agent.dead {
                 to_remove.push(agent.id);
             }
+            self.agents.insert(agent.id, current_agent);
         }
         // Delete marked agents4
 

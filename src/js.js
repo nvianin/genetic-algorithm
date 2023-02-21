@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 32,
-    sheep_count: 128,
+    wolf_count: 1,
+    sheep_count: 1,
     size: 1024
 }
 
@@ -180,6 +180,7 @@ class App {
             }
             this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
             this.inspected_agents[i].child.hungerbar.style.width = `${agents.vitals[i][1] * .9}%`
+            log(agents.vitals[i][1])
             this.inspected_agents[i].text.innerText =
                 `
                 State: ${state_name}
