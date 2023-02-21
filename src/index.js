@@ -40,6 +40,7 @@ class Renderer {
         this.wolfNumber = wolfNumber;
 
         this.renderer = new THREE.WebGLRenderer();
+        this.renderer.shadowMap.enabled = true;
         this.camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 5000);
         this.camera.position.z = this.size;
         this.camera.position.y = this.size;
@@ -53,9 +54,13 @@ class Renderer {
         this.ground = new THREE.Mesh(
             new THREE.PlaneGeometry(this.size, this.size),
             new THREE.MeshPhysicalMaterial({
-                color: 0x00ff00,
+                color: 0x002611,
+                roughness: 1,
+                specularIntensity: .2,
             })
         )
+        this.ground.castShadow = true;
+        this.ground.receiveShadow = true;
         this.ground.rotation.x = -Math.PI / 2
         this.scene.add(this.ground)
 
@@ -79,22 +84,49 @@ class Renderer {
         for (let i = 0; i < agents.positions.length; i++) {
             switch (agents.types[i]) {
                 case 0:
-                    this.wolves.setMatrixAt(i, new THREE.Matrix4()
-                        .makeTranslation(agents.positions[i][0] - this.size / 2,
+                    this.wolves.setMatrixAt(i,
+                        new THREE.Matrix4()
+                        .makeRotationFromEuler(
+                            new THREE.Euler(
+                                0,
+                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                0
+                            )
+                        )
+                        .setPosition(agents.positions[i][0] - this.size / 2,
                             0,
-                            agents.positions[i][1] - this.size / 2))
+                            agents.positions[i][1] - this.size / 2)
+                    )
                     break;
                 case 1:
-                    this.sheep.setMatrixAt(i, new THREE.Matrix4()
-                        .makeTranslation(agents.positions[i][0] - this.size / 2,
+                    this.sheep.setMatrixAt(i,
+                        new THREE.Matrix4()
+                        .makeRotationFromEuler(
+                            new THREE.Euler(
+                                0,
+                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                0
+                            )
+                        )
+                        .setPosition(agents.positions[i][0] - this.size / 2,
                             0,
-                            agents.positions[i][1] - this.size / 2))
+                            agents.positions[i][1] - this.size / 2)
+                    )
                     break;
                 case 2:
-                    this.grass.setMatrixAt(i, new THREE.Matrix4()
-                        .makeTranslation(agents.positions[i][0] - this.size / 2,
+                    this.grass.setMatrixAt(i,
+                        new THREE.Matrix4()
+                        .makeRotationFromEuler(
+                            new THREE.Euler(
+                                0,
+                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                0
+                            )
+                        )
+                        .setPosition(agents.positions[i][0] - this.size / 2,
                             0,
-                            agents.positions[i][1] - this.size / 2))
+                            agents.positions[i][1] - this.size / 2)
+                    )
                     break;
             }
         }
@@ -119,6 +151,8 @@ class Renderer {
             this.sheep_model.material,
             this.sheepNumber
         )
+        this.sheep.castShadow = true;
+        this.sheep.receiveShadow = true;
         this.scene.add(this.sheep)
 
         this.wolves = new THREE.InstancedMesh(
@@ -126,6 +160,8 @@ class Renderer {
             this.wolf_model.material,
             this.wolfNumber
         )
+        this.wolves.castShadow = true;
+        this.wolves.receiveShadow = true;
         this.scene.add(this.wolves)
 
         this.grass = new THREE.InstancedMesh(
@@ -133,6 +169,8 @@ class Renderer {
             this.grass_model.material,
             MAX_GRASS
         )
+        this.grass.castShadow = true;
+        this.grass.receiveShadow = true;
         this.scene.add(this.grass)
 
         // Put each matrix's children at nil position
@@ -151,6 +189,7 @@ class Renderer {
         this.sheep_model.material.envMap = this.exr;
         this.grass_model.material.envMap = this.exr;
         this.ground.material.envMap = this.exr;
+        this.ground.material.envMapIntensity = 0.5;
         log(this.ground.material)
 
         this.done_loading = true;
@@ -159,11 +198,17 @@ class Renderer {
     }
 
     async load_lights() {
-        this.sun = new THREE.DirectionalLight(0xffffff, 4.5);
+        this.sun = new THREE.DirectionalLight(0xffffff, 1.2);
+        this.sun.castShadow = true;
         this.scene.add(this.sun);
         this.sun.position.x = this.size;
         this.sun.position.y = this.size;
         this.sun.lookAt(new THREE.Vector3(0, 0, 0));
+        this.sun.shadow.camera.far = 5000;
+        this.sun.shadow.camera.bottom = -this.size / 3.5;
+        this.sun.shadow.camera.top = this.size / 3.5;
+        this.sun.shadow.camera.left = -this.size / 3.5;
+        this.sun.shadow.camera.right = this.size / 3.5;
 
         const exr_loader = new EXRLoader();
         this.exr = (await exr_loader.loadAsync("./rsc/textures/scythian_tombs_2_1k.exr"));
@@ -181,7 +226,9 @@ class Renderer {
     render(agents) {
         /* log("rendering") */
         /* this.controller.update() */
-        this.update_agents(agents)
+        if (this.done_loading) {
+            this.update_agents(agents)
+        }
         this.renderer.render(this.scene, this.camera);
     }
 }
