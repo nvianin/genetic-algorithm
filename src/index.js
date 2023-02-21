@@ -63,18 +63,33 @@ class Renderer {
             this.grass.setMatrixAt(i, nil)
         }
 
-
+        const base = new THREE.Matrix4().makeScale(5, 5, 5);
         /* log(`Updating ${agents.positions.length} agents.`); */
         for (let i = 0; i < agents.positions.length; i++) {
             switch (agents.types[i]) {
                 case 0:
-                    this.sheep.setMatrixAt(i, new THREE.Matrix4().makeTranslation(agents.positions[i][0], 0, agents.positions[i][1]))
+                    this.sheep.setMatrixAt(i,
+                        base
+                        .clone()
+                        .makeTranslation(agents.positions[i][0] - this.size / 2,
+                            0,
+                            agents.positions[i][1] - this.size / 2))
                     break;
                 case 1:
-                    this.wolves.setMatrixAt(i, new THREE.Matrix4().makeTranslation(agents.positions[i][0], 0, agents.positions[i][1]))
+                    this.wolves.setMatrixAt(i,
+                        base
+                        .clone()
+                        .makeTranslation(agents.positions[i][0] - this.size / 2,
+                            0,
+                            agents.positions[i][1] - this.size / 2))
                     break;
                 case 2:
-                    this.grass.setMatrixAt(i, new THREE.Matrix4().makeTranslation(agents.positions[i][0], 0, agents.positions[i][1]))
+                    this.grass.setMatrixAt(i,
+                        base
+                        .clone()
+                        .makeTranslation(agents.positions[i][0] - this.size / 2,
+                            0,
+                            agents.positions[i][1] - this.size / 2))
                     break;
             }
         }
