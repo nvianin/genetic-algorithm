@@ -119,8 +119,9 @@ impl World {
     fn update_agents(&mut self, optimized: bool) {
         let mut old_agents = self.agents.clone();
         let mut to_remove = Vec::new();
-        for agent in old_agents.values_mut() {
-            match &mut agent.kind {
+        for (id, agent) in old_agents.iter_mut() {
+            let mut current_agent = self.agents.get_mut(id).unwrap();
+            match &agent.kind {
                 AgentType::Wolf(_) => {}
                 AgentType::Sheep(genotype) => {
                     // Try to avoid wolves
@@ -138,8 +139,8 @@ impl World {
                         direction.0 /= nearby_wolves.len() as f32;
                         direction.1 /= nearby_wolves.len() as f32;
 
-                        agent.acceleration.0 += direction.0 * 0.01;
-                        agent.acceleration.1 += direction.1 * 0.01;
+                        current_agent.acceleration.0 += direction.0 * 0.01;
+                        current_agent.acceleration.1 += direction.1 * 0.01;
                     }
                 }
                 AgentType::Grass() => {}
