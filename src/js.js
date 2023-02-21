@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 1,
-    sheep_count: 1,
+    wolf_count: 32,
+    sheep_count: 32,
     size: 1024
 }
 
@@ -230,7 +230,7 @@ class App {
         this.world.step(true);
         requestAnimationFrame(this.update.bind(this))
         /* log("update") */
-        
+
         const agents = this.world.get_agents();
         this.refreshInterface(agents);
         this.renderer.update_agents(agents);
@@ -297,9 +297,9 @@ class App {
                         condition = Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2) < Math.pow(100, 2)
                         log(`Brute force pow took ${performance.now() - then}ms with result ${condition}.`); */
 
-                        if (Math.pow(agents.positions[i][0] - this.mouse.x, 2)
-                            + Math.pow(agents.positions[i][1] - this.mouse.y, 2)
-                            < Math.pow(50, 2)) {
+                        if (Math.pow(agents.positions[i][0] - this.mouse.x, 2) +
+                            Math.pow(agents.positions[i][1] - this.mouse.y, 2) <
+                            Math.pow(50, 2)) {
                             nearby_points.positions.push(agents.positions[i])
                             nearby_points.ids.push(agents.ids[i])
                             nearby_points.types.push(agents.types[i])

@@ -1,7 +1,15 @@
 const THREE = require("three")
-const { GLTFLoader } = require("three/examples/jsm/loaders/GLTFLoader")
-const { OrbitControls } = require("three/examples/jsm/controls/OrbitControls")
-const { EXRLoader } = require("three/examples/jsm/loaders/EXRLoader")
+const {
+    GLTFLoader
+} = require("three/examples/jsm/loaders/GLTFLoader")
+const {
+    OrbitControls
+} = require("three/examples/jsm/controls/OrbitControls")
+const {
+    EXRLoader
+} = require("three/examples/jsm/loaders/EXRLoader")
+
+const MAX_GRASS = 1024;
 
 class Renderer {
     constructor(sheepNumber, wolfNumber, size) {
@@ -13,7 +21,7 @@ class Renderer {
         this.wolfNumber = wolfNumber;
 
         this.renderer = new THREE.WebGLRenderer();
-        this.camera = new THREE.PerspectiveCamera();
+        this.camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 5000);
         this.camera.position.z = this.size;
         this.camera.position.y = this.size;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -43,6 +51,20 @@ class Renderer {
 
     update_agents(agents) {
         if (!this.done_loading) return;
+        // Put each matrix's children at nil position
+        const nil = new THREE.Matrix4().makeTranslation(0, -10000, 0);
+        for (let i = 0; i < this.sheepNumber; i++) {
+            this.sheep.setMatrixAt(i, nil);
+        }
+        for (let i = 0; i < this.wolfNumber; i++) {
+            this.wolves.setMatrixAt(i, nil);
+        }
+        for (let i = 0; i < this.grass.count; i++) {
+            this.grass.setMatrixAt(i, nil)
+        }
+
+
+        /* log(`Updating ${agents.positions.length} agents.`); */
         for (let i = 0; i < agents.positions.length; i++) {
             switch (agents.types[i]) {
                 case 0:
@@ -89,7 +111,7 @@ class Renderer {
         this.grass = new THREE.InstancedMesh(
             this.grass_model.geometry,
             this.grass_model.material,
-            1024
+            MAX_GRASS
         )
         this.scene.add(this.grass)
 
