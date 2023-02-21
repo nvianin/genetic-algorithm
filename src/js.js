@@ -166,6 +166,9 @@ class App {
                     case 3: // Eating
                         bgCol = "green"
                         break;
+                    case 4: // Dead
+                        bgCol = "black"
+                        break;
                 }
 
                 this.inspected_agents[i].style.backgroundColor = bgCol;
@@ -183,6 +186,9 @@ class App {
                     break
                 case 3:
                     state_name = "Eating"
+                    break;
+                case 4:
+                    state_name = "Dead"
                     break;
             }
             this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`

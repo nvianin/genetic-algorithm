@@ -209,6 +209,7 @@ impl Agent {
                         }
                     }
                     State::Eating(target) => {}
+                    State::Dead => self.dead = true,
                 }
                 self.hunger -= HUNGER_RATE * genotype.hunger_rate;
             }
@@ -249,6 +250,7 @@ pub enum State {
     Hunting(Uuid),
     Fleeing,
     Eating(Uuid),
+    Dead,
 }
 impl State {
     pub fn to_int(&self) -> u8 {
@@ -257,6 +259,7 @@ impl State {
             State::Hunting(_) => 1,
             State::Fleeing => 2,
             State::Eating(_) => 3,
+            State::Dead => 4,
         }
     }
 }
@@ -268,6 +271,7 @@ impl Display for State {
             State::Hunting(_) => write!(f, "Hunting"),
             State::Fleeing => write!(f, "Fleeing"),
             State::Eating(_) => write!(f, "Eating"),
+            State::Dead => write!(f, "Dead"),
         }
     }
 }
