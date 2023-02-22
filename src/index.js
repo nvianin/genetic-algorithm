@@ -25,7 +25,7 @@ THREE.MapControls = function (object, domElement) {
     return this
 
 };
-
+asdfasdf
 THREE.MapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
 THREE.MapControls.prototype.constructor = THREE.MapControls;
 
