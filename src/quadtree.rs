@@ -196,9 +196,8 @@ impl QuadTree {
         &self,
         position: (f32, f32),
         radius: f32,
-    ) -> Vec<(Uuid, (f32, f32))> {
-        let mut result = Vec::new();
-
+        result: &mut Vec<(Uuid, (f32, f32))>,
+    ) -> &mut Vec<(Uuid, (f32, f32))> {
         if self.intersects_circle(position, radius) {
             let last_len = result.len();
             for child in &self.children {
@@ -209,7 +208,7 @@ impl QuadTree {
                 }
             }
             for child in &self.child_nodes {
-                result.append(&mut child.get_children_in_radius(position, radius));
+                result = child.get_children_in_radius(position, radius, result);
             }
             if result.len() != last_len {
                 /* log(&format!(
@@ -226,8 +225,8 @@ impl QuadTree {
         position: (f32, f32),
         radius: f32,
         agent_list: &mut HashMap<Uuid, Agent>,
-    ) -> Vec<(Uuid, (f32, f32))> {
-        let mut result = Vec::new();
+    ) -> &mut Vec<(Uuid, (f32, f32))> {
+        let mut result = &mut Vec::new();
 
         if self.intersects_circle(position, radius) {
             let last_len = result.len();
@@ -240,7 +239,7 @@ impl QuadTree {
                 }
             }
             for child in &self.child_nodes {
-                result.append(&mut child.get_children_in_radius(position, radius));
+                result = child.get_children_in_radius(position, radius, &mut result);
             }
             if result.len() != last_len {
                 /* log(&format!(

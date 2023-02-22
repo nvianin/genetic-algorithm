@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 16,
-    sheep_count: 16,
+    wolf_count: 128,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -18,7 +18,7 @@ class App {
         this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
         this.world = new wasm.World(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
         log(`Simulation world started with seed [${this.world.seed}].`);
-        log(this.world.get_quadtree());
+        /* log(this.world.get_quadtree()); */
 
         this.continue_render = true
 
@@ -35,7 +35,8 @@ class App {
 
     initListeners() {
         window.addEventListener("resize", () => {
-            this.renderer.setSize(innerWidth, innerHeight)
+            this.renderer.setSize(inthnerWidth, innerHeight)
+            this.renderer.setPixelRatio(.5)
         })
 
         this.queryMethod = 0; // 0 = quadtree, 1 = brute force
@@ -173,7 +174,7 @@ class App {
                     break;
             }
 
-            this.inspected_agents[i].style.boxShadow = `0 0 0 2px ${col}`
+            this.inspected_agents[i].style.boxShadow = `inset 0 0 0 2px ${col}`
             /* log(col) */
 
             if (this.inspected_agents[i].child.style.display == "none") continue;
@@ -244,7 +245,7 @@ class App {
         this.refreshInterface(agents);
         this.renderer.render(agents);
 
-        if (this.canvas) {
+        if (this.canvas && false) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
             /* if (active_quad) {
                 log(active_quad.name, active_quad.position)
@@ -286,7 +287,7 @@ class App {
             }
 
             // Draw Agents
-            if (true) {
+            if (false) {
                 /* log(agents) */
 
                 let then = performance.now();

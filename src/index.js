@@ -25,7 +25,7 @@ THREE.MapControls = function (object, domElement) {
     return this
 
 };
-asdfasdf
+
 THREE.MapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
 THREE.MapControls.prototype.constructor = THREE.MapControls;
 
@@ -70,19 +70,16 @@ class Renderer {
 
         this.load_models()
 
-        /* setInterval(() => {
-            window.location.reload()
-        }, 10000); */
-
         /* this.render() */
     }
 
     update_agents(agents) {
         if (!this.done_loading) return;
 
-        log(`Updating ${agents.positions.length} agents' matrices.`);
+        /* log(`Updating ${agents.positions.length} agents' matrices.`); */
         for (let i = 0; i < agents.positions.length; i++) {
             const dead = agents.states[i] == 4;
+            if(dead) log("dead")
             switch (agents.types[i]) {
                 case 0:
                     this.wolves.setMatrixAt(i,
