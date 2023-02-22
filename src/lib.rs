@@ -344,7 +344,7 @@ impl World {
         let mut result = SerializedAgents::new();
 
         for agent in self.agents.values() {
-            result.ids.push(agent.id.to_string());
+            result.ids.push(agent.id_string.clone());
             result.positions.push(agent.position);
             result.accelerations.push(agent.acceleration);
             result.types.push(agent.kind.to_int());
