@@ -81,7 +81,7 @@ pub struct World {
 extern crate console_error_panic_hook;
 
 const MAX_GRASS: usize = 16;
-const MAX_CHILDREN: usize = 16;
+const MAX_CHILDREN: usize = 8;
 const MAX_LEVELS: usize = 6;
 
 // Main JS interface to the simulation

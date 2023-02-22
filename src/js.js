@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 128,
-    sheep_count: 128,
+    wolf_count: 16,
+    sheep_count: 16,
     size: 1024
 }
 
@@ -173,7 +173,7 @@ class App {
                     break;
             }
 
-            this.inspected_agents[i].style.backgroundColor = col;
+            this.inspected_agents[i].style.boxShadow = `0 0 0 2px ${col}`
             /* log(col) */
 
             if (this.inspected_agents[i].child.style.display == "none") continue;
@@ -286,7 +286,7 @@ class App {
             }
 
             // Draw Agents
-            if (false) {
+            if (true) {
                 /* log(agents) */
 
                 let then = performance.now();

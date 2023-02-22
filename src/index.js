@@ -82,6 +82,7 @@ class Renderer {
 
         log(`Updating ${agents.positions.length} agents' matrices.`);
         for (let i = 0; i < agents.positions.length; i++) {
+            const dead = agents.states[i] == 4;
             switch (agents.types[i]) {
                 case 0:
                     this.wolves.setMatrixAt(i,
@@ -89,7 +90,7 @@ class Renderer {
                             .makeRotationFromEuler(
                                 new THREE.Euler(
                                     0,
-                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                    dead ? 1.4 : Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
                                     0
                                 )
                             )
@@ -104,7 +105,7 @@ class Renderer {
                             .makeRotationFromEuler(
                                 new THREE.Euler(
                                     0,
-                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                    dead ? 1.4 : Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
                                     0
                                 )
                             )

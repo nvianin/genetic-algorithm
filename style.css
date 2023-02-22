@@ -7,12 +7,13 @@ body {
   font-family: Helvetica;
 }
 #debugCanvas {
-  z-index: -1;
+  /* z-index: -1; */
   position: fixed;
   top: 0;
   left: 0;
   transform-origin: top left;
   transform: scale(0.9);
+  pointer-events: none;
 }
 
 #agent_inspector {
@@ -47,7 +48,7 @@ body {
 .active {
   background-color: white;
   font-weight: bold;
-  cursor: col-resize;
+  cursor: pointer;
 }
 
 .agent_info {
