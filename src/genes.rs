@@ -30,6 +30,36 @@ impl Genotype {
         }
     }
 
+    pub fn many_to_vec(geneotypes: Vec<&Genotype>) -> Vec<Vec<f32>> {
+        let mut result = Vec::new();
+
+        for genotype in geneotypes {
+            result.push(vec![
+                genotype.body_size,
+                genotype.sight_distance,
+                genotype.muscle_mass,
+                genotype.hunger_rate,
+                genotype.health_scale,
+                genotype.movement_speed,
+                genotype.gestation_duration,
+            ]);
+        }
+
+        result
+    }
+
+    pub fn to_vec(&self) -> Vec<f32> {
+        vec![
+            self.body_size,
+            self.sight_distance,
+            self.muscle_mass,
+            self.hunger_rate,
+            self.health_scale,
+            self.movement_speed,
+            self.gestation_duration,
+        ]
+    }
+
     pub fn to_hashmap(&self) -> HashMap<String, f32> {
         let mut map = HashMap::new();
         map.insert("body_size".to_string(), self.body_size);

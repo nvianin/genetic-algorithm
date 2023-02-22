@@ -350,13 +350,13 @@ impl World {
             result.types.push(agent.kind.to_int());
             match agent.kind {
                 AgentType::Sheep(genotype) => {
-                    result.genotypes.push(genotype.to_hashmap());
+                    result.genotypes.push(genotype.to_vec());
                 }
                 AgentType::Wolf(genotype) => {
-                    result.genotypes.push(genotype.to_hashmap());
+                    result.genotypes.push(genotype.to_vec());
                 }
                 AgentType::Grass() => {
-                    result.genotypes.push(HashMap::new());
+                    result.genotypes.push(Vec::new());
                 }
             }
             result.states.push(agent.state.to_int());
@@ -416,7 +416,7 @@ pub struct SerializedAgents {
     pub positions: Vec<(f32, f32)>,
     pub accelerations: Vec<(f32, f32)>,
     pub types: Vec<u8>,
-    pub genotypes: Vec<HashMap<String, f32>>,
+    pub genotypes: Vec<Vec<f32>>,
     pub states: Vec<u8>,
     pub vitals: Vec<(f32, f32)>, // Health, hunger
 }

@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 128,
-    sheep_count: 128,
+    wolf_count: 512,
+    sheep_count: 512,
     size: 1024
 }
 
