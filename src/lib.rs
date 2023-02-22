@@ -143,10 +143,10 @@ impl World {
                 AgentType::Sheep(genotype) => {
                     // Try to avoid wolves
                     let mut nearby_wolves = Vec::new();
-                    self.wolf_quad.get_children_in_radius(
+                    nearby_wolves = self.wolf_quad.get_children_in_radius(
                         agent.position,
                         genotype.sight_distance,
-                        &mut nearby_wolves,
+                        nearby_wolves,
                     );
                     let mut direction = (0., 0.);
                     if nearby_wolves.len() > 0 {
@@ -167,16 +167,16 @@ impl World {
             match agent.kind {
                 AgentType::Sheep(genotype) => {
                     let mut nearby_agents = Vec::new();
-                    nearby_agents.append(&mut self.wolf_quad.get_children_in_radius(
+                    nearby_agents = self.wolf_quad.get_children_in_radius(
                         agent.position,
                         genotype.sight_distance,
-                        &mut nearby_agents,
-                    ));
-                    nearby_agents.append(&mut self.grass_quad.get_children_in_radius(
+                        nearby_agents,
+                    );
+                    nearby_agents = self.grass_quad.get_children_in_radius(
                         agent.position,
                         genotype.sight_distance,
-                        &mut nearby_agents,
-                    ));
+                        nearby_agents,
+                    );
 
                     // Pass a non mutable reeference, return mutations to the agents hashmaps
                     let modified_agents = current_agent.update(
@@ -195,11 +195,11 @@ impl World {
                 }
                 AgentType::Wolf(genotype) => {
                     let mut nearby_agents = Vec::new();
-                    nearby_agents.append(&mut self.sheep_quad.get_children_in_radius(
+                    nearby_agents = self.sheep_quad.get_children_in_radius(
                         agent.position,
                         genotype.sight_distance,
-                        &mut nearby_agents,
-                    ));
+                        nearby_agents,
+                    );
                     let modified_agents = current_agent.update(
                         nearby_agents,
                         &self.agents,
@@ -393,9 +393,11 @@ impl World {
     #[wasm_bindgen]
     pub fn get_agents_in_radius(&self, x: f32, y: f32, radius: f32) -> JsValue {
         let mut result = SerializedAgents::new();
-        let mut agent_indexes = &mut Vec::new();
-        agent_indexes = self.sheep_quad.get_children_in_radius((x, y), radius, &mut agent_indexes);
-        for agent in agent_indexes {
+        let mut agents_in_radius = Vec::new();
+        agents_in_radius = self
+            .sheep_quad
+            .get_children_in_radius((x, y), radius, agents_in_radius);
+        for agent in agents_in_radius {
             result.ids.push(agent.0.to_string());
             result.positions.push(agent.1);
             let a = self.agents.get(&agent.0).unwrap();

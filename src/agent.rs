@@ -84,7 +84,7 @@ impl Agent {
             Some(genes) => {
                 health_mult = genes.health_scale;
             }
-            None => {health_mult = 100.}
+            None => health_mult = 100.,
         }
         Agent {
             kind,
@@ -238,14 +238,12 @@ impl Agent {
 
         if self.position.0 > 1024. {
             self.position.0 -= 1024.
-        }
-        else if self.position.0 < 0. {
+        } else if self.position.0 < 0. {
             self.position.0 += 1024.
         }
         if self.position.1 > 1024. {
             self.position.1 -= 1024.
-        }
-        else if self.position.1 < 0. {
+        } else if self.position.1 < 0. {
             self.position.1 += 1024.
         }
 
