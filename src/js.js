@@ -13,7 +13,7 @@ const WORLD_SETTINGS = {
 }
 
 const STATE_COLOURS = {
-    0 : "#eeeeee", // Idle
+    0: "#eeeeee", // Idle
     1: "red", // Hunting
     2: "yellow", // Fleeing
     3: "green", // Eating
@@ -61,8 +61,20 @@ class App {
                 this.renderer.mouse.y = intersects[0].point.z + WORLD_SETTINGS.size / 2;
 
                 this.mousepicked_agent = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 10)
-                if(this.mousepicked_agent.positions.length > 0){
+                if (this.mousepicked_agent.positions.length > 0) {
                     log(this.mousepicked_agent)
+                }
+            }
+        })
+
+        this.renderer.tracking_agent = false;
+        this.renderer.renderer.domElement.addEventListener("mousedown", e => {
+            if (this.mousepicked_agent && this.mousepicked_agent.positions.length > 0) {
+                this.renderer.tracking_agent = !this.renderer.tracking_agent;
+                if (this.renderer.tracking_agent) {
+                    // Move this into update loop
+                    this.renderer.camera.position.set(this.mousepicked_agent.positions[0], 100, this.mousepicked_agent.positions[1])
+                    this.renderer.camera.lookAt(this.mousepicked_agent.positions[0], 0, this.mousepicked_agent.positions[1])
                 }
             }
         })
@@ -258,12 +270,12 @@ class App {
         this.refreshInterface(agents);
         this.renderer.render(agents);
 
-        if (this.mousepicked_agent && this.mousepicked_agent.positions.length > 0 && this.renderer.selection_circle){
+        if (this.mousepicked_agent && this.mousepicked_agent.positions.length > 0 && this.renderer.selection_circle) {
             const index = agents.ids.indexOf(this.mousepicked_agent.ids[0]);
             /* log(index)
             log(this.mousepicked_agent.ids, agents.ids) */
-            this.renderer.selection_circle.position.x = agents.positions[index][0]
-            this.renderer.selection_circle.position.z = agents.positions[index][1]
+            this.renderer.selection_circle.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
+            this.renderer.selection_circle.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
 
             this.renderer.renderer.domElement.style.cursor = "pointer"
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
