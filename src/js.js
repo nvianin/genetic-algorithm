@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 512,
-    sheep_count: 512,
+    wolf_count: 128,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -39,6 +39,23 @@ class App {
         })
 
         this.queryMethod = 0; // 0 = quadtree, 1 = brute force
+
+        this.renderer.renderer.domElement.addEventListener("mousemove", e => {
+            this.renderer.three_mouse.x = e.clientX / innerWidth * 2 - 1;
+            this.renderer.three_mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+
+            this.renderer.mousecaster.setFromCamera(this.renderer.three_mouse, this.renderer.camera);
+            const intersects = this.renderer.mousecaster.intersectObject(this.renderer.ground, false);
+            if (intersects.length > 0) {
+                this.renderer.mouse.x = intersects[0].point.x + WORLD_SETTINGS.size / 2;
+                this.renderer.mouse.y = intersects[0].point.z + WORLD_SETTINGS.size / 2;
+
+                this.mousepicked_agent = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 50)
+                if(this.mousepicked_agent.positions.length > 0){
+                    log(this.mousepicked_agent)
+                }
+            }
+        })
 
         if (this.canvas) {
             this.mouse = {
@@ -200,14 +217,14 @@ class App {
                 State: ${state_name}
                 Position: ${Math.floor(agents.positions[i][0] * 100) / 100},${Math.floor(agents.positions[i][1] * 100) / 100}
                 Genotype:
-                Body size: ${Math.floor(agents.genotypes[i].get("body_size") * 100) / 100} 
-                Sight: ${Math.floor(agents.genotypes[i].get("sight_distance") * 100) / 100}
-                Muscle mass: ${Math.floor(agents.genotypes[i].get("muscle_mass") * 100) / 100}
+                Body size: ${Math.floor(agents.genotypes[i][0] * 100) / 100} 
+                Sight: ${Math.floor(agents.genotypes[i][1] * 100) / 100}
+                Muscle mass: ${Math.floor(agents.genotypes[i][2] * 100) / 100}
                 ---
-                Hunger rate: ${Math.floor(agents.genotypes[i].get("hunger_rate") * 100) / 100}
-                Health scale: ${Math.floor(agents.genotypes[i].get("health_scale") * 100) / 100}
-                Speed: ${Math.floor(agents.genotypes[i].get("movement_speed") * 100) / 100}
-                Gestation time: ${Math.floor(agents.genotypes[i].get("gestation_duration") * 100) / 100}
+                Hunger rate: ${Math.floor(agents.genotypes[i][3] * 100) / 100}
+                Health scale: ${Math.floor(agents.genotypes[i][4] * 100) / 100}
+                Speed: ${Math.floor(agents.genotypes[i][5] * 100) / 100}
+                Gestation time: ${Math.floor(agents.genotypes[i][6] * 100) / 100}
 
 
             `
@@ -240,6 +257,7 @@ class App {
         /* log("update") */
 
         const agents = this.world.get_agents();
+
         /* log(agents.positions.length) */
         this.refreshInterface(agents);
         this.renderer.render(agents);

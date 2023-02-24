@@ -397,6 +397,15 @@ impl World {
         agents_in_radius = self
             .sheep_quad
             .get_children_in_radius((x, y), radius, agents_in_radius);
+
+        agents_in_radius = self
+            .wolf_quad
+            .get_children_in_radius((x, y), radius, agents_in_radius);
+
+        agents_in_radius = self
+            .grass_quad
+            .get_children_in_radius((x, y), radius, agents_in_radius);
+
         for agent in agents_in_radius {
             result.ids.push(agent.0.to_string());
             result.positions.push(agent.1);

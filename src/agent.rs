@@ -55,6 +55,7 @@ const HUNGER_RATE: f32 = 0.001;
 const BITE_SIZE: f32 = 10.;
 const WANDER_SPEED: f32 = 0.1;
 const STARVING_DAMAGE: f32 = 0.1;
+const PLANT_GROWTH_RATE: f32 = 0.001;
 /* const MAX_WANDER_SPEED: f32 = 0.1; */
 
 #[derive(Clone)]
@@ -71,6 +72,8 @@ pub struct Agent {
     pub dead: bool,
     pub state: State,
     pub seed: f64,
+    pub timeout: f32,
+    pub last_time: f32,
 }
 
 impl Agent {
@@ -100,6 +103,8 @@ impl Agent {
             dead: false,
             state: State::Idle,
             seed: seed * 10000.,
+            timeout: 0.,
+            last_time: 0.,
         }
     }
 
@@ -178,13 +183,18 @@ impl Agent {
                                     self.acceleration.0 = 0.;
                                     self.acceleration.1 = 0.;
 
-                                    // Eat prey
-                                    self.hunger += prey.eat(BITE_SIZE);
-                                    if self.hunger > SATIETY {
-                                        self.state = State::Idle;
-                                    }
-                                    if self.hunger > 100. {
-                                        self.hunger = 100.
+                                    if (time > self.last_time + self.timeout){
+
+                                        // Eat prey
+                                        self.hunger += prey.eat(BITE_SIZE);
+                                        if self.hunger > SATIETY {
+                                            self.state = State::Idle;
+                                        }
+                                        if self.hunger > 100. {
+                                            self.hunger = 100.
+                                        }
+                                        self.last_time = time;
+                                        self.timeout = 1.;
                                     }
                                 }
                                 modified_agents.insert(a.0, prey);
@@ -198,26 +208,34 @@ impl Agent {
                         match self.kind {
                             AgentType::Sheep(_) => {
                                 // Get nearby wolves
-                                let mut med_dir = (0., 0.);
-                                let mut predator_count = 0;
+                                let mut closest_distance = f32::MAX;
+                                let mut closest_wolf = None;
                                 for id in nearby_agents.iter() {
                                     match agents.get(&id.0).unwrap().kind {
                                         AgentType::Wolf(_) => {
                                             let pos = agents.get(&id.0).unwrap().position;
-                                            med_dir.0 += pos.0;
-                                            med_dir.1 += pos.1;
-                                            predator_count += 1;
+                                            let dist = pos.0.powf(2.) + pos.1.powf(2.);
+                                            if dist < closest_distance {
+                                                closest_distance = dist;
+                                                closest_wolf = Some(id.0);
+                                            }
                                         }
                                         _ => {}
                                     }
                                 }
-                                if predator_count > 0 {
-                                    med_dir.0 /= predator_count as f32;
-                                    med_dir.1 /= predator_count as f32;
-                                    self.acceleration.0 += med_dir.0;
-                                    self.acceleration.1 += med_dir.1;
-                                } else {
-                                    self.state = State::Idle;
+                                match closest_wolf {
+                                    Some(id) => {
+                                        let wolf = agents.get(&id).unwrap();
+                                        let wolf_direction = normalize_vector((
+                                            wolf.position.0 - self.position.0,
+                                            wolf.position.1 - self.position.1,
+                                        ));
+                                        self.acceleration.0 -= wolf_direction.0;
+                                        self.acceleration.1 -= wolf_direction.1;
+                                    }
+                                    None => {
+                                        self.state = State::Idle;
+                                    }
                                 }
                             }
                             _ => {}
@@ -229,7 +247,9 @@ impl Agent {
                 self.hunger -= HUNGER_RATE * genotype.hunger_rate;
             }
             AgentType::Wolf(genotype) => {}
-            AgentType::Grass() => {}
+            AgentType::Grass() => {
+                self.health += PLANT_GROWTH_RATE;
+            }
         }
 
         /* self.health -= 1.; */

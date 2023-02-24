@@ -51,6 +51,10 @@ class Renderer {
 
         this.controller = THREE.MapControls(this.camera, this.renderer.domElement);
 
+        this.mousecaster = new THREE.Raycaster();
+        this.three_mouse = new THREE.Vector2();
+        this.mouse = { x: 0, y: 0 }
+
         this.ground = new THREE.Mesh(
             new THREE.PlaneGeometry(this.size, this.size),
             new THREE.MeshPhysicalMaterial({
@@ -84,46 +88,61 @@ class Renderer {
                 case 0:
                     this.wolves.setMatrixAt(i,
                         new THREE.Matrix4()
-                            .makeRotationFromEuler(
-                                new THREE.Euler(
+                            .compose(
+                                new THREE.Vector3(
+                                    agents.positions[i][0] - this.size / 2,
                                     0,
-                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                    dead ? 1.4 : 0
-                                )
+                                    agents.positions[i][1] - this.size / 2
+                                ),
+                                new THREE.Quaternion().setFromEuler(
+                                    new THREE.Euler(
+                                        0,
+                                        Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                        dead ? 1.4 : 0
+                                    )
+                                ),
+                                new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
                             )
-                            .setPosition(agents.positions[i][0] - this.size / 2,
-                                0,
-                                agents.positions[i][1] - this.size / 2)
                     )
                     break;
                 case 1:
                     this.sheep.setMatrixAt(i,
                         new THREE.Matrix4()
-                            .makeRotationFromEuler(
-                                new THREE.Euler(
+                            .compose(
+                                new THREE.Vector3(
+                                    agents.positions[i][0] - this.size / 2,
                                     0,
-                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                    dead ? 1.4 : 0
-                                )
+                                    agents.positions[i][1] - this.size / 2
+                                ),
+                                new THREE.Quaternion().setFromEuler(
+                                    new THREE.Euler(
+                                        0,
+                                        Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                        dead ? 1.4 : 0
+                                    )
+                                ),
+                                new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
                             )
-                            .setPosition(agents.positions[i][0] - this.size / 2,
-                                0,
-                                agents.positions[i][1] - this.size / 2)
                     )
                     break;
                 case 2:
                     this.grass.setMatrixAt(i,
                         new THREE.Matrix4()
-                            .makeRotationFromEuler(
-                                new THREE.Euler(
+                            .compose(
+                                new THREE.Vector3(
+                                    agents.positions[i][0] - this.size / 2,
                                     0,
-                                    Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                    0
-                                )
+                                    agents.positions[i][1] - this.size / 2
+                                ),
+                                new THREE.Quaternion().setFromEuler(
+                                    new THREE.Euler(
+                                        0,
+                                        Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                        dead ? 1.4 : 0
+                                    )
+                                ),
+                                new THREE.Vector3(agents.vitals[i][0] / 100, agents.vitals[i][0] / 100, agents.vitals[i][0] / 100)
                             )
-                            .setPosition(agents.positions[i][0] - this.size / 2,
-                                0,
-                                agents.positions[i][1] - this.size / 2)
                     )
                     break;
             }
@@ -163,7 +182,7 @@ class Renderer {
         this.scene.add(this.wolves)
 
         this.grass = new THREE.InstancedMesh(
-            this.grass_model.geometry.scale(16, 16, 16),
+            this.grass_model.geometry.scale(4, 4, 4),
             this.grass_model.material,
             MAX_GRASS
         )
@@ -189,6 +208,20 @@ class Renderer {
         this.ground.material.envMap = this.exr;
         this.ground.material.envMapIntensity = 0.5;
         log(this.ground.material)
+
+        const texLoader = new THREE.TextureLoader();
+
+        const circle_tex = await (texLoader.loadAsync("./rsc/textures/circle.png"));
+        this.selection_circle = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 1),
+            new THREE.MeshBasicMaterial({
+                map: circle_tex,
+                transparent: true,
+                opacity: 0.5,
+                side: THREE.DoubleSide
+            }));
+        this.selection_circle.visible = false;
+        this.scene.add(this.selection_circle);
 
         this.done_loading = true;
     }
