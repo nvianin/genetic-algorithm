@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 128,
-    sheep_count: 128,
+    wolf_count: 512,
+    sheep_count: 512,
     size: 1024
 }
 
@@ -35,8 +35,7 @@ class App {
 
     initListeners() {
         window.addEventListener("resize", () => {
-            this.renderer.setSize(inthnerWidth, innerHeight)
-            this.renderer.setPixelRatio(.5)
+            this.renderer.setSize(innerWidth, innerHeight)
         })
 
         this.queryMethod = 0; // 0 = quadtree, 1 = brute force

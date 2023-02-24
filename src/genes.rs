@@ -16,7 +16,7 @@ pub struct Genotype {
 impl Genotype {
     pub fn new(thread_rng: &mut ThreadRng) -> Genotype {
         let body_size = thread_rng.gen_range(1.0..10.0);
-        let sight_distance = thread_rng.gen_range(200.0..500.);
+        let sight_distance = thread_rng.gen_range(50.0..200.);
         let muscle_mass = thread_rng.gen_range(1.0..10.0);
         Genotype {
             body_size,

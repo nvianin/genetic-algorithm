@@ -39,11 +39,11 @@ class Renderer {
         this.sheepNumber = sheepNumber;
         this.wolfNumber = wolfNumber;
 
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.shadowMap.enabled = true;
         this.camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 5000);
-        this.camera.position.z = this.size;
-        this.camera.position.y = this.size;
+        this.camera.position.z = this.size / 3;
+        this.camera.position.y = this.size / 3;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         this.scene = new THREE.Scene();
 
@@ -145,7 +145,7 @@ class Renderer {
         log("grass", this.grass_model)
 
         this.sheep = new THREE.InstancedMesh(
-            this.sheep_model.geometry.scale(4, 4, 4),
+            this.sheep_model.geometry.scale(1.6, 1.6, 1.6),
             this.sheep_model.material,
             this.sheepNumber
         )
@@ -154,7 +154,7 @@ class Renderer {
         this.scene.add(this.sheep)
 
         this.wolves = new THREE.InstancedMesh(
-            this.wolf_model.geometry.scale(4, 4, 4),
+            this.wolf_model.geometry.scale(2, 2, 2),
             this.wolf_model.material,
             this.wolfNumber
         )
@@ -201,10 +201,13 @@ class Renderer {
         this.sun.position.y = this.size;
         this.sun.lookAt(new THREE.Vector3(0, 0, 0));
         this.sun.shadow.camera.far = 5000;
-        this.sun.shadow.camera.bottom = -this.size / 3.5;
-        this.sun.shadow.camera.top = this.size / 3.5;
-        this.sun.shadow.camera.left = -this.size / 3.5;
-        this.sun.shadow.camera.right = this.size / 3.5;
+        this.sun.shadow.camera.bottom = -this.size / 2;
+        this.sun.shadow.camera.top = this.size / 2;
+        this.sun.shadow.camera.left = -this.size / 2;
+        this.sun.shadow.camera.right = this.size / 2;
+        this.sun.shadow.bias = 0.01
+
+        /* this.scene.add(new THREE.CameraHelper(this.sun.shadow.camera)); */
 
         const exr_loader = new EXRLoader();
         this.exr = (await exr_loader.loadAsync("./rsc/textures/scythian_tombs_2_1k.exr"));

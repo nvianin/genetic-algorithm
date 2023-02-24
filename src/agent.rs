@@ -153,7 +153,7 @@ impl Agent {
                             }
                         }
 
-                        self.direction += (noise.get([self.seed, time as f64]) as f32) * 0.1;
+                        self.direction += (noise.get([self.seed, time as f64]) as f32) * 0.5;
 
                         self.acceleration.0 +=
                             self.direction.cos() * genotype.movement_speed * WANDER_SPEED;
