@@ -49,6 +49,7 @@ class App {
         this.queryMethod = 0; // 0 = quadtree, 1 = brute force
 
         this.mousepicked_agent = null
+        this.prev_mousepicked_agent = null;
 
         this.renderer.renderer.domElement.addEventListener("mousemove", e => {
             this.renderer.three_mouse.x = e.clientX / innerWidth * 2 - 1;
@@ -62,6 +63,10 @@ class App {
 
                 this.mousepicked_agent = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 10)
                 if (this.mousepicked_agent.positions.length > 0) {
+                    if (this.renderer.tracking_agent && this.prev_mousepicked_agent != this.mousepicked_agent.ids[0]) {
+                        this.renderer.tracking_agent = false;
+                    }
+                    this.prev_mousepicked_agent = this.mousepicked_agent.ids[0]
                     log(this.mousepicked_agent)
                 }
             }
@@ -71,11 +76,7 @@ class App {
         this.renderer.renderer.domElement.addEventListener("mousedown", e => {
             if (this.mousepicked_agent && this.mousepicked_agent.positions.length > 0) {
                 this.renderer.tracking_agent = !this.renderer.tracking_agent;
-                if (this.renderer.tracking_agent) {
-                    // Move this into update loop
-                    this.renderer.camera.position.set(this.mousepicked_agent.positions[0], 100, this.mousepicked_agent.positions[1])
-                    this.renderer.camera.lookAt(this.mousepicked_agent.positions[0], 0, this.mousepicked_agent.positions[1])
-                }
+                this.renderer.controller.enabled = !this.renderer.tracking_agent;
             }
         })
 
@@ -279,6 +280,12 @@ class App {
 
             this.renderer.renderer.domElement.style.cursor = "pointer"
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
+
+            if (this.renderer.tracking_agent) {
+                this.renderer.camera.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
+                /* this.renderer.camera.position.y = WORLD_SETTINGS.size / 2; */
+                this.renderer.camera.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
+            }
         } else {
             this.renderer.renderer.domElement.style.cursor = "default"
         }

@@ -50,6 +50,7 @@ class Renderer {
         this.load_lights();
 
         this.controller = THREE.MapControls(this.camera, this.renderer.domElement);
+        this.controller.screenSpacePanning = false;
 
         this.mousecaster = new THREE.Raycaster();
         this.three_mouse = new THREE.Vector2();
