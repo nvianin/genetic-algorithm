@@ -60,7 +60,7 @@ class App {
                 this.renderer.mouse.x = intersects[0].point.x + WORLD_SETTINGS.size / 2;
                 this.renderer.mouse.y = intersects[0].point.z + WORLD_SETTINGS.size / 2;
 
-                this.mousepicked_agent = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 50)
+                this.mousepicked_agent = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 10)
                 if(this.mousepicked_agent.positions.length > 0){
                     log(this.mousepicked_agent)
                 }
@@ -265,8 +265,10 @@ class App {
             this.renderer.selection_circle.position.x = agents.positions[index][0]
             this.renderer.selection_circle.position.z = agents.positions[index][1]
 
-
+            this.renderer.renderer.domElement.style.cursor = "pointer"
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
+        } else {
+            this.renderer.renderer.domElement.style.cursor = "default"
         }
 
         if (this.canvas && false) {
