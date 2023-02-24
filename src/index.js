@@ -157,11 +157,11 @@ class Renderer {
         const loader = new GLTFLoader();
 
         this.sheep_model = (await loader.loadAsync("./rsc/models/sheep.glb")).scene.children[0]
-        log("sheep", this.sheep_model)
+        /* log("sheep", this.sheep_model) */
         this.wolf_model = (await loader.loadAsync("./rsc/models/wolf.glb")).scene.children[0]
-        log("wolf", this.wolf_model)
+        /* log("wolf", this.wolf_model) */
         this.grass_model = (await loader.loadAsync("./rsc/models/grass.glb")).scene.children[0]
-        log("grass", this.grass_model)
+        /* log("grass", this.grass_model) */
 
         this.sheep = new THREE.InstancedMesh(
             this.sheep_model.geometry.scale(1.6, 1.6, 1.6),
@@ -207,7 +207,7 @@ class Renderer {
         this.grass_model.material.envMap = this.exr;
         this.ground.material.envMap = this.exr;
         this.ground.material.envMapIntensity = 0.5;
-        log(this.ground.material)
+        /* log(this.ground.material) */
 
         const texLoader = new THREE.TextureLoader();
 
@@ -223,7 +223,7 @@ class Renderer {
         this.selection_circle.rotation.x = Math.PI / 2
         this.selection_circle.scale.multiplyScalar(15)
         /* this.selection_circle.visible = false; */
-        this.selection_circle.position.y = -10;
+        /* this.selection_circle.position.y = -10; */
         this.scene.add(this.selection_circle);
 
         this.done_loading = true;

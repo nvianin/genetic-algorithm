@@ -48,6 +48,8 @@ class App {
 
         this.queryMethod = 0; // 0 = quadtree, 1 = brute force
 
+        this.mousepicked_agent = null
+
         this.renderer.renderer.domElement.addEventListener("mousemove", e => {
             this.renderer.three_mouse.x = e.clientX / innerWidth * 2 - 1;
             this.renderer.three_mouse.y = -(e.clientY / innerHeight) * 2 + 1;
@@ -182,21 +184,7 @@ class App {
                 } */
                 continue
             };
-            let col = "#eeeeee"
-            switch (agents.states[i]) {
-                case 1: // Hunting
-                    col = "red"
-                    break;
-                case 2: // Fleeing
-                    col = "yellow"
-                    break;
-                case 3: // Eating
-                    col = "green"
-                    break;
-                case 4: // Dead
-                    col = "grey"
-                    break;
-            }
+            let col = STATE_COLOURS[agents.states[i]]
 
             this.inspected_agents[i].style.boxShadow = `inset 0 0 0 2px ${col}`
             /* log(col) */
@@ -270,11 +258,15 @@ class App {
         this.refreshInterface(agents);
         this.renderer.render(agents);
 
-        if (this.mousepicked_agent){
-            this.renderer.selection_circle.position.x = agents.positions[0][0]
-            this.renderer.selection_circle.position.y = agents.positions[0][1]
+        if (this.mousepicked_agent && this.mousepicked_agent.positions.length > 0 && this.renderer.selection_circle){
+            const index = agents.ids.indexOf(this.mousepicked_agent.ids[0]);
+            /* log(index)
+            log(this.mousepicked_agent.ids, agents.ids) */
+            this.renderer.selection_circle.position.x = agents.positions[index][0]
+            this.renderer.selection_circle.position.z = agents.positions[index][1]
 
-            /* this.renderer.selection_circle.material.color =  */
+
+            this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
         }
 
         if (this.canvas && false) {
