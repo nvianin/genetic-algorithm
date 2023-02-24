@@ -12,6 +12,14 @@ const WORLD_SETTINGS = {
     size: 1024
 }
 
+const STATE_COLOURS = {
+    0 : "#eeeeee", // Idle
+    1: "red", // Hunting
+    2: "yellow", // Fleeing
+    3: "green", // Eating
+    4: "grey", // Dead
+}
+
 class App {
     constructor() {
 
@@ -261,6 +269,13 @@ class App {
         /* log(agents.positions.length) */
         this.refreshInterface(agents);
         this.renderer.render(agents);
+
+        if (this.mousepicked_agent){
+            this.renderer.selection_circle.position.x = agents.positions[0][0]
+            this.renderer.selection_circle.position.y = agents.positions[0][1]
+
+            /* this.renderer.selection_circle.material.color =  */
+        }
 
         if (this.canvas && false) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)

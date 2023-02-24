@@ -220,7 +220,10 @@ class Renderer {
                 opacity: 0.5,
                 side: THREE.DoubleSide
             }));
-        this.selection_circle.visible = false;
+        this.selection_circle.rotation.x = Math.PI / 2
+        this.selection_circle.scale.multiplyScalar(15)
+        /* this.selection_circle.visible = false; */
+        this.selection_circle.position.y = -10;
         this.scene.add(this.selection_circle);
 
         this.done_loading = true;
