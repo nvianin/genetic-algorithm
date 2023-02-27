@@ -7,7 +7,7 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 128,
+    wolf_count: 0,
     sheep_count: 128,
     size: 1024
 }
@@ -62,26 +62,49 @@ class App {
                 this.renderer.mouse.x = intersects[0].point.x + WORLD_SETTINGS.size / 2;
                 this.renderer.mouse.y = intersects[0].point.z + WORLD_SETTINGS.size / 2;
 
-                this.hovered_agent = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 10)
-                if (this.hovered_agent.positions.length > 0) {
+                const nearby_agents = this.world.get_agents_in_radius(this.renderer.mouse.x, this.renderer.mouse.y, 10)
+                if (nearby_agents.positions.length > 0) {
+                    this.hovered_agent = nearby_agents.ids[0];
                     /* if (this.renderer.tracking_agent && this.prev_mousepicked_agent != this.mousepicked_agent.ids[0]) {
                         this.renderer.tracking_agent = false;
                     } */
                     /* this.prev_mousepicked_agent = this.mousepicked_agent.ids[0]
                     log(this.mousepicked_agent) */
+                } else {
+                    this.hovered_agent = null;
                 }
-            } else {
-                this.hovered_agent = null;
             }
         })
 
         this.renderer.tracking_agent = false;
         this.renderer.renderer.domElement.addEventListener("mousedown", e => {
-            if (this.hovered_agent && this.hovered_agent.positions.length > 0) {
-                this.renderer.tracking_agent = !this.renderer.tracking_agent;
+            if(this.renderer.tracking_agent) {
+                this.renderer.tracking_agent = false;
+                return;
+            }
+            if (this.hovered_agent) {
+                this.renderer.tracking_agent = true;
                 this.mousepicked_agent = this.hovered_agent;
 
+                this.renderer.fake_cam.copy(this.renderer.camera)
+                log(this.hovered_agent)
+                const selected = this.inspected_agents.find(e => {
+                    return e.uuid == this.hovered_agent
+                })
+                this.agent_inspector.scrollTo(0, selected.offsetTop - 100)
+                selected.click()
+
                 /* this.renderer.controller.enabled = !this.renderer.tracking_agent; */
+            }
+        })
+
+        this.renderer.camera.userData.scroll = 0;
+        this.renderer.renderer.domElement.addEventListener("wheel", e => {
+            if (this.renderer.tracking_agent) {
+                if (e.deltaY < 0 && this.renderer.camera.position.y <= 50 || e.deltaY > 0 && this.renderer.camera.position.y >= 600) {
+                    return;
+                }
+                this.renderer.camera.userData.scroll += e.deltaY * .5;
             }
         })
 
@@ -132,6 +155,9 @@ class App {
             log(e.target.child)
             e.target.classList.toggle("active")
             e.target.child.style.display = e.target.classList.contains("active") ? "flex" : "none"
+            this.mousepicked_agent = e.target.uuid
+            /* log(this.mousepicked_agent) */
+            this.renderer.tracking_agent = true;
         }
     }
 
@@ -204,7 +230,7 @@ class App {
             };
             let col = STATE_COLOURS[agents.states[i]]
 
-            this.inspected_agents[i].style.boxShadow = `inset 0 0 0 2px ${col}`
+            this.inspected_agents[i].style.boxShadow = `inset 0 0 12px 3px ${col}`
             /* log(col) */
 
             if (this.inspected_agents[i].child.style.display == "none") continue;
@@ -229,7 +255,7 @@ class App {
             this.inspected_agents[i].text.innerText =
                 `
                 State: ${state_name}
-                Position: ${Math.floor(agents.positions[i][0] * 100) / 100},${Math.floor(agents.positions[i][1] * 100) / 100}
+                Position: ${Math.floor(agents.positions[i][0])},${Math.floor(agents.positions[i][1])}
                 Genotype:
                 Body size: ${Math.floor(agents.genotypes[i][0] * 100) / 100} 
                 Sight: ${Math.floor(agents.genotypes[i][1] * 100) / 100}
@@ -276,25 +302,43 @@ class App {
         this.refreshInterface(agents);
         this.renderer.render(agents);
 
-        if (this.hovered_agent && this.hovered_agent.positions.length > 0 && this.renderer.selection_circle) {
-            const index = agents.ids.indexOf(this.hovered_agent.ids[0]);
+        if (this.hovered_agent && this.renderer.selection_circle) {
+            const index = agents.ids.indexOf(this.hovered_agent);
             /* log(index)
             log(this.mousepicked_agent.ids, agents.ids) */
             this.renderer.selection_circle.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
             this.renderer.selection_circle.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
-            
+
             this.renderer.renderer.domElement.style.cursor = "pointer"
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
-            
+
         } else {
             this.renderer.renderer.domElement.style.cursor = "default"
         }
-        if (this.renderer.tracking_agent && this.mousepicked_agent && this.mousepicked_agent.positions.length > 0) {
-            const index = agents.ids.indexOf(this.mousepicked_agent.ids[0]);
+        // Track a single agent
+        if (this.renderer.tracking_agent && this.mousepicked_agent) {
+            const index = agents.ids.indexOf(this.mousepicked_agent);
+
+            this.renderer.camera.position.y += this.renderer.camera.userData.scroll;
+            this.renderer.camera.userData.scroll = 0;
+
+            this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
+            this.renderer.selection_circle.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
+            this.renderer.selection_circle.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
 
             /* this.renderer.camera.position.y = WORLD_SETTINGS.size / 2; */
-            this.renderer.camera.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
-            this.renderer.camera.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
+            this.renderer.camera.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2 + 100
+            this.renderer.camera.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2 - 100
+
+            this.renderer.camera.lookAt(
+                agents.positions[index][0] - WORLD_SETTINGS.size / 2,
+                0,
+                agents.positions[index][1] - WORLD_SETTINGS.size / 2
+            )
+        } else {
+            // Use regular controls
+            this.renderer.camera.position.copy(this.renderer.fake_cam.position);
+            this.renderer.camera.rotation.copy(this.renderer.fake_cam.rotation);
         }
 
         if (this.canvas && false) {

@@ -44,14 +44,17 @@ class Renderer {
         this.camera.position.z = this.size / 3;
         this.camera.position.y = this.size / 3;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        this.fake_cam = this.camera.clone()
         this.scene = new THREE.Scene();
         /* this.camera_tracking_pivot = new THREE.Object3D();
-        this.camera_tracking_pivot.name = "camera_tracking_pivot" */
+        this.camera_tracking_pivot.name = "camera_tracking_pivot" 
         this.scene.add(this.camera_tracking_pivot);
+        */
 
         this.load_lights();
 
-        this.controller = THREE.MapControls(this.camera, this.renderer.domElement);
+        this.controller = THREE.MapControls(this.fake_cam, this.renderer.domElement);
         this.controller.screenSpacePanning = false;
 
         this.mousecaster = new THREE.Raycaster();
@@ -61,7 +64,7 @@ class Renderer {
         this.ground = new THREE.Mesh(
             new THREE.PlaneGeometry(this.size, this.size),
             new THREE.MeshPhysicalMaterial({
-                /* color: 0x002611, */
+                color: 0x002611,
                 roughness: 1,
                 specularIntensity: .2,
             })
@@ -230,7 +233,12 @@ class Renderer {
         this.scene.add(this.selection_circle);
 
         const grass_tex = await(texLoader.loadAsync("./rsc/textures/grass.jpg"));
+        grass_tex.repeat.x = 4;
+        grass_tex.repeat.y = 4;
+        grass_tex.wrapS = THREE.RepeatWrapping;
+        grass_tex.wrapT = THREE.RepeatWrapping;
         this.ground.material.map = grass_tex;
+        this.ground.material.needsUpdate = true;
 
         this.done_loading = true;
     }
