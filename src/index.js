@@ -22,8 +22,7 @@ THREE.MapControls = function (object, domElement) {
     control.touches.ONE = THREE.TOUCH.PAN;
     control.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
 
-    return this
-
+    return control
 };
 
 THREE.MapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
@@ -46,6 +45,9 @@ class Renderer {
         this.camera.position.y = this.size / 3;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         this.scene = new THREE.Scene();
+        /* this.camera_tracking_pivot = new THREE.Object3D();
+        this.camera_tracking_pivot.name = "camera_tracking_pivot" */
+        this.scene.add(this.camera_tracking_pivot);
 
         this.load_lights();
 
@@ -59,7 +61,7 @@ class Renderer {
         this.ground = new THREE.Mesh(
             new THREE.PlaneGeometry(this.size, this.size),
             new THREE.MeshPhysicalMaterial({
-                color: 0x002611,
+                /* color: 0x002611, */
                 roughness: 1,
                 specularIntensity: .2,
             })
@@ -226,6 +228,9 @@ class Renderer {
         /* this.selection_circle.visible = false; */
         this.selection_circle.position.y = 1;
         this.scene.add(this.selection_circle);
+
+        const grass_tex = await(texLoader.loadAsync("./rsc/textures/grass.jpg"));
+        this.ground.material.map = grass_tex;
 
         this.done_loading = true;
     }
