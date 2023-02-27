@@ -16,7 +16,7 @@ const STATE_COLOURS = {
     0: "#eeeeee", // Idle
     1: "red", // Hunting
     2: "yellow", // Fleeing
-    3: "green", // Eating
+    3: "green", // Reproducing
     4: "grey", // Dead
 }
 
