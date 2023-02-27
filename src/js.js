@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 0,
-    sheep_count: 128,
+    wolf_count: 128,
+    sheep_count: 2048,
     size: 1024
 }
 
@@ -78,7 +78,7 @@ class App {
 
         this.renderer.tracking_agent = false;
         this.renderer.renderer.domElement.addEventListener("mousedown", e => {
-            if(this.renderer.tracking_agent) {
+            if (this.renderer.tracking_agent && !this.hovered_agent) {
                 this.renderer.tracking_agent = false;
                 return;
             }
@@ -203,16 +203,20 @@ class App {
                 if (imgsrc == "none") log(agents.types[i])
                 agent_info.appendChild(img)
 
+                
                 const healthbar = document.createElement("span");
                 healthbar.innerText = "Health"
                 healthbar.classList.add("healthbar", "stat_bar")
-                const hungerbar = document.createElement("span");
-                hungerbar.innerText = "Hunger"
-                hungerbar.classList.add("hungerbar", "stat_bar")
                 agent_info.healthbar = healthbar
                 agent_info.appendChild(healthbar)
-                agent_info.hungerbar = hungerbar
-                agent_info.appendChild(hungerbar)
+                if(agents.types[i] != 2) {
+                    const hungerbar = document.createElement("span");
+                    hungerbar.innerText = "Hunger"
+                    hungerbar.classList.add("hungerbar", "stat_bar")
+                    agent_info.hungerbar = hungerbar
+                    agent_info.appendChild(hungerbar)
+
+                }
 
                 const agent_info_text = document.createElement("span")
                 agent_info_text.classList.add("agent_info_text")
@@ -223,6 +227,7 @@ class App {
 
         for (let i = 0; i < agents.positions.length; i++) {
             if (this.inspected_agents[i].innerText == "Grass") {
+                this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
                 /* if(agents.vitals[i][0] != 100){
                     log(agents.vitals[i][0])
                 } */
@@ -243,7 +248,7 @@ class App {
                     state_name = "Fleeing"
                     break
                 case 3:
-                    state_name = "Eating"
+                    state_name = "Reproducing"
                     break;
                 case 4:
                     state_name = "Dead"

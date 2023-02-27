@@ -86,74 +86,78 @@ class Renderer {
     update_agents(agents) {
         if (!this.done_loading) return;
 
+        /* let updated_instances = 0 */
+
         /* log(`Updating ${agents.positions.length} agents' matrices.`); */
+        const m = new THREE.Matrix4();
         for (let i = 0; i < agents.positions.length; i++) {
             log(agents.types[i])
             const dead = agents.states[i] == 4;
             /* if(dead) log("dead") */
             switch (agents.types[i]) {
                 case 0:
-                    this.wolves.setMatrixAt(i,
-                        new THREE.Matrix4()
-                            .compose(
-                                new THREE.Vector3(
-                                    agents.positions[i][0] - this.size / 2,
-                                    0,
-                                    agents.positions[i][1] - this.size / 2
-                                ),
-                                new THREE.Quaternion().setFromEuler(
-                                    new THREE.Euler(
-                                        0,
-                                        Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                        dead ? 1.4 : 0
-                                    )
-                                ),
-                                new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
+                    m.compose(
+                        new THREE.Vector3(
+                            agents.positions[i][0] - this.size / 2,
+                            0,
+                            agents.positions[i][1] - this.size / 2
+                        ),
+                        new THREE.Quaternion().setFromEuler(
+                            new THREE.Euler(
+                                0,
+                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                dead ? 1.4 : 0
                             )
+                        ),
+                        new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
+                    );
+                    this.wolves.setMatrixAt(i,
+                        m
                     )
                     break;
                 case 1:
-                    this.sheep.setMatrixAt(i,
-                        new THREE.Matrix4()
-                            .compose(
-                                new THREE.Vector3(
-                                    agents.positions[i][0] - this.size / 2,
-                                    0,
-                                    agents.positions[i][1] - this.size / 2
-                                ),
-                                new THREE.Quaternion().setFromEuler(
-                                    new THREE.Euler(
-                                        0,
-                                        Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                        dead ? 1.4 : 0
-                                    )
-                                ),
-                                new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
+                    m.compose(
+                        new THREE.Vector3(
+                            agents.positions[i][0] - this.size / 2,
+                            0,
+                            agents.positions[i][1] - this.size / 2
+                        ),
+                        new THREE.Quaternion().setFromEuler(
+                            new THREE.Euler(
+                                0,
+                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                dead ? 1.4 : 0
                             )
+                        ),
+                        new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
+                    );
+                    this.sheep.setMatrixAt(i,
+                        m
                     )
                     break;
                 case 2:
-                    this.grass.setMatrixAt(i,
-                        new THREE.Matrix4()
-                            .compose(
-                                new THREE.Vector3(
-                                    agents.positions[i][0] - this.size / 2,
-                                    0,
-                                    agents.positions[i][1] - this.size / 2
-                                ),
-                                new THREE.Quaternion().setFromEuler(
-                                    new THREE.Euler(
-                                        0,
-                                        Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                        dead ? 1.4 : 0
-                                    )
-                                ),
-                                new THREE.Vector3(agents.vitals[i][0] / 100, agents.vitals[i][0] / 100, agents.vitals[i][0] / 100)
+                    m.compose(
+                        new THREE.Vector3(
+                            agents.positions[i][0] - this.size / 2,
+                            0,
+                            agents.positions[i][1] - this.size / 2
+                        ),
+                        new THREE.Quaternion().setFromEuler(
+                            new THREE.Euler(
+                                0,
+                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                dead ? 1.4 : 0
                             )
+                        ),
+                        new THREE.Vector3(agents.vitals[i][0] / 100, agents.vitals[i][0] / 100, agents.vitals[i][0] / 100)
+                    )
+                    this.grass.setMatrixAt(i,
+                        m
                     )
                     break;
             }
         }
+        /* log(`Updated ${updated_instances} instances.`) */
         this.sheep.instanceMatrix.needsUpdate = true;
         this.wolves.instanceMatrix.needsUpdate = true;
         this.grass.instanceMatrix.needsUpdate = true;
