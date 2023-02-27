@@ -91,6 +91,7 @@ class Renderer {
         /* log(`Updating ${agents.positions.length} agents' matrices.`); */
         const m = new THREE.Matrix4();
         for (let i = 0; i < agents.positions.length; i++) {
+            /* log(agents.types[i]) */
             const dead = agents.states[i] == 4;
             /* if(dead) log("dead") */
             switch (agents.types[i]) {
