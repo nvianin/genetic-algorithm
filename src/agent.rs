@@ -183,7 +183,7 @@ impl Agent {
                                     self.acceleration.0 = 0.;
                                     self.acceleration.1 = 0.;
 
-                                    if (time > self.last_time + self.timeout){
+                                    if time > self.last_time + self.timeout{
 
                                         // Eat prey
                                         self.hunger += prey.eat(BITE_SIZE);
