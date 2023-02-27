@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 128,
-    sheep_count: 2048,
+    wolf_count: 32,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -203,13 +203,13 @@ class App {
                 if (imgsrc == "none") log(agents.types[i])
                 agent_info.appendChild(img)
 
-                
+
                 const healthbar = document.createElement("span");
                 healthbar.innerText = "Health"
                 healthbar.classList.add("healthbar", "stat_bar")
                 agent_info.healthbar = healthbar
                 agent_info.appendChild(healthbar)
-                if(agents.types[i] != 2) {
+                if (agents.types[i] != 2) {
                     const hungerbar = document.createElement("span");
                     hungerbar.innerText = "Hunger"
                     hungerbar.classList.add("hungerbar", "stat_bar")
