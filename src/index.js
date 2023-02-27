@@ -88,7 +88,7 @@ class Renderer {
 
         for(let i = 0; i < this.wolfNumber; i++) {
             let m = new THREE.Matrix4();
-            m.setPosition(new THREE.Vector3(i, 10, 0));
+            m.setPosition(new THREE.Vector3(i * 10, 10, 0));
             this.wolves.setMatrixAt(i, m)
         }
 
