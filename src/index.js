@@ -86,17 +86,20 @@ class Renderer {
     update_agents(agents) {
         if (!this.done_loading) return;
 
-        for(let i = 0; i < this.wolfNumber; i++) {
+        /* for(let i = 0; i < this.wolfNumber; i++) {
             let m = new THREE.Matrix4();
-            m.setPosition(new THREE.Vector3(i * 10, 10, 0));
+            m.makeTranslation(i * 10, 10, 0)
             this.wolves.setMatrixAt(i, m)
         }
+        this.wolves.instanceMatrix.needsUpdate = true
 
-        return
+        return */
 
         /* let updated_instances = 0 */
 
         log(`Updating ${agents.positions.length} agents' matrices.`);
+
+        // TODO: This is bad, we're iterating over all agents 
         for (let i = 0; i < agents.positions.length; i++) {
             const m = new THREE.Matrix4();
             const dead = agents.states[i] == 4;
@@ -118,6 +121,8 @@ class Renderer {
                         ),
                         new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
                     );
+                    m.identity()
+                    m.makeTranslation(i*10, 10, 0)
                     this.wolves.setMatrixAt(i,
                         m
                     )
@@ -166,7 +171,7 @@ class Renderer {
                     )
                     break;
             }
-            log(`Updated instance ${i} with matrix ${m.elements}`)
+            /* log(`Updated instance ${i} with matrix ${m.elements}`) */
         }
         /* log(`Updated ${updated_instances} instances.`) */
         this.sheep.instanceMatrix.needsUpdate = true;
