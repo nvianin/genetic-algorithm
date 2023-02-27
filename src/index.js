@@ -86,12 +86,19 @@ class Renderer {
     update_agents(agents) {
         if (!this.done_loading) return;
 
+        for(let i = 0; i < this.wolfNumber; i++) {
+            let m = new THREE.Matrix4();
+            m.setPosition(new THREE.Vector3(i, 10, 0));
+            this.wolves.setMatrixAt(i, m)
+        }
+
+        return
+
         /* let updated_instances = 0 */
 
-        /* log(`Updating ${agents.positions.length} agents' matrices.`); */
-        const m = new THREE.Matrix4();
+        log(`Updating ${agents.positions.length} agents' matrices.`);
         for (let i = 0; i < agents.positions.length; i++) {
-            /* log(agents.types[i]) */
+            const m = new THREE.Matrix4();
             const dead = agents.states[i] == 4;
             /* if(dead) log("dead") */
             switch (agents.types[i]) {
@@ -114,6 +121,9 @@ class Renderer {
                     this.wolves.setMatrixAt(i,
                         m
                     )
+                    let other = new THREE.Matrix4();
+                    this.wolves.getMatrixAt(i, other)
+                    log(other == m, other, m)
                     break;
                 case 1:
                     m.compose(
@@ -145,8 +155,8 @@ class Renderer {
                         new THREE.Quaternion().setFromEuler(
                             new THREE.Euler(
                                 0,
-                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
-                                dead ? 1.4 : 0
+                                agents.positions[i][0] * 3000,
+                                0
                             )
                         ),
                         new THREE.Vector3(agents.vitals[i][0] / 100, agents.vitals[i][0] / 100, agents.vitals[i][0] / 100)
@@ -156,6 +166,7 @@ class Renderer {
                     )
                     break;
             }
+            log(`Updated instance ${i} with matrix ${m.elements}`)
         }
         /* log(`Updated ${updated_instances} instances.`) */
         this.sheep.instanceMatrix.needsUpdate = true;
@@ -202,7 +213,7 @@ class Renderer {
         this.scene.add(this.grass)
 
         // Put each matrix's children at nil position
-        const nil = new THREE.Matrix4().makeTranslation(0, -10000, 0);
+        const nil = new THREE.Matrix4().makeTranslation(0, 10, 0);
         for (let i = 0; i < this.sheepNumber; i++) {
             this.sheep.setMatrixAt(i, nil);
         }
