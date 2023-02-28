@@ -37,7 +37,19 @@ class App {
         this.initDebugCanvas()
         this.initListeners()
 
-        /* setInterval(this.update.bind(this), 2000) */
+        this.logging_data = {
+            time: [],
+            sheep: [],
+            wolves: [],
+            grass: [],
+            body_size: [],
+            sight_distance: [],
+            muscle_mass: [],
+            hunger_rate: [],
+            health_scale: [],
+            movement_speed: [],
+            gestation_duration: [],
+        }
         this.update()
     }
 
@@ -148,6 +160,13 @@ class App {
         this.agent_portrait = document.getElementById("agent-portrait")
         this.agent_health = document.getElementById("agent-health");
         this.agent_hunger = document.getElementById("agent-hunger");
+        this.agent_defocus = document.getElementById("agent-defocus");
+
+        this.agent_defocus.onclick = () => {
+            this.renderer.tracking_agent = false;
+            this.mousepicked_agent = null;
+            this.hovered_agent = null;
+        }
     }
 
     refreshInterface(agents) {
@@ -185,8 +204,21 @@ class App {
         this.agent_inspector_title.innerHTML = type;
         this.agent_inspector_stats.innerText = `State: ${stateName}
             \nPosition: ${Math.floor(agents.positions[index][0])},${Math.floor(agents.positions[index][1])}
-            \n
             `
+        if (type != "Grass") {
+            this.agent_inspector_stats.innerText +=
+            `
+            \nGenes
+            \nBody size: ${agents.genotypes[index][0]}
+            \nSight range: ${agents.genotypes[index][1]}
+            \nMuscle mass: ${agents.genotypes[index][2]}
+            \n
+            \nHunger rate: ${agents.genotypes[index][3]}
+            \nHealth scale: ${agents.genotypes[index][4]}
+            \nMovement speed: ${agents.genotypes[index][5]}
+            \nGestation time: ${agents.genotypes[index][6]}
+            `
+        }
         this.agent_portrait.src = imgSrc
         this.agent_health.style.width = `${agents.vitals[index][0] / 50 * 21}vh`
         this.agent_hunger.style.width = `${agents.vitals[index][1] / 50 * 21}vh`
@@ -218,6 +250,8 @@ class App {
         /* log("update") */
 
         const agents = this.world.get_agents();
+
+        this.logData(agents);
 
         /* log(agents.positions.length) */
         this.refreshInterface(agents);
@@ -501,6 +535,39 @@ class App {
 
             /* this.renderer.render(); */
         }
+    }
+
+    logData(agents){
+
+        let body_size_tally = 0;
+        let sight_tally = 0;
+        let muscle_tally = 0;
+        let hunger_tally = 0;
+        let health_tally = 0;
+        let speed_tally = 0;
+        let gestation_tally = 0;
+
+        for(let i = 0;i < agents.positions.length;i++){
+            body_size_tally += agents.genotypes[i][0];
+            sight_tally += agents.genotypes[i][1];
+            muscle_tally += agents.genotypes[i][2];
+            hunger_tally += agents.genotypes[i][3];
+            health_tally += agents.genotypes[i][4];
+            speed_tally += agents.genotypes[i][5];
+            gestation_tally += agents.genotypes[i][6];
+        }
+
+        let body_size_avg = body_size_tally / agents.positions.length;
+        let sight_avg = sight_tally / agents.positions.length;
+        let muscle_avg = muscle_tally / agents.positions.length;
+        let hunger_avg = hunger_tally / agents.positions.length;
+        let health_avg = health_tally / agents.positions.length;
+        let speed_avg = speed_tally / agents.positions.length;
+        let gestation_avg = gestation_tally / agents.positions.length;
+
+        this.logging_data
+
+
     }
 }
 

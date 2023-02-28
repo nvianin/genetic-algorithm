@@ -53,10 +53,51 @@ body {
 }
 
 #agent-stats {
-  position: fixed;
-  left    : 30vh;
-  padding : 10px;
-  color   : white;
+  position   : fixed;
+  left       : 30vh;
+  padding    : 10px;
+  color      : white;
+  height     : fit-content;
+  line-height: 6.5pt;
+  user-select: none;
+}
+
+#agent-defocus {
+  appearance      : none;
+  border          : unset;
+  width           : 30px;
+  height          : 30px;
+  position        : fixed;
+  top             : 0;
+  right           : 0;
+  border-radius   : 100px;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter : blur(10px);
+}
+
+#agent-defocus:hover {
+  cursor          : pointer;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+#agent-defocus:active {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+#agent-defocus::after {
+  content         : "";
+  position        : fixed;
+  width           : 12px;
+  height          : 2px;
+  background-color: white;
+  transform       : translate(-50%, -50%) rotate(45deg);
+}
+#agent-defocus::before {
+  content         : "";
+  position        : fixed;
+  width           : 12px;
+  height          : 2px;
+  background-color: white;
+  transform       : translate(-50%, -50%) rotate(-45deg);
 }
 
 .stat_bar {

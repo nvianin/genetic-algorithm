@@ -51,7 +51,7 @@ impl Display for AgentType {
 
 const MIN_HUNGER: f32 = 30.;
 const SATIETY: f32 = 40.;
-const HUNGER_RATE: f32 = 0.01;
+const HUNGER_RATE: f32 = 0.001;
 const BITE_SIZE: f32 = 10.;
 const WANDER_SPEED: f32 = 0.1;
 const STARVING_DAMAGE: f32 = 0.1;
@@ -94,7 +94,7 @@ impl Agent {
             kind,
             position,
             acceleration: (0., 0.),
-            direction: (seed as f32 * 10000.) % std::f32::consts::PI,
+            direction: (seed as f32 * 10000.) % (std::f32::consts::PI * 2.),
             id,
             id_string: id.to_string(),
             health: health_mult,
@@ -271,7 +271,7 @@ impl Agent {
                     }
                 }
 
-                self.direction += (noise.get([self.seed, (time as f64) * 0.1]) as f32) * 0.5;
+                self.direction += (noise.get([self.seed, (time as f64) * 0.3]) as f32);
 
                 self.acceleration.0 +=
                     self.direction.cos() * genotype.movement_speed * WANDER_SPEED;
