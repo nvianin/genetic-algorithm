@@ -136,6 +136,10 @@ impl Agent {
             AgentType::Sheep(genotype) => {
                 match self.state {
                     State::Fleeing => {
+                        if self.health <= 0. {
+                            self.dead = true;
+                            self.state = State::Dead;
+                        }
                         // Get nearby wolves
                         let mut closest_distance = f32::MAX;
                         let mut closest_wolf = None;
@@ -233,19 +237,27 @@ impl Agent {
                     for nearby_agent in nearby_agents.iter() {
                         match self.kind {
                             AgentType::Sheep(_) => {
-                                match agents.get(&nearby_agent.0).unwrap().kind {
+                                let agent = agents.get(&nearby_agent.0).unwrap();
+                                match agent.kind {
                                     AgentType::Grass() => {
-                                        self.state = State::Hunting(nearby_agent.0);
+                                        if !agent.dead {
+                                            self.state = State::Hunting(nearby_agent.0);
+                                        }
                                     }
                                     _ => {}
                                 }
                             }
-                            AgentType::Wolf(_) => match agents.get(&nearby_agent.0).unwrap().kind {
-                                AgentType::Sheep(_) => {
-                                    self.state = State::Hunting(nearby_agent.0);
+                            AgentType::Wolf(_) => {
+                                let agent = agents.get(&nearby_agent.0).unwrap();
+                                match agent.kind {
+                                    AgentType::Sheep(_) => {
+                                        if !agent.dead {
+                                            self.state = State::Hunting(nearby_agent.0);
+                                        }
+                                    }
+                                    _ => {}
                                 }
-                                _ => {}
-                            },
+                            }
                             _ => {}
                         }
                     }
