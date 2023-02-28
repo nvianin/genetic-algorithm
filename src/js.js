@@ -167,6 +167,12 @@ class App {
             this.mousepicked_agent = null;
             this.hovered_agent = null;
         }
+
+        this.agent_portrait.onclick = () => {
+            this.renderer.tracking_agent = true
+            this.mousepicked_agent = this.hovered_agent;
+            log("Switching tracking mode by portrait click")
+        }
     }
 
     refreshInterface(agents) {
@@ -207,7 +213,7 @@ class App {
             `
         if (type != "Grass") {
             this.agent_inspector_stats.innerText +=
-            `
+                `
             \nGenes
             \nBody size: ${agents.genotypes[index][0]}
             \nSight range: ${agents.genotypes[index][1]}
@@ -537,7 +543,7 @@ class App {
         }
     }
 
-    logData(agents){
+    logData(agents) {
 
         let body_size_tally = 0;
         let sight_tally = 0;
@@ -547,7 +553,7 @@ class App {
         let speed_tally = 0;
         let gestation_tally = 0;
 
-        for(let i = 0;i < agents.positions.length;i++){
+        for (let i = 0; i < agents.positions.length; i++) {
             body_size_tally += agents.genotypes[i][0];
             sight_tally += agents.genotypes[i][1];
             muscle_tally += agents.genotypes[i][2];
@@ -566,6 +572,8 @@ class App {
         let gestation_avg = gestation_tally / agents.positions.length;
 
         this.logging_data
+
+        // TODO : properly log averages, then plot them on a canvas
 
 
     }
