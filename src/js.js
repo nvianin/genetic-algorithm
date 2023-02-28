@@ -100,12 +100,6 @@ class App {
 
                 this.renderer.fake_cam.copy(this.renderer.camera)
                 log(this.hovered_agent)
-                const selected = this.inspected_agents.find(e => {
-                    return e.uuid == this.hovered_agent
-                })
-                this.agent_inspector.scrollTo(0, selected.offsetTop - 100)
-                selected.click()
-
                 /* this.renderer.controller.enabled = !this.renderer.tracking_agent; */
             }
         })
@@ -148,158 +142,11 @@ class App {
     }
 
     initInterface() {
-        this.agent_inspector = document.createElement("div");
-        this.agent_inspector.id = "agent_inspector";
-        document.body.appendChild(this.agent_inspector);
-
-        this.inspected_agents = []
-
-        this.agent_element_template = document.createElement("button")
-        this.agent_element_template.className = `agent_element`
-        this.agent_element_template.innerText = `Agent`
-        this.agent_element_template.uuid = "lol";
-
-        this.agent_info_template = document.createElement("span");
-        this.agent_info_template.className = "agent_info";
-
-        this.agent_inspector.onclick = e => {
-            if (!e.target.child) return
-            log(e.target.child)
-            e.target.classList.toggle("active")
-            e.target.child.style.display = e.target.classList.contains("active") ? "flex" : "none"
-            this.mousepicked_agent = e.target.uuid
-            /* log(this.mousepicked_agent) */
-            this.renderer.tracking_agent = true;
-        }
+        this.agent_inspector = document.getElementById("agent-inspector");
     }
 
     refreshInterface(agents) {
-        /* if (agents.positions.length == this.inspected_agents.length) return; */
-        /* log(`Got ${agents.positions.length} agents.`) */
-
-        let count_refreshed = false;
-        if (agents.positions.length < this.inspected_agents.length) {
-            count_refreshed = true;
-            /* log("Count mismatch, removing") */
-            while (agents.positions.length != this.inspected_agents.length) {
-                const to_remove = this.inspected_agents.pop();
-                this.agent_inspector.removeChild(to_remove);
-            }
-        } else if (agents.positions.length > this.inspected_agents.length){
-            count_refreshed = true;
-            /* log("Count mismatch, adding") */
-            while (agents.positions.length != this.inspected_agents.length) {
-                const agent_element = this.agent_element_template.cloneNode(false);
-                const agent_info = this.agent_info_template.cloneNode(false);
-                agent_info.style.display = "none"
-                agent_element.child = agent_info;
-                const i = this.inspected_agents.push(agent_element) - 1;
-                this.agent_inspector.appendChild(agent_element);
-                this.agent_inspector.appendChild(agent_info)
-
-                let type = "none"
-                let imgsrc = "none"
-                switch (agents.types[i]) {
-                    case 0:
-                        type = "Wolf"
-                        imgsrc = "./rsc/textures/wolf_icon.png"
-                        break;
-                    case 1:
-                        type = "Sheep"
-                        imgsrc = "./rsc/textures/sheep_icon.png"
-                        break;
-                    case 2:
-                        type = "Grass"
-                        imgsrc = "./rsc/textures/grass_icon.png"
-                        break;
-                }
-
-                agent_element.innerText = type;
-                agent_element.uuid = agents.ids[i]
-                const img = document.createElement("img");
-                img.src = imgsrc;
-                if (imgsrc == "none") log(agents.types[i])
-                agent_info.appendChild(img)
-
-
-                const healthbar = document.createElement("span");
-                healthbar.innerText = "Health"
-                healthbar.classList.add("healthbar", "stat_bar")
-                agent_info.healthbar = healthbar
-                agent_info.appendChild(healthbar)
-                if (agents.types[i] != 2) {
-                    const hungerbar = document.createElement("span");
-                    hungerbar.innerText = "Hunger"
-                    hungerbar.classList.add("hungerbar", "stat_bar")
-                    agent_info.hungerbar = hungerbar
-                    agent_info.appendChild(hungerbar)
-
-                }
-
-                const agent_info_text = document.createElement("span")
-                agent_info_text.classList.add("agent_info_text")
-                agent_info.appendChild(agent_info_text);
-                agent_element.text = agent_info_text;
-            }
-        }
-
-        /* if(count_refreshed) {
-            let i = 0;
-            this.inspected_agents.forEach(agent => {
-                agent.uuid = agents.ids[i]
-                i++;
-            })
-        } */
-
-        for (let i = 0; i < agents.positions.length; i++) {
-            if (this.inspected_agents[i].innerText == "Grass") {
-                this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
-                /* if(agents.vitals[i][0] != 100){
-                    log(agents.vitals[i][0])
-                } */
-                continue
-            };
-            let col = STATE_COLOURS[agents.states[i]]
-
-            this.inspected_agents[i].style.boxShadow = `inset 0 0 12px 3px ${col}`
-            /* log(col) */
-
-            if (this.inspected_agents[i].child.style.display == "none") continue;
-            let state_name = "Idle"
-            switch (agents.states[i]) {
-                case 1:
-                    state_name = "Hunting"
-                    break;
-                case 2:
-                    state_name = "Fleeing"
-                    break
-                case 3:
-                    state_name = "Reproducing"
-                    break;
-                case 4:
-                    state_name = "Dead"
-                    break;
-            }
-            this.inspected_agents[i].child.healthbar.style.width = `${agents.vitals[i][0] * .9}%`
-            this.inspected_agents[i].child.hungerbar.style.width = `${agents.vitals[i][1] * .9}%`
-            /* log(agents.vitals[i][1]) */
-            this.inspected_agents[i].text.innerText =
-                `
-                State: ${state_name}
-                Position: ${Math.floor(agents.positions[i][0])},${Math.floor(agents.positions[i][1])}
-                Genotype:
-                Body size: ${Math.floor(agents.genotypes[i][0] * 100) / 100} 
-                Sight: ${Math.floor(agents.genotypes[i][1] * 100) / 100}
-                Muscle mass: ${Math.floor(agents.genotypes[i][2] * 100) / 100}
-                ---
-                Hunger rate: ${Math.floor(agents.genotypes[i][3] * 100) / 100}
-                Health scale: ${Math.floor(agents.genotypes[i][4] * 100) / 100}
-                Speed: ${Math.floor(agents.genotypes[i][5] * 100) / 100}
-                Gestation time: ${Math.floor(agents.genotypes[i][6] * 100) / 100}
-
-
-            `
-        }
+        
     }
 
     initDebugCanvas() {

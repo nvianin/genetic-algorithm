@@ -388,9 +388,14 @@ impl World {
         for agent in agents_in_radius {
             result.ids.push(agent.0.to_string());
             result.positions.push(agent.1);
-            let a = self.agents.get(&agent.0).unwrap();
-            result.types.push(a.kind.to_int());
-            result.vitals.push((a.health, a.hunger));
+            let a = self.agents.get(&agent.0);
+            match a {
+                Some(a) => {
+                    result.types.push(a.kind.to_int());
+                    result.vitals.push((a.health, a.hunger));
+                }
+                None => {}
+            }
         }
 
         /* log(&format!("{:#?}", &result.positions.len())); */
