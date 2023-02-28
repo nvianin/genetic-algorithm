@@ -97,11 +97,17 @@ class Renderer {
 
         /* let updated_instances = 0 */
 
-        log(`Updating ${agents.positions.length} agents' matrices.`);
+        /* log(`Updating ${agents.positions.length} agents' matrices.`); */
+
+        let updated_wolf = 0;
+        let updated_sheep = 0;
+        let updated_grass = 0;
+        
+        const m = new THREE.Matrix4();
 
         // TODO: This is bad, we're iterating over all agents 
+        // FIX: Track which agent we're updating into and use that as an index
         for (let i = 0; i < agents.positions.length; i++) {
-            const m = new THREE.Matrix4();
             const dead = agents.states[i] == 4;
             /* if(dead) log("dead") */
             switch (agents.types[i]) {
@@ -121,14 +127,15 @@ class Renderer {
                         ),
                         new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
                     );
-                    m.identity()
-                    m.makeTranslation(i*10, 10, 0)
-                    this.wolves.setMatrixAt(i,
+                    /* m.identity()
+                    m.makeTranslation(i*10, 10, 0) */
+                    this.wolves.setMatrixAt(updated_wolf,
                         m
                     )
-                    let other = new THREE.Matrix4();
-                    this.wolves.getMatrixAt(i, other)
-                    log(other == m, other, m)
+                    /* let other = new THREE.Matrix4();
+                    this.wolves.getMatrixAt(updated_wolf, other)
+                    log(other == m, other, m) */
+                    updated_wolf++;
                     break;
                 case 1:
                     m.compose(
@@ -146,9 +153,10 @@ class Renderer {
                         ),
                         new THREE.Vector3(agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10, agents.genotypes[i][0] / 10)
                     );
-                    this.sheep.setMatrixAt(i,
+                    this.sheep.setMatrixAt(updated_sheep,
                         m
                     )
+                    updated_sheep++;
                     break;
                 case 2:
                     m.compose(
@@ -166,9 +174,10 @@ class Renderer {
                         ),
                         new THREE.Vector3(agents.vitals[i][0] / 100, agents.vitals[i][0] / 100, agents.vitals[i][0] / 100)
                     )
-                    this.grass.setMatrixAt(i,
+                    this.grass.setMatrixAt(updated_grass,
                         m
                     )
+                    updated_grass++;
                     break;
             }
             /* log(`Updated instance ${i} with matrix ${m.elements}`) */
@@ -218,7 +227,7 @@ class Renderer {
         this.scene.add(this.grass)
 
         // Put each matrix's children at nil position
-        const nil = new THREE.Matrix4().makeTranslation(0, 10, 0);
+        const nil = new THREE.Matrix4().makeTranslation(0, -50, 0);
         for (let i = 0; i < this.sheepNumber; i++) {
             this.sheep.setMatrixAt(i, nil);
         }

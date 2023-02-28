@@ -156,11 +156,11 @@ impl Agent {
                             Some(id) => {
                                 let wolf = agents.get(&id).unwrap();
                                 let wolf_direction = normalize_vector((
-                                    wolf.position.0 - self.position.0,
-                                    wolf.position.1 - self.position.1,
+                                    self.position.0 - wolf.position.0,
+                                    self.position.1 - wolf.position.1,
                                 ));
-                                self.acceleration.0 -= wolf_direction.0;
-                                self.acceleration.1 -= wolf_direction.1;
+                                self.acceleration.0 = wolf_direction.0;
+                                self.acceleration.1 = wolf_direction.1;
                             }
                             None => {
                                 self.state = State::Idle;
@@ -169,7 +169,6 @@ impl Agent {
                     }
                     _ => {}
                 }
-                self.hunger -= HUNGER_RATE * genotype.hunger_rate;
             }
             AgentType::Wolf(genotype) => {}
             AgentType::Grass() => {
