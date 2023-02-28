@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 1024,
-    sheep_count: 1024,
+    wolf_count: 512,
+    sheep_count: 512,
     size: 1024
 }
 
@@ -53,6 +53,9 @@ class App {
         this.prev_mousepicked_agent = null;
 
         this.renderer.renderer.domElement.addEventListener("mousemove", e => {
+            if(this.mouse_down){
+                this.mouse_moved_while_down = true;
+            }
             this.renderer.three_mouse.x = e.clientX / innerWidth * 2 - 1;
             this.renderer.three_mouse.y = -(e.clientY / innerHeight) * 2 + 1;
 
@@ -75,14 +78,23 @@ class App {
                 }
             }
         })
+        
+        this.mouse_down = false;
+        this.mouse_moved_while_down = false;
+
+        this.renderer.renderer.domElement.addEventListener("mousedown", e => {
+            this.mouse_down = true;
+            this.mouse_moved_while_down = false;
+        })
 
         this.renderer.tracking_agent = false;
         this.renderer.renderer.domElement.addEventListener("mouseup", e => {
+            this.mouse_down = false;
             if (this.renderer.tracking_agent && !this.hovered_agent) {
                 this.renderer.tracking_agent = false;
                 return;
             }
-            if (this.hovered_agent) {
+            if (this.hovered_agent && !this.mouse_moved_while_down) {
                 this.renderer.tracking_agent = true;
                 this.mousepicked_agent = this.hovered_agent;
 
@@ -163,13 +175,19 @@ class App {
 
     refreshInterface(agents) {
         /* if (agents.positions.length == this.inspected_agents.length) return; */
+        /* log(`Got ${agents.positions.length} agents.`) */
 
+        let count_refreshed = false;
         if (agents.positions.length < this.inspected_agents.length) {
+            count_refreshed = true;
+            /* log("Count mismatch, removing") */
             while (agents.positions.length != this.inspected_agents.length) {
                 const to_remove = this.inspected_agents.pop();
                 this.agent_inspector.removeChild(to_remove);
             }
-        } else {
+        } else if (agents.positions.length > this.inspected_agents.length){
+            count_refreshed = true;
+            /* log("Count mismatch, adding") */
             while (agents.positions.length != this.inspected_agents.length) {
                 const agent_element = this.agent_element_template.cloneNode(false);
                 const agent_info = this.agent_info_template.cloneNode(false);
@@ -224,6 +242,14 @@ class App {
                 agent_element.text = agent_info_text;
             }
         }
+
+        /* if(count_refreshed) {
+            let i = 0;
+            this.inspected_agents.forEach(agent => {
+                agent.uuid = agents.ids[i]
+                i++;
+            })
+        } */
 
         for (let i = 0; i < agents.positions.length; i++) {
             if (this.inspected_agents[i].innerText == "Grass") {
@@ -309,6 +335,10 @@ class App {
 
         if (this.hovered_agent && this.renderer.selection_circle) {
             const index = agents.ids.indexOf(this.hovered_agent);
+            if(index == -1) {
+                // Handle case where the focused agent has died
+                this.hovered_agent = null;
+            }
             /* log(index)
             log(this.mousepicked_agent.ids, agents.ids) */
             this.renderer.selection_circle.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
@@ -323,6 +353,10 @@ class App {
         // Track a single agent
         if (this.renderer.tracking_agent && this.mousepicked_agent) {
             const index = agents.ids.indexOf(this.mousepicked_agent);
+            if(index == -1) {
+                // Handle case where the focused agent has died
+                this.mousepicked_agent = null;
+            }
 
             this.renderer.camera.position.y += this.renderer.camera.userData.scroll;
             this.renderer.camera.userData.scroll = 0;
@@ -346,7 +380,7 @@ class App {
             this.renderer.camera.rotation.copy(this.renderer.fake_cam.rotation);
         }
 
-        if (this.canvas && false) {
+        if (this.canvas && true) {
             let active_quad = this.world.activate(this.mouse.x, this.mouse.y)
             /* if (active_quad) {
                 log(active_quad.name, active_quad.position)

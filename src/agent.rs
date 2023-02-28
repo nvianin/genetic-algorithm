@@ -51,7 +51,7 @@ impl Display for AgentType {
 
 const MIN_HUNGER: f32 = 30.;
 const SATIETY: f32 = 40.;
-const HUNGER_RATE: f32 = 0.001;
+const HUNGER_RATE: f32 = 0.01;
 const BITE_SIZE: f32 = 10.;
 const WANDER_SPEED: f32 = 0.1;
 const STARVING_DAMAGE: f32 = 0.1;
@@ -185,34 +185,40 @@ impl Agent {
                 // Check if target is still nearby
                 match nearby_agents.iter().find(|a| a.0 == target) {
                     Some(a) => {
-                        let mut prey = agents.get(&a.0).unwrap().clone();
-                        // Found prey, continuing predator routine
-                        let prey_direction = normalize_vector((
-                            prey.position.0 - self.position.0,
-                            prey.position.1 - self.position.1,
-                        ));
-                        self.acceleration.0 = prey_direction.0;
-                        self.acceleration.1 = prey_direction.1;
-                        if (prey.position.0 - self.position.0).abs() < 1.
-                            && (prey.position.1 - self.position.1).abs() < 1.
-                        {
-                            self.acceleration.0 = 0.;
-                            self.acceleration.1 = 0.;
+                        let potential_prey = agents.get(&a.0);
+                        if let None = potential_prey {
+                            // Prey is no longer nearby, go back to idle
+                            self.state = State::Idle;
+                        } else {
+                            // Found prey, continuing predator routine
+                            let mut prey = potential_prey.unwrap().clone();
+                            let prey_direction = normalize_vector((
+                                prey.position.0 - self.position.0,
+                                prey.position.1 - self.position.1,
+                            ));
+                            self.acceleration.0 = prey_direction.0;
+                            self.acceleration.1 = prey_direction.1;
+                            if (prey.position.0 - self.position.0).abs() < 4.
+                                && (prey.position.1 - self.position.1).abs() < 4.
+                            {
+                                self.acceleration.0 = 0.;
+                                self.acceleration.1 = 0.;
 
-                            if time > self.last_time + self.timeout {
-                                // Eat prey
-                                self.hunger += prey.eat(BITE_SIZE);
-                                if self.hunger > SATIETY {
-                                    self.state = State::Idle;
+                                if time > self.last_time + self.timeout && !prey.dead{
+                                    // Eat prey
+                                    self.hunger += prey.eat(BITE_SIZE);
+                                    if self.hunger > SATIETY {
+                                        self.state = State::Idle;
+                                    }
+                                    if self.hunger > 100. {
+                                        self.hunger = 100.
+                                    }
+                                    self.last_time = time;
+                                    self.timeout = 1.;
                                 }
-                                if self.hunger > 100. {
-                                    self.hunger = 100.
-                                }
-                                self.last_time = time;
-                                self.timeout = 1.;
                             }
+                            modified_agents.insert(a.0, prey);
                         }
-                        modified_agents.insert(a.0, prey);
                     }
                     None => {
                         self.state = State::Idle;
@@ -242,6 +248,7 @@ impl Agent {
                                     AgentType::Grass() => {
                                         if !agent.dead {
                                             self.state = State::Hunting(nearby_agent.0);
+                                            return modified_agents;
                                         }
                                     }
                                     _ => {}
@@ -253,6 +260,7 @@ impl Agent {
                                     AgentType::Sheep(_) => {
                                         if !agent.dead {
                                             self.state = State::Hunting(nearby_agent.0);
+                                            return modified_agents;
                                         }
                                     }
                                     _ => {}

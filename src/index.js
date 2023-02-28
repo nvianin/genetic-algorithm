@@ -182,6 +182,18 @@ class Renderer {
             }
             /* log(`Updated instance ${i} with matrix ${m.elements}`) */
         }
+        const nil = new THREE.Matrix4();
+        nil.makeTranslation(0,-100,0);
+        for(let i = updated_wolf; i < this.wolfNumber; i++) {
+            this.wolves.setMatrixAt(i, nil);
+        }
+        for(let i = updated_sheep; i < this.sheepNumber; i++) {
+            this.sheep.setMatrixAt(i, nil);
+        }
+        for(let i = updated_grass; i < this.grassNumber; i++) {
+            this.grass.setMatrixAt(i, nil);
+        }
+
         /* log(`Updated ${updated_instances} instances.`) */
         this.sheep.instanceMatrix.needsUpdate = true;
         this.wolves.instanceMatrix.needsUpdate = true;

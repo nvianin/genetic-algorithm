@@ -80,7 +80,7 @@ pub struct World {
 
 extern crate console_error_panic_hook;
 
-const MAX_GRASS: usize = 16;
+const MAX_GRASS: usize = 1024;
 const MAX_CHILDREN: usize = 16;
 const MAX_LEVELS: usize = 6;
 
@@ -136,33 +136,9 @@ impl World {
             )); */
             let mut current_agent = self.agents.get(id).unwrap().clone();
             if current_agent.dead {
+                self.to_remove.push(*id);
                 continue;
             };
-            match &agent.kind {
-                AgentType::Wolf(_) => {}
-                AgentType::Sheep(genotype) => {
-                    // Try to avoid wolves
-                    let mut nearby_wolves = Vec::new();
-                    nearby_wolves = self.wolf_quad.get_children_in_radius(
-                        agent.position,
-                        genotype.sight_distance,
-                        nearby_wolves,
-                    );
-                    let mut direction = (0., 0.);
-                    if nearby_wolves.len() > 0 {
-                        for wolf in nearby_wolves.iter() {
-                            direction.0 += agent.position.0 - wolf.1 .0;
-                            direction.1 += agent.position.1 - wolf.1 .1;
-                        }
-                        direction.0 /= nearby_wolves.len() as f32;
-                        direction.1 /= nearby_wolves.len() as f32;
-
-                        current_agent.acceleration.0 += direction.0 * 0.01;
-                        current_agent.acceleration.1 += direction.1 * 0.01;
-                    }
-                }
-                AgentType::Grass() => {}
-            }
 
             match agent.kind {
                 AgentType::Sheep(genotype) => {
@@ -213,11 +189,14 @@ impl World {
                 }
                 AgentType::Grass() => {}
             }
-            if agent.dead {
-                self.to_remove.push(agent.id);
-            }
             self.agents.insert(agent.id, current_agent);
         }
+
+        for to_remove in self.to_remove.iter() {
+            log(&format!("Removing {:?}", to_remove));
+            self.agents.remove(to_remove);
+        }
+        self.to_remove.clear();
     }
 
     fn build_quadtree_good(&mut self) {
