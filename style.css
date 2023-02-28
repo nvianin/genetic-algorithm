@@ -29,54 +29,61 @@ body {
   backdrop-filter: blur(10px);
   box-shadow     : 0 0 30px 10px rgba(0, 0, 0, 0.5);
   display        : flex;
-  flex-direction : column;
+  flex-direction : row;
   border-radius  : 10px;
   transition     : 0.3s ease-in-out;
 }
 
-.agent_element {
-  border       : unset;
-  margin       : 1px;
-  padding      : 2px;
-  font-weight  : bold;
-  border-radius: inherit;
-  color        : black;
-  /* border    : 2px solid white; */
-}
-
 #agent-title {
-  display         : inline;
+  position        : fixed;
   font-size       : 24pt;
+  color           : white;
   backdrop-filter : blur(10px);
   background-color: rgba(122, 122, 122, .05);
   width           : fit-content;
   padding         : 5px;
   margin          : 5px;
   border-radius   : 10px;
+  user-select     : none;
 }
 
 #agent-portrait {
-  height: 100%;
-  width: fit-content;
+  height  : 100%;
+  /* width: 100%; */
+}
+
+#agent-stats {
+  position: fixed;
+  left    : 30vh;
+  padding : 10px;
+  color   : white;
 }
 
 .stat_bar {
+  position: fixed;
+  bottom  : 0;
+
   display         : block;
   border-radius   : 10px;
-  margin-bottom   : 2px;
-  width           : 90%;
+  margin          : 10px;
+  width           : 21vh;
   /* transform    : translate(5%); */
-  height          : auto;
+  height          : 15px;
   text-align      : center;
   font-size       : 8pt;
   font-weight     : bold;
   color           : white;
+
+  transform-origin: bottom left;
+  transform       : rotate(-90deg);
 }
 
 .healthbar {
+  left            : 23vh;
   background-color: red;
 }
 
 .hungerbar {
+  left            : calc(23vh + 30px);
   background-color: brown;
 }

@@ -53,7 +53,7 @@ class App {
         this.prev_mousepicked_agent = null;
 
         this.renderer.renderer.domElement.addEventListener("mousemove", e => {
-            if(this.mouse_down){
+            if (this.mouse_down) {
                 this.mouse_moved_while_down = true;
             }
             this.renderer.three_mouse.x = e.clientX / innerWidth * 2 - 1;
@@ -78,7 +78,7 @@ class App {
                 }
             }
         })
-        
+
         this.mouse_down = false;
         this.mouse_moved_while_down = false;
 
@@ -143,10 +143,53 @@ class App {
 
     initInterface() {
         this.agent_inspector = document.getElementById("agent-inspector");
+        this.agent_inspector_stats = document.getElementById("agent-stats");
+        this.agent_inspector_title = document.getElementById("agent-title");
+        this.agent_portrait = document.getElementById("agent-portrait")
+        this.agent_health = document.getElementById("agent-health");
+        this.agent_hunger = document.getElementById("agent-hunger");
     }
 
     refreshInterface(agents) {
-        
+
+    }
+
+    updateInspector(index, agents) {
+        let stateName = "Idle"
+        switch (agents.states[index]) {
+            case 1:
+                stateName = "Hunting"
+                break;
+            case 2:
+                stateName = "Fleeing"
+                break;
+            case 3:
+                stateName = "Reproducing"
+                break;
+            case 4:
+                stateName = "Dead"
+                break;
+        }
+        let type = "Grass"
+        let imgSrc = "./rsc/textures/grass_icon.png"
+        switch (agents.types[index]) {
+            case 0:
+                type = "Wolf"
+                imgSrc = "./rsc/textures/wolf_icon.png"
+                break;
+            case 1:
+                type = "Sheep"
+                imgSrc = "./rsc/textures/sheep_icon.png"
+                break;
+        }
+        this.agent_inspector_title.innerHTML = type;
+        this.agent_inspector_stats.innerText = `State: ${stateName}
+            \nPosition: ${Math.floor(agents.positions[index][0])},${Math.floor(agents.positions[index][1])}
+            \n
+            `
+        this.agent_portrait.src = imgSrc
+        this.agent_health.style.width = `${agents.vitals[index][0] / 50 * 21}vh`
+        this.agent_hunger.style.width = `${agents.vitals[index][1] / 50 * 21}vh`
     }
 
     initDebugCanvas() {
@@ -182,7 +225,7 @@ class App {
 
         if (this.hovered_agent && this.renderer.selection_circle) {
             const index = agents.ids.indexOf(this.hovered_agent);
-            if(index == -1) {
+            if (index == -1) {
                 // Handle case where the focused agent has died
                 this.hovered_agent = null;
             }
@@ -194,13 +237,14 @@ class App {
             this.renderer.renderer.domElement.style.cursor = "pointer"
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
 
+            this.updateInspector(index, agents)
         } else {
             this.renderer.renderer.domElement.style.cursor = "default"
         }
         // Track a single agent
         if (this.renderer.tracking_agent && this.mousepicked_agent) {
             const index = agents.ids.indexOf(this.mousepicked_agent);
-            if(index == -1) {
+            if (index == -1) {
                 // Handle case where the focused agent has died
                 this.mousepicked_agent = null;
             }
@@ -221,6 +265,9 @@ class App {
                 0,
                 agents.positions[index][1] - WORLD_SETTINGS.size / 2
             )
+
+            this.updateInspector(index, agents);
+
         } else {
             // Use regular controls
             this.renderer.camera.position.copy(this.renderer.fake_cam.position);
@@ -262,7 +309,7 @@ class App {
                     if (false) {
                         this.ctx.font = "12pt sans-serif"
                         this.ctx.fillStyle = "black"
-                        this.ctx.fillText(`${quad.name}@${quad.position[0]},${quad.position[1]}+${quad.size}`, quad.position[0], quad.position[1] + quad.size / 2);
+                        this.ctx.fillText(`${quad.name} @${quad.position[0]},${quad.position[1]} +${quad.size} `, quad.position[0], quad.position[1] + quad.size / 2);
                     }
                     i++;
                 })
@@ -283,11 +330,11 @@ class App {
                     for (let i = 0; i < agents.positions.length; i++) {
                         /* let then = performance.now();
                         let condition = Math.sqrt(Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2)) < 100
-                        log(`Brute force sqrt took ${performance.now() - then}ms with result ${condition}.`);
+                        log(`Brute force sqrt took ${ performance.now() - then }ms with result ${ condition }.`);
 
                         then = performance.now();
                         condition = Math.pow(p[0] - this.mouse.x, 2) + Math.pow(p[1] - this.mouse.y, 2) < Math.pow(100, 2)
-                        log(`Brute force pow took ${performance.now() - then}ms with result ${condition}.`); */
+                        log(`Brute force pow took ${ performance.now() - then }ms with result ${ condition }.`); */
 
                         if (Math.pow(agents.positions[i][0] - this.mouse.x, 2) +
                             Math.pow(agents.positions[i][1] - this.mouse.y, 2) <
@@ -302,10 +349,10 @@ class App {
                     nearby_points = this.world.get_agents_in_radius(this.mouse.x, this.mouse.y, 50);
                 }
                 if (this.queryMethod) {
-                    /* log(`Brute force took ${performance.now() - then}ms.`) */
+                    /* log(`Brute force took ${ performance.now() - then } ms.`) */
                     this.benchmarking_data.brute_force.push(performance.now() - then);
                 } else {
-                    /* log(`Quadtree took ${performance.now() - then}ms.`) */
+                    /* log(`Quadtree took ${ performance.now() - then } ms.`) */
                     this.benchmarking_data.quadtree.push(performance.now() - then);
                 }
                 if (nearby_points.positions.length > 0 && this.continue_render) {
@@ -320,14 +367,14 @@ class App {
                     for (let i = 0; i < this.benchmarking_data.quadtree.length; i++) {
                         sum += this.benchmarking_data.quadtree[i];
                     }
-                    log(`Average time taken for quadtree: ${sum / this.benchmarking_data.quadtree.length}ms.`)
+                    log(`Average time taken for quadtree: ${ sum / this.benchmarking_data.quadtree.length } ms.`)
                 }
                 if (this.benchmarking_data.brute_force.length > 100) {
                     let sum = 0;
                     for (let i = 0; i < this.benchmarking_data.brute_force.length; i++) {
                         sum += this.benchmarking_data.brute_force[i];
                     }
-                    log(`Average time taken for brute force: ${sum / this.benchmarking_data.brute_force.length}ms.`)
+                    log(`Average time taken for brute force: ${ sum / this.benchmarking_data.brute_force.length } ms.`)
                 } */
 
 
@@ -356,7 +403,7 @@ class App {
                     this.ctx.arc(agents.positions[i][0], agents.positions[i][1], radius, 0, Math.PI * 2);
                     this.ctx.fill();
                     this.ctx.closePath()
-                    /* log(`Drew ${i} at ${agents.positions[i][0]}/${agents.positions[i][1]}`) */
+                    /* log(`Drew ${ i } at ${ agents.positions[i][0] } /${agents.positions[i][1]}`) */
                 }
 
                 // Draw Tree
