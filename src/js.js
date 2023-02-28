@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 8,
-    sheep_count: 8,
+    wolf_count: 512,
+    sheep_count: 512,
     size: 1024
 }
 
@@ -77,7 +77,7 @@ class App {
         })
 
         this.renderer.tracking_agent = false;
-        this.renderer.renderer.domElement.addEventListener("mousedown", e => {
+        this.renderer.renderer.domElement.addEventListener("mouseup", e => {
             if (this.renderer.tracking_agent && !this.hovered_agent) {
                 this.renderer.tracking_agent = false;
                 return;
