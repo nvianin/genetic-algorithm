@@ -6,7 +6,7 @@ mod genes;
 use genes::Genotype;
 
 mod agent;
-use agent::{Agent, AgentType};
+use agent::{Agent, AgentType, State};
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
@@ -187,7 +187,14 @@ impl World {
                         self.agents.insert(id, agent);
                     }
                 }
-                AgentType::Grass() => {}
+                AgentType::Grass() => {
+                    if current_agent.health <= 0. {
+                        self.to_remove.push(*id);
+                        current_agent.dead = true;
+                        current_agent.state = State::Dead;
+                    }
+                    current_agent.health = (current_agent.health + agent::PLANT_GROWTH_RATE).min(100.);
+                }
             }
             self.agents.insert(agent.id, current_agent);
         }
@@ -208,15 +215,15 @@ impl World {
             match agent.kind {
                 AgentType::Wolf(_) => {
                     self.wolf_quad
-                        .insert((agent.id, agent.position), &self.agents, &self.namer);
+                        .insert((*id, agent.position), &self.agents, &self.namer);
                 }
                 AgentType::Sheep(_) => {
                     self.sheep_quad
-                        .insert((agent.id, agent.position), &self.agents, &self.namer);
+                        .insert((*id, agent.position), &self.agents, &self.namer);
                 }
                 AgentType::Grass() => {
                     self.grass_quad
-                        .insert((agent.id, agent.position), &self.agents, &self.namer);
+                        .insert((*id, agent.position), &self.agents, &self.namer);
                 }
             }
         }
@@ -324,6 +331,7 @@ impl World {
 
         for agent in self.agents.values() {
             result.ids.push(agent.id_string.clone());
+            result.seeds.push(agent.seed);
             result.positions.push(agent.position);
             result.accelerations.push(agent.acceleration);
             result.types.push(agent.kind.to_int());
@@ -406,6 +414,7 @@ impl World {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SerializedAgents {
     pub ids: Vec<String>,
+    pub seeds: Vec<f64>,
     pub positions: Vec<(f32, f32)>,
     pub accelerations: Vec<(f32, f32)>,
     pub types: Vec<u8>,
@@ -417,6 +426,7 @@ impl SerializedAgents {
     pub fn new() -> SerializedAgents {
         SerializedAgents {
             ids: Vec::new(),
+            seeds: Vec::new(),
             positions: Vec::new(),
             accelerations: Vec::new(),
             types: Vec::new(),

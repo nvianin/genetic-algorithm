@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 512,
-    sheep_count: 512,
+    wolf_count: 16,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -39,16 +39,34 @@ class App {
 
         this.logging_data = {
             time: [],
-            sheep: [],
-            wolves: [],
-            grass: [],
-            body_size: [],
-            sight_distance: [],
-            muscle_mass: [],
-            hunger_rate: [],
-            health_scale: [],
-            movement_speed: [],
-            gestation_duration: [],
+            sheep: {
+                count: [],
+                body_size: [],
+                sight_distance: [],
+                muscle_mass: [],
+                hunger_rate: [],
+                health_scale: [],
+                movement_speed: [],
+                gestation_duration: [],
+                health: [],
+                hunger: [],
+            },
+            wolves: {
+                count: [],
+                body_size: [],
+                sight_distance: [],
+                muscle_mass: [],
+                hunger_rate: [],
+                health_scale: [],
+                movement_speed: [],
+                gestation_duration: [],
+                health: [],
+                hunger: [],
+            },
+            grass: {
+                count: [],
+                health: []
+            },
         }
         this.update()
     }
@@ -173,10 +191,47 @@ class App {
             this.mousepicked_agent = this.hovered_agent;
             log("Switching tracking mode by portrait click")
         }
+
+        this.stats_drawer = document.getElementById("stats");
+        this.stats_canvas = document.getElementById("stats-canvas");
+        this.stats_canvas.ctx = this.stats_canvas.getContext("2d");
+        this.stats_selector = document.querySelector("#stats-selector");
     }
 
     refreshInterface(agents) {
+        if (!this.stats_drawer.classList.contains("stats-hidden")) {
+            const selected_stat = this.stats_selector.value;
+            const selected_category = this.stats_selector.options[this.stats_selector.selectedIndex].parentElement.getAttribute("value");
 
+            this.stats_canvas.ctx.fillStyle = "white"
+            this.stats_canvas.ctx.clearRect(0, 0, this.stats_canvas.width, this.stats_canvas.height);
+            const width = this.stats_canvas.width;
+            const height = this.stats_canvas.height;
+
+            this.stats_canvas.ctx.strokeStyle = "red"
+            this.stats_canvas.ctx.lineWidth = 2;
+            this.stats_canvas.ctx.beginPath();
+            this.stats_canvas.ctx.moveTo(0, this.logging_data[selected_category][selected_stat][0] * height);
+            try {
+                for (let i = 0; i < this.logging_data.time.length; i++) {
+                    const x = (this.logging_data.time[i] - this.logging_data.time[0]) / (this.logging_data.time[this.logging_data.time.length - 1] - this.logging_data.time[0]) * width;
+                    const y = this.logging_data[selected_category][selected_stat][i] / this.logging_data[selected_category].count[0] * height;
+                    /* if (i % 100 == 0) { log(x, y, this.logging_data[selected_category]) } */
+                    this.stats_canvas.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                    this.stats_canvas.ctx.lineTo(x, height - y);
+                }
+            } catch (e) {
+                console.error(e);
+                log(selected_category, selected_stat);
+            }
+            this.stats_canvas.ctx.stroke()
+            this.stats_canvas.ctx.closePath();
+            // TODO: Calculate "max_seen" value for each stat and use it to scale the graph, now it normalizes according to the first value in the array
+            this.stats_canvas.ctx.fillText(
+                this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1],
+                width - 30,
+                height - this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1] / this.logging_data[selected_category].count[this.logging_data[selected_category].count.length - 1] * height + 10)
+        }
     }
 
     updateInspector(index, agents) {
@@ -210,10 +265,12 @@ class App {
         this.agent_inspector_title.innerHTML = type;
         this.agent_inspector_stats.innerText = `State: ${stateName}
             \nPosition: ${Math.floor(agents.positions[index][0])},${Math.floor(agents.positions[index][1])}
+            \nHealth: ${Math.floor(agents.vitals[index][0])}
             `
         if (type != "Grass") {
             this.agent_inspector_stats.innerText +=
                 `
+            \nHunger: ${Math.floor(agents.vitals[index][1])}
             \nGenes
             \nBody size: ${agents.genotypes[index][0]}
             \nSight range: ${agents.genotypes[index][1]}
@@ -226,8 +283,8 @@ class App {
             `
         }
         this.agent_portrait.src = imgSrc
-        this.agent_health.style.width = `${agents.vitals[index][0] / 50 * 21}vh`
-        this.agent_hunger.style.width = `${agents.vitals[index][1] / 50 * 21}vh`
+        this.agent_health.style.width = `${agents.vitals[index][0] / 100 * 21}vh`
+        this.agent_hunger.style.width = `${agents.vitals[index][1] / 100 * 21}vh`
     }
 
     initDebugCanvas() {
@@ -254,9 +311,7 @@ class App {
         const then = performance.now();
         this.world.step(true, this.time);
         /* log("update") */
-
         const agents = this.world.get_agents();
-
         this.logData(agents);
 
         /* log(agents.positions.length) */
@@ -290,15 +345,16 @@ class App {
             }
 
             this.renderer.camera.position.y += this.renderer.camera.userData.scroll;
+            this.renderer.camera.position.y = Math.max(0, Math.min(1000, this.renderer.camera.position.y));
             this.renderer.camera.userData.scroll = 0;
 
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
-            this.renderer.selection_circle.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
+            this.renderer.selection_circle.position.x = agents.positions[index][0] - (WORLD_SETTINGS.size / 2)
             this.renderer.selection_circle.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
 
             /* this.renderer.camera.position.y = WORLD_SETTINGS.size / 2; */
-            this.renderer.camera.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2 + 100
-            this.renderer.camera.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2 - 100
+            this.renderer.camera.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2 + 100 * this.renderer.camera.position.y * .01
+            this.renderer.camera.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2 - 100 * this.renderer.camera.position.y * .01
 
             this.renderer.camera.lookAt(
                 agents.positions[index][0] - WORLD_SETTINGS.size / 2,
@@ -545,39 +601,115 @@ class App {
 
     logData(agents) {
 
-        let body_size_tally = 0;
-        let sight_tally = 0;
-        let muscle_tally = 0;
-        let hunger_tally = 0;
-        let health_tally = 0;
-        let speed_tally = 0;
-        let gestation_tally = 0;
-
-        for (let i = 0; i < agents.positions.length; i++) {
-            body_size_tally += agents.genotypes[i][0];
-            sight_tally += agents.genotypes[i][1];
-            muscle_tally += agents.genotypes[i][2];
-            hunger_tally += agents.genotypes[i][3];
-            health_tally += agents.genotypes[i][4];
-            speed_tally += agents.genotypes[i][5];
-            gestation_tally += agents.genotypes[i][6];
+        if (this.logging_data.time.length > 299) {
+            const sub_indexes = ["wolves", "sheep", "grass"]
+            sub_indexes.forEach(sub_index => {
+                Object.keys(this.logging_data[sub_index]).forEach(key => {
+                    this.logging_data[sub_index][key].shift()
+                })
+            })
+            this.logging_data.time.shift()
         }
 
-        let body_size_avg = body_size_tally / agents.positions.length;
-        let sight_avg = sight_tally / agents.positions.length;
-        let muscle_avg = muscle_tally / agents.positions.length;
-        let hunger_avg = hunger_tally / agents.positions.length;
-        let health_avg = health_tally / agents.positions.length;
-        let speed_avg = speed_tally / agents.positions.length;
-        let gestation_avg = gestation_tally / agents.positions.length;
+        let wolves = {
+            body_size_tally: 0,
+            sight_tally: 0,
+            muscle_tally: 0,
+            hunger_tally: 0,
+            hunger_scale_tally: 0,
+            health_tally: 0,
+            health_scale_tally: 0,
+            speed_tally: 0,
+            gestation_tally: 0,
 
-        this.logging_data
+            count: 0
+        }
+
+        let sheep = {
+            body_size_tally: 0,
+            sight_tally: 0,
+            muscle_tally: 0,
+            hunger_tally: 0,
+            hunger_scale_tally: 0,
+            health_tally: 0,
+            health_scale_tally: 0,
+            speed_tally: 0,
+            gestation_tally: 0,
+
+            count: 0
+        }
+
+        let grass = {
+            count: 0,
+            health_tally: 0
+        }
+
+        for (let i = 0; i < agents.positions.length; i++) {
+
+            switch (agents.types[i]) {
+                case 0:
+                    wolves.count++;
+                    wolves.body_size_tally += agents.genotypes[i][0];
+                    wolves.sight_tally += agents.genotypes[i][1];
+                    wolves.muscle_tally += agents.genotypes[i][2];
+                    wolves.hunger_scale_tally += agents.genotypes[i][3];
+                    wolves.health_scale_tally += agents.genotypes[i][4];
+                    wolves.speed_tally += agents.genotypes[i][5];
+                    wolves.gestation_tally += agents.genotypes[i][6];
+                    wolves.health_tally += agents.vitals[i][0]
+                    wolves.hunger_tally += agents.vitals[i][1];
+                    break;
+                case 1:
+                    sheep.count++;
+                    sheep.body_size_tally += agents.genotypes[i][0];
+                    sheep.sight_tally += agents.genotypes[i][1];
+                    sheep.muscle_tally += agents.genotypes[i][2];
+                    sheep.hunger_scale_tally += agents.genotypes[i][3];
+                    sheep.health_scale_tally += agents.genotypes[i][4];
+                    sheep.speed_tally += agents.genotypes[i][5];
+                    sheep.gestation_tally += agents.genotypes[i][6];
+                    sheep.health_tally += agents.vitals[i][0]
+                    sheep.hunger_tally += agents.vitals[i][1];
+                    break;
+                case 2:
+                    grass.count++;
+                    grass.health_tally += agents.vitals[i][0]
+                    break;
+            }
+        }
+
+        this.logging_data.sheep.count.push(sheep.count);
+        this.logging_data.wolves.count.push(wolves.count);
+        this.logging_data.grass.count.push(grass.count);
+
+        this.logging_data.sheep.body_size.push(sheep.body_size_tally / sheep.count);
+        this.logging_data.sheep.sight_distance.push(sheep.sight_tally / sheep.count);
+        this.logging_data.sheep.muscle_mass.push(sheep.muscle_tally / sheep.count);
+        this.logging_data.sheep.hunger.push(sheep.hunger_tally / sheep.count);
+        this.logging_data.sheep.hunger_rate.push(sheep.hunger_tally / sheep.count);
+        this.logging_data.sheep.health.push(sheep.health_tally / sheep.count)
+        this.logging_data.sheep.health_scale.push(sheep.health_scale_tally / sheep.count);
+        this.logging_data.sheep.movement_speed.push(sheep.speed_tally / sheep.count);
+        this.logging_data.sheep.gestation_duration.push(sheep.gestation_tally / sheep.count);
+
+        this.logging_data.wolves.body_size.push(wolves.body_size_tally / wolves.count);
+        this.logging_data.wolves.sight_distance.push(wolves.sight_tally / wolves.count);
+        this.logging_data.wolves.muscle_mass.push(wolves.muscle_tally / wolves.count);
+        this.logging_data.wolves.hunger.push(wolves.hunger_tally / wolves.count);
+        this.logging_data.wolves.hunger_rate.push(wolves.hunger_tally / wolves.count);
+        this.logging_data.wolves.health.push(wolves.health_tally / wolves.count)
+        this.logging_data.wolves.health_scale.push(wolves.health_scale_tally / wolves.count);
+        this.logging_data.wolves.movement_speed.push(wolves.speed_tally / wolves.count);
+        this.logging_data.wolves.gestation_duration.push(wolves.gestation_tally / wolves.count);
+
+        this.logging_data.grass.health.push(grass.health_tally / grass.count);
+
+        this.logging_data.time.push(this.time);
 
         // TODO : properly log averages, then plot them on a canvas
-
-
     }
 }
+
 
 const hexPalette = [
     "#003f5c",

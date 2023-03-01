@@ -107,8 +107,12 @@ class Renderer {
 
         // TODO: This is bad, we're iterating over all agents 
         // FIX: Track which agent we're updating into and use that as an index
+
+        // TODO: Have a bouncy animation for moving agents, like a sine(time + agents.seeds[i]) that's multiplied by agents.accelerations[i][0] and agents.accelerations[i][1]
         for (let i = 0; i < agents.positions.length; i++) {
             const dead = agents.states[i] == 4;
+            const seed = parseInt(parseInt(agents.ids[i].replace(/-/g, ""), 16).toString(36), 36);
+            /* log(seed) */
             /* if(dead) log("dead") */
             switch (agents.types[i]) {
                 case 0:

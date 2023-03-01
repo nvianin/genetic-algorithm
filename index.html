@@ -23,6 +23,46 @@
         <div class="stat_bar hungerbar" id="agent-hunger">Hunger</div>
         <button id="agent-defocus"></button>
     </div>
+    <script>
+        function hide_show_stats() {
+            log("lol")
+            document.getElementById("stats").classList.toggle("stats-hidden")
+        }
+    </script>
+    <div id="stats">
+        <button id="stats-button" onclick="hide_show_stats()">Stats</button>
+        <canvas id="stats-canvas"></canvas>
+        <select name="stats-selector" id="stats-selector">
+            <optgroup label="Wolves" value="wolves">
+                <option value="count">Count</option>
+                <option value="health">Health</option>
+                <option value="health_scale">Health scaling</option>
+                <option value="hunger">Hunger</option>
+                <option value="hunger_rate">Hunger rate</option>
+                <option value="body_size">Body size</option>
+                <option value="movement_speed">Speed</option>
+                <option value="sight_distance">Sight</option>
+                <option value="muscle_mass">Strength</option>
+                <option value="gestation_duration">Gestation duration</option>
+            </optgroup>
+            <optgroup label="Sheep" value="sheep">
+                <option value="count">Count</option>
+                <option value="health">Health</option>
+                <option value="health_scale">Health scaling</option>
+                <option value="hunger">Hunger</option>
+                <option value="hunger_rate">Hunger rate</option>
+                <option value="body_size">Body size</option>
+                <option value="movement_speed">Speed</option>
+                <option value="sight_distance">Sight</option>
+                <option value="muscle_mass">Strength</option>
+                <option value="gestation_duration">Gestation duration</option>
+            </optgroup>
+            <optgroup label="Grass" value="grass">
+                <option value="count">Count</option>
+                <option value="health">Health</option>
+            </optgroup>
+        </select>
+    </div>
 </body>
 
 </html>

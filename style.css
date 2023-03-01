@@ -1,6 +1,6 @@
 body {
-  margin: 0;
-  padding: 0;
+  margin  : 0;
+  padding : 0;
   overflow: hidden;
 }
 
@@ -10,122 +10,175 @@ body {
 
 #debugCanvas {
   /* z-index: -1; */
-  position: fixed;
-  top: 0;
-  left: 0;
+  position        : fixed;
+  top             : 0;
+  left            : 0;
   transform-origin: top left;
-  transform: scale(0.9);
-  pointer-events: none;
+  transform       : scale(0.9);
+  pointer-events  : none;
 }
 
 #agent-inspector {
-  z-index: 1000;
+  z-index : 1000;
   position: fixed;
-  bottom: 0;
-  right: 0;
-  height: 23%;
-  width: 100%;
+  bottom  : 0;
+  right   : 0;
+  height  : 23%;
+  width   : 100%;
 
   backdrop-filter: blur(10px);
-  box-shadow: 0 0 30px 10px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: row;
-  border-radius: 10px;
-  transition: 0.3s ease-in-out;
+  box-shadow     : 0 0 30px 10px rgba(0, 0, 0, 0.5);
+  display        : flex;
+  flex-direction : row;
+  border-radius  : 10px;
+  transition     : 0.3s ease-in-out;
 }
 
 #agent-title {
-  position: fixed;
-  font-size: 24pt;
-  color: white;
-  backdrop-filter: blur(10px);
+  position        : fixed;
+  font-size       : 24pt;
+  color           : white;
+  backdrop-filter : blur(10px);
   background-color: rgba(122, 122, 122, 0.05);
-  width: fit-content;
-  padding: 5px;
-  margin: 5px;
-  border-radius: 10px;
-  user-select: none;
+  width           : fit-content;
+  padding         : 5px;
+  margin          : 5px;
+  border-radius   : 10px;
+  user-select     : none;
 }
 
 #agent-portrait {
-  height: 100%;
+  height  : 100%;
   /* width: 100%; */
-  cursor: pointer;
+  cursor  : pointer;
 }
 
 #agent-stats {
-  position: fixed;
-  left: 30vh;
-  padding: 10px;
-  color: white;
-  height: fit-content;
+  position   : fixed;
+  left       : 30vh;
+  padding    : 10px;
+  color      : white;
+  height     : fit-content;
   line-height: 6.5pt;
   user-select: none;
 }
 
 #agent-defocus {
-  appearance: none;
-  border: unset;
-  width: 30px;
-  height: 30px;
-  position: fixed;
-  top: 0;
-  right: 0;
-  border-radius: 100px;
+  appearance      : none;
+  border          : unset;
+  width           : 30px;
+  height          : 30px;
+  position        : fixed;
+  top             : 0;
+  right           : 0;
+  border-radius   : 100px;
   background-color: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  backdrop-filter : blur(10px);
 }
 
 #agent-defocus:hover {
-  cursor: pointer;
+  cursor          : pointer;
   background-color: rgba(0, 0, 0, 0.5);
 }
+
 #agent-defocus:active {
   background-color: rgba(0, 0, 0, 0.7);
 }
 
 #agent-defocus::after {
-  content: "";
-  position: fixed;
-  width: 12px;
-  height: 2px;
+  content         : "";
+  position        : fixed;
+  width           : 12px;
+  height          : 2px;
   background-color: white;
-  transform: translate(-50%, -50%) rotate(45deg);
+  transform       : translate(-50%, -50%) rotate(45deg);
 }
+
 #agent-defocus::before {
-  content: "";
-  position: fixed;
-  width: 12px;
-  height: 2px;
+  content         : "";
+  position        : fixed;
+  width           : 12px;
+  height          : 2px;
   background-color: white;
-  transform: translate(-50%, -50%) rotate(-45deg);
+  transform       : translate(-50%, -50%) rotate(-45deg);
 }
 
 .stat_bar {
   position: fixed;
-  bottom: 0;
+  bottom  : 0;
 
-  display: block;
-  border-radius: 10px;
-  margin: 10px;
-  width: 21vh;
+  display         : block;
+  border-radius   : 10px;
+  margin          : 10px;
+  width           : 21vh;
   /* transform    : translate(5%); */
-  height: 15px;
-  text-align: center;
-  font-size: 8pt;
-  font-weight: bold;
-  color: white;
+  height          : 15px;
+  text-align      : center;
+  font-size       : 8pt;
+  font-weight     : bold;
+  color           : white;
 
   transform-origin: bottom left;
-  transform: rotate(-90deg);
+  transform       : rotate(-90deg);
 }
 
 .healthbar {
-  left: 23vh;
+  left            : 23vh;
   background-color: red;
 }
 
 .hungerbar {
-  left: calc(23vh + 30px);
+  left            : calc(23vh + 30px);
   background-color: brown;
+}
+
+#stats-button {
+  appearance   : none;
+  border       : unset;
+  position     : fixed;
+  width        : 40px;
+  height       : 30px;
+  right        : -40px;
+  top          : 50%;
+  transform    : translate(0, -50%);
+  border-radius: 10px;
+  cursor       : pointer;
+}
+
+#stats-button::after {
+  /* background-color   : palegoldenrod; */
+  content               : "";
+  /* box-shadow         : 10px 0 2px black, 0 10px 2px black; */
+  border                : 2px solid black;
+  position              : fixed;
+  width                 : 10px;
+  height                : 10px;
+  /* transform          : rotate(45deg); */
+}
+
+#stats {
+  position       : fixed;
+  width          : 400px;
+  height         : 200px;
+  left           : 0%;
+  backdrop-filter: blur(20px);
+  border-radius  : 15px;
+  transition     : .5s ease-in-out cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.stats-hidden {
+  left: -400px !important;
+}
+
+#stats-canvas {
+  position: fixed;
+  width   : 100%;
+  height  : 100%;
+}
+
+#stats-selector {
+  position: fixed;
+  /* appearance: none; */
+  /* border:unset; */
+  /* border-radius: 10px; */
 }

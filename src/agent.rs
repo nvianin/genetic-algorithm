@@ -51,11 +51,11 @@ impl Display for AgentType {
 
 const MIN_HUNGER: f32 = 30.;
 const SATIETY: f32 = 40.;
-const HUNGER_RATE: f32 = 0.001;
+const HUNGER_RATE: f32 = 0.01;
 const BITE_SIZE: f32 = 10.;
-const WANDER_SPEED: f32 = 0.1;
+const WANDER_SPEED: f32 = 2.;
 const STARVING_DAMAGE: f32 = 0.1;
-const PLANT_GROWTH_RATE: f32 = 0.001;
+pub const PLANT_GROWTH_RATE: f32 = 0.1;
 /* const MAX_WANDER_SPEED: f32 = 0.1; */
 
 #[derive(Clone)]
@@ -88,7 +88,7 @@ impl Agent {
             Some(genes) => {
                 health_mult = genes.health_scale;
             }
-            None => health_mult = 100.,
+            None => health_mult = seed as f32 / 10000.,
         }
         Agent {
             kind,
@@ -129,6 +129,10 @@ impl Agent {
             self.hunger = 0.;
             self.health -= STARVING_DAMAGE;
         }
+        if self.health <= 0. {
+            self.dead = true;
+            self.state = State::Dead;
+        }
 
         self.acceleration.0 *= 0.9;
         self.acceleration.1 *= 0.9;
@@ -147,7 +151,8 @@ impl Agent {
                             match agents.get(&id.0).unwrap().kind {
                                 AgentType::Wolf(_) => {
                                     let pos = agents.get(&id.0).unwrap().position;
-                                    let dist = pos.0.powf(2.) + pos.1.powf(2.);
+                                    let dist = (pos.0.powf(2.) + pos.1.powf(2.))
+                                        - (self.position.0.powf(2.) + self.position.1.powf(2.));
                                     if dist < closest_distance {
                                         closest_distance = dist;
                                         closest_wolf = Some(id.0);
@@ -163,8 +168,8 @@ impl Agent {
                                     self.position.0 - wolf.position.0,
                                     self.position.1 - wolf.position.1,
                                 ));
-                                self.acceleration.0 = wolf_direction.0;
-                                self.acceleration.1 = wolf_direction.1;
+                                self.acceleration.0 = wolf_direction.0 * genotype.movement_speed;
+                                self.acceleration.1 = wolf_direction.1 * genotype.movement_speed;
                             }
                             None => {
                                 self.state = State::Idle;
@@ -181,7 +186,78 @@ impl Agent {
         }
 
         match self.state {
+            State::Idle => {
+                if let AgentType::Sheep(_) = self.kind {
+                    // Check if nearby wolf
+                    self.wolf_fleeing_check(&nearby_agents, agents)
+                }
+
+                if self.hunger < MIN_HUNGER {
+                    // Get nearby food
+                    let mut closest = Uuid::nil();
+                    let mut closest_distance = f32::MAX;
+                    for nearby_agent in nearby_agents.iter() {
+                        let agent = agents.get(&nearby_agent.0).unwrap();
+                        match self.kind {
+                            AgentType::Sheep(_) => match agent.kind {
+                                AgentType::Grass() => {
+                                    if !agent.dead {
+                                        let distance = ((nearby_agent.1).0.powf(2.)
+                                            + (nearby_agent.1).1.powf(2.))
+                                            - (self.position.0.powf(2.) + self.position.1.powf(2.));
+                                        if distance < closest_distance {
+                                            closest = nearby_agent.0;
+                                            closest_distance = distance;
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            },
+                            AgentType::Wolf(_) => match agent.kind {
+                                AgentType::Sheep(_) => {
+                                    if !agent.dead {
+                                        let distance = ((nearby_agent.1).0.powf(2.)
+                                            + (nearby_agent.1).1.powf(2.))
+                                            - (self.position.0.powf(2.) + self.position.1.powf(2.));
+                                        if distance < closest_distance {
+                                            closest = nearby_agent.0;
+                                            closest_distance = distance;
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            },
+                            _ => {}
+                        }
+                    }
+                    if closest != Uuid::nil() {
+                        self.state = State::Hunting(closest);
+                    }
+                    return modified_agents;
+                } else {
+                    // If not hungry, try to reproduce
+                    // TODO: Reproduction mechanics
+                    for nearby_agent in nearby_agents.iter() {
+                        let agent = agents.get(&nearby_agent.0).unwrap();
+                    }
+                }
+
+                // Wander from time to time
+                if time > self.last_time + self.timeout {
+                    self.direction +=
+                        (noise.get([self.seed, (time as f64) * 0.07]) as f32) * 2. - 1.;
+
+                    self.acceleration.0 +=
+                        self.direction.cos() * genotype.movement_speed * WANDER_SPEED;
+                    self.acceleration.1 +=
+                        self.direction.sin() * genotype.movement_speed * WANDER_SPEED;
+                    self.last_time = time;
+                }
+            }
             State::Hunting(target) => {
+                if let AgentType::Sheep(_) = self.kind {
+                    self.wolf_fleeing_check(&nearby_agents, agents)
+                }
                 // Check if target is still nearby
                 match nearby_agents.iter().find(|a| a.0 == target) {
                     Some(a) => {
@@ -204,7 +280,7 @@ impl Agent {
                                 self.acceleration.0 = 0.;
                                 self.acceleration.1 = 0.;
 
-                                if time > self.last_time + self.timeout && !prey.dead{
+                                if time > self.last_time + self.timeout && !prey.dead {
                                     // Eat prey
                                     self.hunger += prey.eat(BITE_SIZE);
                                     if self.hunger > SATIETY {
@@ -225,78 +301,21 @@ impl Agent {
                     }
                 }
             }
-            State::Idle => {
-                if let AgentType::Sheep(_) = self.kind {
-                    // Check if nearby wolf
-                    for nearby_agent in nearby_agents.iter() {
-                        match agents.get(&nearby_agent.0).unwrap().kind {
-                            AgentType::Wolf(_) => {
-                                self.state = State::Fleeing;
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-
-                if self.hunger < MIN_HUNGER {
-                    // Get nearby food
-                    for nearby_agent in nearby_agents.iter() {
-                        match self.kind {
-                            AgentType::Sheep(_) => {
-                                let agent = agents.get(&nearby_agent.0).unwrap();
-                                match agent.kind {
-                                    AgentType::Grass() => {
-                                        if !agent.dead {
-                                            self.state = State::Hunting(nearby_agent.0);
-                                            return modified_agents;
-                                        }
-                                    }
-                                    _ => {}
-                                }
-                            }
-                            AgentType::Wolf(_) => {
-                                let agent = agents.get(&nearby_agent.0).unwrap();
-                                match agent.kind {
-                                    AgentType::Sheep(_) => {
-                                        if !agent.dead {
-                                            self.state = State::Hunting(nearby_agent.0);
-                                            return modified_agents;
-                                        }
-                                    }
-                                    _ => {}
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-
-                self.direction += (noise.get([self.seed, (time as f64) * 0.3]) as f32);
-
-                self.acceleration.0 +=
-                    self.direction.cos() * genotype.movement_speed * WANDER_SPEED;
-                self.acceleration.1 +=
-                    self.direction.sin() * genotype.movement_speed * WANDER_SPEED;
-            }
             State::Dead => self.dead = true,
             _ => {}
         }
 
         /* self.health -= 1.; */
-        if self.health <= 0. {
-            self.dead = true;
-            self.state = State::Dead;
-        }
 
-        if self.position.0 > 1024. {
-            self.position.0 -= 1024.
-        } else if self.position.0 < 0. {
-            self.position.0 += 1024.
+        if self.position.0 >= 1024. {
+            self.acceleration.0 *= -1.;
+        } else if self.position.0 <= 0. {
+            self.acceleration.0 *= -1.;
         }
-        if self.position.1 > 1024. {
-            self.position.1 -= 1024.
-        } else if self.position.1 < 0. {
-            self.position.1 += 1024.
+        if self.position.1 >= 1024. {
+            self.acceleration.1 *= -1.;
+        } else if self.position.1 <= 0. {
+            self.acceleration.1 *= -1.;
         }
 
         modified_agents
@@ -321,6 +340,21 @@ impl Agent {
                     self.health -= bite;
                     return self.health;
                 }
+            }
+        }
+    }
+
+    pub fn wolf_fleeing_check(
+        &mut self,
+        nearby_agents: &Vec<(Uuid, (f32, f32))>,
+        agents: &HashMap<Uuid, Agent>,
+    ) {
+        for nearby_agent in nearby_agents.iter() {
+            match agents.get(&nearby_agent.0).unwrap().kind {
+                AgentType::Wolf(_) => {
+                    self.state = State::Fleeing;
+                }
+                _ => {}
             }
         }
     }

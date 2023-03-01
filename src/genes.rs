@@ -1,5 +1,5 @@
 use rand::{rngs::ThreadRng, Rng};
-use std::collections::HashMap;
+use std::{collections::HashMap, os::windows::thread};
 
 #[derive(Clone, Copy)]
 pub struct Genotype {
@@ -18,16 +18,72 @@ impl Genotype {
         let body_size = thread_rng.gen_range(1.0..10.0);
         let sight_distance = thread_rng.gen_range(50.0..200.);
         let muscle_mass = thread_rng.gen_range(1.0..10.0);
-        Genotype {
+
+        let mut genotype = Genotype {
             body_size,
             sight_distance,
             muscle_mass,
             // Derived variables
-            hunger_rate: body_size * muscle_mass,
-            health_scale: body_size * muscle_mass,
-            movement_speed: muscle_mass / body_size,
-            gestation_duration: body_size * muscle_mass,
+            hunger_rate: 0.,
+            health_scale: 0.,
+            movement_speed: 0.,
+            gestation_duration: 0.,
+        };
+        genotype.derive_genotype();
+
+        genotype
+    }
+
+    pub fn derive_genotype(&mut self) {
+        self.hunger_rate = self.body_size * self.muscle_mass;
+        self.health_scale = self.body_size * self.muscle_mass;
+        self.movement_speed = self.muscle_mass / self.body_size;
+        self.gestation_duration = self.body_size * self.muscle_mass;
+    }
+
+    pub fn crossbreed(&mut self, other: &Genotype, thread_rng: &mut ThreadRng) -> Genotype {
+        let body_size = if thread_rng.gen_bool(0.5) {
+            self.body_size
+        } else {
+            other.body_size
+        };
+        let sight_distance = if thread_rng.gen_bool(0.5) {
+            self.sight_distance
+        } else {
+            other.sight_distance
+        };
+        let muscle_mass = if thread_rng.gen_bool(0.5) {
+            self.muscle_mass
+        } else {
+            other.muscle_mass
+        };
+
+        let mut new_genotype = Genotype {
+            body_size,
+            sight_distance,
+            muscle_mass,
+            // Derived variables
+            hunger_rate: 0.,
+            health_scale: 0.,
+            movement_speed: 0.,
+            gestation_duration: 0.,
+        };
+        new_genotype.derive_genotype();
+
+        new_genotype
+    }
+
+    pub fn mutate(&mut self, thread_rng: &mut ThreadRng) {
+        if thread_rng.gen_range(0.0..1.0) < 0.1 {
+            self.body_size = thread_rng.gen_range(1.0..10.0);
         }
+        if thread_rng.gen_range(0.0..1.0) < 0.1 {
+            self.sight_distance = thread_rng.gen_range(50.0..200.);
+        }
+        if thread_rng.gen_range(0.0..1.0) < 0.1 {
+            self.muscle_mass = thread_rng.gen_range(1.0..10.0);
+        }
+        self.derive_genotype();
     }
 
     pub fn many_to_vec(geneotypes: Vec<&Genotype>) -> Vec<Vec<f32>> {
