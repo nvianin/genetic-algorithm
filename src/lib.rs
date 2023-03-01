@@ -193,14 +193,15 @@ impl World {
                         current_agent.dead = true;
                         current_agent.state = State::Dead;
                     }
-                    current_agent.health = (current_agent.health + agent::PLANT_GROWTH_RATE).min(100.);
+                    current_agent.health =
+                        (current_agent.health + agent::PLANT_GROWTH_RATE).min(100.);
                 }
             }
             self.agents.insert(agent.id, current_agent);
         }
 
         for to_remove in self.to_remove.iter() {
-            log(&format!("Removing {:?}", to_remove));
+            /* log(&format!("Removing {:?}", to_remove)); */
             self.agents.remove(to_remove);
         }
         self.to_remove.clear();

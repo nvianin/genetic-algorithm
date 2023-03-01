@@ -318,11 +318,11 @@ class App {
         this.world.step(true, this.time);
         /* log("update") */
         const agents = this.world.get_agents();
-        this.logData(agents);
+        /* this.logData(agents); */
 
         /* log(agents.positions.length) */
-        this.refreshInterface(agents);
-        this.renderer.render(agents);
+        /* this.refreshInterface(agents); */
+        /* this.renderer.render(agents); */
 
         if (this.hovered_agent && this.renderer.selection_circle) {
             const index = agents.ids.indexOf(this.hovered_agent);
