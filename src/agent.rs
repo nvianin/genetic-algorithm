@@ -59,6 +59,7 @@ pub const PLANT_GROWTH_RATE: f32 = 0.1;
 /* const MAX_WANDER_SPEED: f32 = 0.1; */
 
 #[derive(Clone)]
+// TODO: 
 pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32),

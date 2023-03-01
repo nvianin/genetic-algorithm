@@ -1,5 +1,5 @@
 use rand::{rngs::ThreadRng, Rng};
-use std::{collections::HashMap, os::windows::thread};
+use std::{collections::HashMap};
 
 #[derive(Clone, Copy)]
 pub struct Genotype {
@@ -15,7 +15,7 @@ pub struct Genotype {
 }
 impl Genotype {
     pub fn new(thread_rng: &mut ThreadRng) -> Genotype {
-        let body_size = thread_rng.gen_range(1.0..10.0);
+        let body_size = thread_rng.gen_range(5.0..10.0);
         let sight_distance = thread_rng.gen_range(50.0..200.);
         let muscle_mass = thread_rng.gen_range(1.0..10.0);
 

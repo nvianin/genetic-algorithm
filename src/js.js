@@ -68,6 +68,12 @@ class App {
                 health: []
             },
         }
+        const selected_categories = ["sheep", "wolves", "grass"]
+        for (let selected_category of selected_categories) {
+            for (let key of Object.keys(this.logging_data[selected_category])) {
+                this.logging_data[selected_category][key].max = 0;
+            }
+        }
         this.update()
     }
 
@@ -215,7 +221,7 @@ class App {
             try {
                 for (let i = 0; i < this.logging_data.time.length; i++) {
                     const x = (this.logging_data.time[i] - this.logging_data.time[0]) / (this.logging_data.time[this.logging_data.time.length - 1] - this.logging_data.time[0]) * width;
-                    const y = this.logging_data[selected_category][selected_stat][i] / this.logging_data[selected_category].count[0] * height;
+                    const y = this.logging_data[selected_category][selected_stat][i] / this.logging_data[selected_category][selected_stat].max * height;
                     /* if (i % 100 == 0) { log(x, y, this.logging_data[selected_category]) } */
                     this.stats_canvas.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                     this.stats_canvas.ctx.lineTo(x, height - y);
@@ -230,7 +236,7 @@ class App {
             this.stats_canvas.ctx.fillText(
                 this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1],
                 width - 30,
-                height - this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1] / this.logging_data[selected_category].count[this.logging_data[selected_category].count.length - 1] * height + 10)
+                height - this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1] / this.logging_data[selected_category][selected_stat].max * height + 10)
         }
     }
 
@@ -601,16 +607,6 @@ class App {
 
     logData(agents) {
 
-        if (this.logging_data.time.length > 299) {
-            const sub_indexes = ["wolves", "sheep", "grass"]
-            sub_indexes.forEach(sub_index => {
-                Object.keys(this.logging_data[sub_index]).forEach(key => {
-                    this.logging_data[sub_index][key].shift()
-                })
-            })
-            this.logging_data.time.shift()
-        }
-
         let wolves = {
             body_size_tally: 0,
             sight_tally: 0,
@@ -705,6 +701,26 @@ class App {
         this.logging_data.grass.health.push(grass.health_tally / grass.count);
 
         this.logging_data.time.push(this.time);
+
+        const sub_indexes = ["wolves", "sheep", "grass"]
+        if (this.logging_data.time.length > 1200) {
+            sub_indexes.forEach(sub_index => {
+                Object.keys(this.logging_data[sub_index]).forEach(key => {
+                    this.logging_data[sub_index][key].shift()
+                })
+            })
+            this.logging_data.time.shift()
+        }
+
+        for (let sub_index of sub_indexes) {
+            for (let key of Object.keys(this.logging_data[sub_index])) {
+                if (this.logging_data[sub_index][key][this.logging_data[sub_index][key].length - 1] > this.logging_data[sub_index][key].max) {
+                    this.logging_data[sub_index][key].max = this.logging_data[sub_index][key][this.logging_data[sub_index][key].length - 1]
+                }
+            }
+        }
+
+
 
         // TODO : properly log averages, then plot them on a canvas
     }
