@@ -54,13 +54,18 @@ body {
 }
 
 #agent-stats {
-  position   : fixed;
-  left       : 30vh;
-  padding    : 10px;
-  color      : white;
-  height     : fit-content;
-  line-height: 6.5pt;
-  user-select: none;
+  position    : fixed;
+  left        : 30vh;
+  padding     : 10px;
+  color       : white;
+  height      : 100%;
+  width       : 60%;
+  line-height : .7rem;
+  user-select : none;
+  box-sizing  : border-box;
+  column-width: 300px;
+  column-count: 3;
+  column-fill : auto;
 }
 
 #agent-defocus {
@@ -133,27 +138,32 @@ body {
 }
 
 #stats-button {
-  appearance   : none;
-  border       : unset;
-  position     : fixed;
-  width        : 40px;
-  height       : 30px;
-  right        : -40px;
-  top          : 50%;
-  transform    : translate(0, -50%);
-  border-radius: 10px;
-  cursor       : pointer;
+  appearance      : none;
+  border          : unset;
+  position        : fixed;
+  width           : 40px;
+  height          : 30px;
+  right           : -40px;
+  top             : 50%;
+  transform       : translate(0, -50%) rotate(-90deg);
+  border-radius   : 10px;
+  cursor          : pointer;
+  background-color: white;
 }
 
 #stats-button::after {
+  z-index               : -1;
   /* background-color   : palegoldenrod; */
   content               : "";
   /* box-shadow         : 10px 0 2px black, 0 10px 2px black; */
-  border                : 2px solid black;
+  border                : 2px solid white;
+  border-width          : 4px 4px 0px 0px;
   position              : fixed;
-  width                 : 10px;
-  height                : 10px;
-  /* transform          : rotate(45deg); */
+  width                 : 20px;
+  height                : 20px;
+  left                  : 50%;
+  bottom                : -15px;
+  transform             : translate(-50%, -50%) rotate(135deg);
 }
 
 #stats {
@@ -177,8 +187,8 @@ body {
 }
 
 #stats-selector {
-  position: fixed;
-  /* appearance: none; */
-  /* border:unset; */
+  position        : fixed;
+  /* appearance   : none; */
+  /* border       :unset; */
   /* border-radius: 10px; */
 }
