@@ -23,8 +23,8 @@ const STATE_COLOURS = {
 class App {
     constructor() {
 
-        this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
         this.world = new wasm.World(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size)
+        this.renderer = new Renderer.default(WORLD_SETTINGS.sheep_count, WORLD_SETTINGS.wolf_count, WORLD_SETTINGS.size, this.world)
         log(`Simulation world started with seed [${this.world.seed}].`);
         /* log(this.world.get_quadtree()); */
 

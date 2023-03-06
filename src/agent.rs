@@ -51,7 +51,7 @@ impl Display for AgentType {
 
 const MIN_HUNGER: f32 = 30.;
 const SATIETY: f32 = 40.;
-const HUNGER_RATE: f32 = 0.01;
+const HUNGER_RATE: f32 = 0.001;
 const BITE_SIZE: f32 = 10.;
 const WANDER_SPEED: f32 = 2.;
 const STARVING_DAMAGE: f32 = 0.1;

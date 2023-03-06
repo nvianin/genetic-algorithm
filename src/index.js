@@ -30,13 +30,16 @@ THREE.MapControls.prototype.constructor = THREE.MapControls;
 
 
 class Renderer {
-    constructor(sheepNumber, wolfNumber, size) {
+    constructor(sheepNumber, wolfNumber, size, world) {
         log(`Renderer started with ${wolfNumber} wolves and ${sheepNumber} sheep.`)
+        this.texLoader = new THREE.TextureLoader();
         this.load_models();
         this.start = performance.now()
         this.size = size;
         this.sheepNumber = sheepNumber;
         this.wolfNumber = wolfNumber;
+
+        this.world = world;
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.shadowMap.enabled = true;
@@ -52,6 +55,7 @@ class Renderer {
         this.scene.add(this.camera_tracking_pivot);
         */
 
+
         this.load_lights();
 
         this.controller = THREE.MapControls(this.fake_cam, this.renderer.domElement);
@@ -62,7 +66,7 @@ class Renderer {
         this.mouse = { x: 0, y: 0 }
 
         this.ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(this.size, this.size),
+            new THREE.PlaneGeometry(this.size, this.size, Math.sqrt(this.size), Math.sqrt(this.size)),
             new THREE.MeshPhysicalMaterial({
                 color: 0x002611,
                 roughness: 1,
@@ -74,11 +78,11 @@ class Renderer {
         this.ground.rotation.x = -Math.PI / 2
         this.scene.add(this.ground)
 
+        this.displaceGround()
+
         this.setSize()
         document.body.appendChild(this.renderer.domElement)
         this.renderer.domElement.id = "three"
-
-        this.load_models()
 
         /* this.render() */
     }
@@ -102,7 +106,7 @@ class Renderer {
         let updated_wolf = 0;
         let updated_sheep = 0;
         let updated_grass = 0;
-        
+
         const m = new THREE.Matrix4();
 
         // TODO: This is bad, we're iterating over all agents 
@@ -187,14 +191,14 @@ class Renderer {
             /* log(`Updated instance ${i} with matrix ${m.elements}`) */
         }
         const nil = new THREE.Matrix4();
-        nil.makeTranslation(0,-100,0);
-        for(let i = updated_wolf; i < this.wolfNumber; i++) {
+        nil.makeTranslation(0, -100, 0);
+        for (let i = updated_wolf; i < this.wolfNumber; i++) {
             this.wolves.setMatrixAt(i, nil);
         }
-        for(let i = updated_sheep; i < this.sheepNumber; i++) {
+        for (let i = updated_sheep; i < this.sheepNumber; i++) {
             this.sheep.setMatrixAt(i, nil);
         }
-        for(let i = updated_grass; i < this.grassNumber; i++) {
+        for (let i = updated_grass; i < this.grassNumber; i++) {
             this.grass.setMatrixAt(i, nil);
         }
 
@@ -261,9 +265,7 @@ class Renderer {
         this.ground.material.envMapIntensity = 0.5;
         /* log(this.ground.material) */
 
-        const texLoader = new THREE.TextureLoader();
-
-        const circle_tex = await (texLoader.loadAsync("./rsc/textures/circle.png"));
+        const circle_tex = await (this.texLoader.loadAsync("./rsc/textures/circle.png"));
         this.selection_circle = new THREE.Mesh(
             new THREE.PlaneGeometry(1, 1),
             new THREE.MeshBasicMaterial({
@@ -278,7 +280,7 @@ class Renderer {
         this.selection_circle.position.y = 1;
         this.scene.add(this.selection_circle);
 
-        const grass_tex = await (texLoader.loadAsync("./rsc/textures/grass.jpg"));
+        const grass_tex = await (this.texLoader.loadAsync("./rsc/textures/grass.jpg"));
         grass_tex.repeat.x = 4;
         grass_tex.repeat.y = 4;
         grass_tex.wrapS = THREE.RepeatWrapping;
@@ -306,9 +308,36 @@ class Renderer {
         /* this.scene.add(new THREE.CameraHelper(this.sun.shadow.camera)); */
 
         const exr_loader = new EXRLoader();
-        this.exr = (await exr_loader.loadAsync("./rsc/textures/scythian_tombs_2_1k.exr"));
+        this.exr = (await exr_loader.loadAsync("./rsc/textures/evening_meadow_1k.exr"));
         this.exr.mapping = THREE.EquirectangularReflectionMapping;
-        this.scene.background = this.exr;
+
+        this.envMap = await this.texLoader.loadAsync("./rsc/textures/evening_meadow_1k.jpg");
+        this.envMap.mapping = THREE.EquirectangularReflectionMapping
+        this.scene.background = this.envMap;
+        this.scene.backgroundBlurriness = .09
+    }
+
+    custom_noise(x, y) {
+        const scale = 0.01
+        return this.world.get_noise(
+            x * scale,
+            y * scale
+        ) * 2 - 1;
+    }
+
+    displaceGround() {
+        /* log(this.world) */
+        for (let i = 0; i < this.ground.geometry.attributes.position.array.length; i += 3) {
+            this.ground.geometry.attributes.position.array[i + 2] +=
+                this.custom_noise(
+                    this.ground.geometry.attributes.position.array[i],
+                    this.ground.geometry.attributes.position.array[i + 1]
+                ) * 12.5;
+
+            log(this.ground.geometry.attributes.position.array[i + 2])
+        }
+        this.ground.geometry.computeVertexNormals();
+        log("Ground displaced")
     }
 
     setSize(width = innerWidth, height = innerHeight) {

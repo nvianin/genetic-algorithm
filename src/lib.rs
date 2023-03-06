@@ -410,6 +410,10 @@ impl World {
         /* log(&format!("{:#?}", &result.positions.len())); */
         serde_wasm_bindgen::to_value(&result).unwrap()
     }
+
+    pub fn get_noise(&self, x: f64, y: f64) -> f64 {
+        self.noise.get([x,y])
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
