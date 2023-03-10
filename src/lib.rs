@@ -344,7 +344,14 @@ impl World {
         for agent in self.agents.values() {
             result.ids.push(agent.id_string.clone());
             result.seeds.push(agent.seed);
-            result.positions.push(agent.position);
+            result.positions.push((
+                agent.position.0,
+                agent.position.1,
+                self.get_noise(
+                    agent.position.0 as f64 * 0.01,
+                    agent.position.1 as f64 * 0.01,
+                ) as f32 * 2. -1.,
+            ));
             result.accelerations.push(agent.acceleration);
             result.types.push(agent.kind.to_int());
             match agent.kind {
@@ -407,11 +414,7 @@ impl World {
 
         for agent in agents_in_radius {
             result.ids.push(agent.0.to_string());
-            result.positions.push((
-                agent.1 .0,
-                agent.1 .1,
-                self.get_noise(agent.1 .0 as f64, agent.1 .1 as f64) as f32,
-            ));
+            result.positions.push((agent.1 .0, agent.1 .1, 0.));
             let a = self.agents.get(&agent.0);
             match a {
                 Some(a) => {
@@ -426,18 +429,13 @@ impl World {
         serde_wasm_bindgen::to_value(&result).unwrap()
     }
 
+    #[wasm_bindgen]
     pub fn get_noise(&self, x: f64, y: f64) -> f64 {
         self.noise.get([x, y])
     }
 
-    #[wasm_bindgen]
     pub fn noise_scale() -> f64 {
         0.01
-    }
-
-    #[wasm_bindgen]
-    pub fn lolilol() -> String {
-        String::from("Hi!")
     }
 }
 

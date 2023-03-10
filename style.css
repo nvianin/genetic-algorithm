@@ -151,11 +151,9 @@ body {
   background-color: white;
 }
 
-#stats-button::after {
+/* #stats-button::after {
   z-index               : -1;
-  /* background-color   : palegoldenrod; */
   content               : "";
-  /* box-shadow         : 10px 0 2px black, 0 10px 2px black; */
   border                : 2px solid white;
   border-width          : 4px 4px 0px 0px;
   position              : fixed;
@@ -164,7 +162,7 @@ body {
   left                  : 50%;
   bottom                : -15px;
   transform             : translate(-50%, -50%) rotate(135deg);
-}
+} */
 
 #stats {
   position       : fixed;

@@ -75,9 +75,10 @@ class Renderer {
                 specularIntensity: .2,
             })
         )
+        this.ground.geometry.rotateX(-Math.PI / 2)
         this.ground.castShadow = true;
         this.ground.receiveShadow = true;
-        this.ground.rotation.x = -Math.PI / 2
+        /* this.ground.rotation.x = -Math.PI / 2 */
         this.scene.add(this.ground)
 
         this.displaceGround()
@@ -125,7 +126,7 @@ class Renderer {
                     m.compose(
                         new THREE.Vector3(
                             agents.positions[i][0] - this.size / 2,
-                            agents.positions[i][2],
+                            agents.positions[i][2] * 12.5,
                             agents.positions[i][1] - this.size / 2
                         ),
                         new THREE.Quaternion().setFromEuler(
@@ -151,7 +152,7 @@ class Renderer {
                     m.compose(
                         new THREE.Vector3(
                             agents.positions[i][0] - this.size / 2,
-                            agents.positions[i][2],
+                            agents.positions[i][2] * 12.5,
                             agents.positions[i][1] - this.size / 2
                         ),
                         new THREE.Quaternion().setFromEuler(
@@ -172,7 +173,7 @@ class Renderer {
                     m.compose(
                         new THREE.Vector3(
                             agents.positions[i][0] - this.size / 2,
-                            0,
+                            agents.positions[i][2] * 12.5,
                             agents.positions[i][1] - this.size / 2
                         ),
                         new THREE.Quaternion().setFromEuler(
@@ -329,13 +330,13 @@ class Renderer {
     displaceGround() {
         /* log(this.world) */
         for (let i = 0; i < this.ground.geometry.attributes.position.array.length; i += 3) {
-            this.ground.geometry.attributes.position.array[i + 2] +=
+            this.ground.geometry.attributes.position.array[i + 1] +=
                 this.custom_noise(
-                    this.ground.geometry.attributes.position.array[i],
-                    this.ground.geometry.attributes.position.array[i + 1]
+                    this.ground.geometry.attributes.position.array[i] + this.size / 2,
+                    this.ground.geometry.attributes.position.array[i + 2] + this.size / 2
                 ) * 12.5;
 
-            log(this.ground.geometry.attributes.position.array[i + 2])
+            /* log(this.ground.geometry.attributes.position.array[i + 2]) */
         }
         this.ground.geometry.computeVertexNormals();
         log("Ground displaced")
