@@ -8,7 +8,7 @@ await wasm.default()
 
 const WORLD_SETTINGS = {
     wolf_count: 16,
-    sheep_count: 128,
+    sheep_count: 1024,
     size: 1024
 }
 
