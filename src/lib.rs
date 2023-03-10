@@ -15,7 +15,7 @@ use rand::{rngs::ThreadRng, Rng};
 
 use uuid::Uuid;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, thread::current};
 
 use noise::{NoiseFn, OpenSimplex};
 
@@ -83,6 +83,7 @@ extern crate console_error_panic_hook;
 const MAX_GRASS: usize = 1024;
 const MAX_CHILDREN: usize = 16;
 const MAX_LEVELS: usize = 6;
+const NOISE_SCALING: f64 = 0.01;
 
 // Main JS interface to the simulation
 #[wasm_bindgen(inspectable)]
@@ -144,12 +145,12 @@ impl World {
                 AgentType::Sheep(genotype) => {
                     let mut nearby_agents = Vec::new();
                     nearby_agents = self.wolf_quad.get_children_in_radius(
-                        agent.position,
+                        (agent.position.0, agent.position.1),
                         genotype.sight_distance,
                         nearby_agents,
                     );
                     nearby_agents = self.grass_quad.get_children_in_radius(
-                        agent.position,
+                        (agent.position.0, agent.position.1),
                         genotype.sight_distance,
                         nearby_agents,
                     );
@@ -172,7 +173,7 @@ impl World {
                 AgentType::Wolf(genotype) => {
                     let mut nearby_agents = Vec::new();
                     nearby_agents = self.sheep_quad.get_children_in_radius(
-                        agent.position,
+                        (agent.position.0, agent.position.1),
                         genotype.sight_distance,
                         nearby_agents,
                     );
@@ -197,6 +198,7 @@ impl World {
                         (current_agent.health + agent::PLANT_GROWTH_RATE).min(100.);
                 }
             }
+
             self.agents.insert(agent.id, current_agent);
         }
 
@@ -215,16 +217,25 @@ impl World {
         for (id, agent) in self.agents.iter() {
             match agent.kind {
                 AgentType::Wolf(_) => {
-                    self.wolf_quad
-                        .insert((*id, agent.position), &self.agents, &self.namer);
+                    self.wolf_quad.insert(
+                        (*id, (agent.position.0, agent.position.1)),
+                        &self.agents,
+                        &self.namer,
+                    );
                 }
                 AgentType::Sheep(_) => {
-                    self.sheep_quad
-                        .insert((*id, agent.position), &self.agents, &self.namer);
+                    self.sheep_quad.insert(
+                        (*id, (agent.position.0, agent.position.1)),
+                        &self.agents,
+                        &self.namer,
+                    );
                 }
                 AgentType::Grass() => {
-                    self.grass_quad
-                        .insert((*id, agent.position), &self.agents, &self.namer);
+                    self.grass_quad.insert(
+                        (*id, (agent.position.0, agent.position.1)),
+                        &self.agents,
+                        &self.namer,
+                    );
                 }
             }
         }
@@ -396,7 +407,11 @@ impl World {
 
         for agent in agents_in_radius {
             result.ids.push(agent.0.to_string());
-            result.positions.push(agent.1);
+            result.positions.push((
+                agent.1 .0,
+                agent.1 .1,
+                self.get_noise(agent.1 .0 as f64, agent.1 .1 as f64) as f32,
+            ));
             let a = self.agents.get(&agent.0);
             match a {
                 Some(a) => {
@@ -412,7 +427,17 @@ impl World {
     }
 
     pub fn get_noise(&self, x: f64, y: f64) -> f64 {
-        self.noise.get([x,y])
+        self.noise.get([x, y])
+    }
+
+    #[wasm_bindgen]
+    pub fn noise_scale() -> f64 {
+        0.01
+    }
+
+    #[wasm_bindgen]
+    pub fn lolilol() -> String {
+        String::from("Hi!")
     }
 }
 
@@ -420,7 +445,7 @@ impl World {
 pub struct SerializedAgents {
     pub ids: Vec<String>,
     pub seeds: Vec<f64>,
-    pub positions: Vec<(f32, f32)>,
+    pub positions: Vec<(f32, f32, f32)>,
     pub accelerations: Vec<(f32, f32)>,
     pub types: Vec<u8>,
     pub genotypes: Vec<Vec<f32>>,

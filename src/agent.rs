@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use noise::{NoiseFn, OpenSimplex};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum AgentType {
     Wolf(Genotype),
     Sheep(Genotype),
@@ -62,7 +62,7 @@ pub const PLANT_GROWTH_RATE: f32 = 0.1;
 // TODO: 
 pub struct Agent {
     pub kind: AgentType,
-    pub position: (f32, f32),
+    pub position: (f32, f32, f32),
     pub acceleration: (f32, f32),
     pub direction: f32,
     pub id: Uuid,
@@ -93,7 +93,7 @@ impl Agent {
         }
         Agent {
             kind,
-            position,
+            position: (position.0, position.1, 0.),
             acceleration: (0., 0.),
             direction: (seed as f32 * 10000.) % (std::f32::consts::PI * 2.),
             id,

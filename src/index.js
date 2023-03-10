@@ -40,6 +40,8 @@ class Renderer {
         this.wolfNumber = wolfNumber;
 
         this.world = world;
+        this.custom_noise_scale = 0.01
+        log(this.custom_noise_scale)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.shadowMap.enabled = true;
@@ -123,7 +125,7 @@ class Renderer {
                     m.compose(
                         new THREE.Vector3(
                             agents.positions[i][0] - this.size / 2,
-                            0,
+                            agents.positions[i][2],
                             agents.positions[i][1] - this.size / 2
                         ),
                         new THREE.Quaternion().setFromEuler(
@@ -149,7 +151,7 @@ class Renderer {
                     m.compose(
                         new THREE.Vector3(
                             agents.positions[i][0] - this.size / 2,
-                            0,
+                            agents.positions[i][2],
                             agents.positions[i][1] - this.size / 2
                         ),
                         new THREE.Quaternion().setFromEuler(
@@ -318,10 +320,9 @@ class Renderer {
     }
 
     custom_noise(x, y) {
-        const scale = 0.01
         return this.world.get_noise(
-            x * scale,
-            y * scale
+            x * this.custom_noise_scale,
+            y * this.custom_noise_scale
         ) * 2 - 1;
     }
 

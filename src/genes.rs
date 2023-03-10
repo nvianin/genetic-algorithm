@@ -1,7 +1,7 @@
 use rand::{rngs::ThreadRng, Rng};
 use std::{collections::HashMap};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Genotype {
     // Genotype Variables
     pub body_size: f32,
