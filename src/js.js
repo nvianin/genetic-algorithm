@@ -239,7 +239,7 @@ class App {
             this.stats_canvas.ctx.fillText(
                 this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1],
                 width - 30,
-                textX + (textX < height/2) ? 10 : -10)
+                textX + (textX < height / 2) ? 10 : -10)
         }
     }
 
@@ -275,20 +275,20 @@ class App {
         this.agent_inspector_stats.innerText = `State: ${stateName}
             \nPosition: ${Math.floor(agents.positions[index][0])},${Math.floor(agents.positions[index][1])}
             \nHealth: ${Math.floor(agents.vitals[index][0])}
+            \nHunger: ${Math.floor(agents.vitals[index][1])}
             `
         if (type != "Grass") {
             this.agent_inspector_stats.innerText +=
-            `
-            \nHunger: ${Math.floor(agents.vitals[index][1])}
+                `
             \nGenes
-            \nBody size: ${agents.genotypes[index][0]}
-            \nSight range: ${agents.genotypes[index][1]}
-            \nMuscle mass: ${agents.genotypes[index][2]}
+            \nBody size: ${cut_to_decimal(agents.genotypes[index][0], 3)}
+            \nSight range: ${cut_to_decimal(agents.genotypes[index][1], 3)}
+            \nMuscle mass: ${cut_to_decimal(agents.genotypes[index][2], 3)}
             \n
-            \nHunger rate: ${agents.genotypes[index][3]}
-            \nHealth scale: ${agents.genotypes[index][4]}
-            \nMovement speed: ${agents.genotypes[index][5]}
-            /* \nGestation time: ${agents.genotypes[index][6]} */
+            \nHunger rate: ${cut_to_decimal(agents.genotypes[index][3], 3)}
+            \nHealth scale: ${cut_to_decimal(agents.genotypes[index][4], 3)}
+            \nMovement speed: ${cut_to_decimal(agents.genotypes[index][5], 3)}
+            \nReproduction chance: ${cut_to_decimal(agents.genotypes[index][7], 3)}
             `
         }
         this.agent_portrait.src = imgSrc
@@ -775,3 +775,7 @@ document.readyState == "complete" ? window.app = new App() :
         window.app = new App()
         log("App started")
     })
+
+const cut_to_decimal = (value, decimal) => {
+    return Math.round(value * 10 ** decimal) / 10 ** decimal
+}

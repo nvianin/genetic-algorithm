@@ -284,8 +284,8 @@ class Renderer {
         this.scene.add(this.selection_circle);
 
         const grass_tex = await (this.texLoader.loadAsync("./rsc/textures/grass_4.png"));
-        grass_tex.repeat.x = 4;
-        grass_tex.repeat.y = 4;
+        grass_tex.repeat.x = 16;
+        grass_tex.repeat.y = 16;
         grass_tex.wrapS = THREE.RepeatWrapping;
         grass_tex.wrapT = THREE.RepeatWrapping;
         this.ground.material.map = grass_tex;
