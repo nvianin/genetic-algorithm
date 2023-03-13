@@ -7,8 +7,8 @@ import * as wasm from "/pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
-    wolf_count: 16,
-    sheep_count: 1024,
+    wolf_count: 6,
+    sheep_count: 128,
     size: 1024
 }
 
@@ -48,6 +48,7 @@ class App {
                 health_scale: [],
                 movement_speed: [],
                 gestation_duration: [],
+                reproduction_chance: [],
                 health: [],
                 hunger: [],
             },
@@ -60,6 +61,7 @@ class App {
                 health_scale: [],
                 movement_speed: [],
                 gestation_duration: [],
+                reproduction_chance: [],
                 health: [],
                 hunger: [],
             },
@@ -232,11 +234,12 @@ class App {
             }
             this.stats_canvas.ctx.stroke()
             this.stats_canvas.ctx.closePath();
-            // TODO: Calculate "max_seen" value for each stat and use it to scale the graph, now it normalizes according to the first value in the array
+            // DONE: Calculate "max_seen" value for each stat and use it to scale the graph, now it normalizes according to the first value in the array
+            const textX = height - this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1] / this.logging_data[selected_category][selected_stat].max * height;
             this.stats_canvas.ctx.fillText(
                 this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1],
                 width - 30,
-                height - this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1] / this.logging_data[selected_category][selected_stat].max * height + 10)
+                textX + (textX < height/2) ? 10 : -10)
         }
     }
 
@@ -275,7 +278,7 @@ class App {
             `
         if (type != "Grass") {
             this.agent_inspector_stats.innerText +=
-                `
+            `
             \nHunger: ${Math.floor(agents.vitals[index][1])}
             \nGenes
             \nBody size: ${agents.genotypes[index][0]}
@@ -285,7 +288,7 @@ class App {
             \nHunger rate: ${agents.genotypes[index][3]}
             \nHealth scale: ${agents.genotypes[index][4]}
             \nMovement speed: ${agents.genotypes[index][5]}
-            \nGestation time: ${agents.genotypes[index][6]}
+            /* \nGestation time: ${agents.genotypes[index][6]} */
             `
         }
         this.agent_portrait.src = imgSrc
@@ -333,6 +336,7 @@ class App {
             /* log(index)
             log(this.mousepicked_agent.ids, agents.ids) */
             this.renderer.selection_circle.position.x = agents.positions[index][0] - WORLD_SETTINGS.size / 2
+            this.renderer.selection_circle.position.y = agents.positions[index][2] * 12.5 + 1.
             this.renderer.selection_circle.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
 
             this.renderer.renderer.domElement.style.cursor = "pointer"
@@ -356,6 +360,7 @@ class App {
 
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
             this.renderer.selection_circle.position.x = agents.positions[index][0] - (WORLD_SETTINGS.size / 2)
+            this.renderer.selection_circle.position.y = agents.positions[index][2] * 12.5 + 1.
             this.renderer.selection_circle.position.z = agents.positions[index][1] - WORLD_SETTINGS.size / 2
 
             /* this.renderer.camera.position.y = WORLD_SETTINGS.size / 2; */
@@ -617,6 +622,7 @@ class App {
             health_scale_tally: 0,
             speed_tally: 0,
             gestation_tally: 0,
+            reproduction_chance_tally: 0,
 
             count: 0
         }
@@ -631,6 +637,7 @@ class App {
             health_scale_tally: 0,
             speed_tally: 0,
             gestation_tally: 0,
+            reproduction_chance_tally: 0,
 
             count: 0
         }
@@ -654,6 +661,7 @@ class App {
                     wolves.gestation_tally += agents.genotypes[i][6];
                     wolves.health_tally += agents.vitals[i][0]
                     wolves.hunger_tally += agents.vitals[i][1];
+                    wolves.reproduction_chance_tally += agents.genotypes[i][7]
                     break;
                 case 1:
                     sheep.count++;
@@ -666,6 +674,7 @@ class App {
                     sheep.gestation_tally += agents.genotypes[i][6];
                     sheep.health_tally += agents.vitals[i][0]
                     sheep.hunger_tally += agents.vitals[i][1];
+                    sheep.reproduction_chance_tally += agents.genotypes[i][7];
                     break;
                 case 2:
                     grass.count++;
@@ -682,21 +691,23 @@ class App {
         this.logging_data.sheep.sight_distance.push(sheep.sight_tally / sheep.count);
         this.logging_data.sheep.muscle_mass.push(sheep.muscle_tally / sheep.count);
         this.logging_data.sheep.hunger.push(sheep.hunger_tally / sheep.count);
-        this.logging_data.sheep.hunger_rate.push(sheep.hunger_tally / sheep.count);
+        this.logging_data.sheep.hunger_rate.push(sheep.hunger_scale_tally / sheep.count);
         this.logging_data.sheep.health.push(sheep.health_tally / sheep.count)
         this.logging_data.sheep.health_scale.push(sheep.health_scale_tally / sheep.count);
         this.logging_data.sheep.movement_speed.push(sheep.speed_tally / sheep.count);
         this.logging_data.sheep.gestation_duration.push(sheep.gestation_tally / sheep.count);
+        this.logging_data.sheep.reproduction_chance.push(sheep.reproduction_chance_tally / sheep.count);
 
         this.logging_data.wolves.body_size.push(wolves.body_size_tally / wolves.count);
         this.logging_data.wolves.sight_distance.push(wolves.sight_tally / wolves.count);
         this.logging_data.wolves.muscle_mass.push(wolves.muscle_tally / wolves.count);
         this.logging_data.wolves.hunger.push(wolves.hunger_tally / wolves.count);
-        this.logging_data.wolves.hunger_rate.push(wolves.hunger_tally / wolves.count);
+        this.logging_data.wolves.hunger_rate.push(wolves.hunger_scale_tally / wolves.count);
         this.logging_data.wolves.health.push(wolves.health_tally / wolves.count)
         this.logging_data.wolves.health_scale.push(wolves.health_scale_tally / wolves.count);
         this.logging_data.wolves.movement_speed.push(wolves.speed_tally / wolves.count);
         this.logging_data.wolves.gestation_duration.push(wolves.gestation_tally / wolves.count);
+        this.logging_data.wolves.reproduction_chance.push(wolves.reproduction_chance_tally / wolves.count);
 
         this.logging_data.grass.health.push(grass.health_tally / grass.count);
 

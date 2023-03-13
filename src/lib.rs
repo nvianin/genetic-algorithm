@@ -161,6 +161,7 @@ impl World {
                         &self.agents,
                         genotype,
                         &self.noise,
+                        &mut self.rng,
                         time,
                     );
                     for (id, agent) in modified_agents {
@@ -182,6 +183,7 @@ impl World {
                         &self.agents,
                         genotype,
                         &self.noise,
+                        &mut self.rng,
                         time,
                     );
                     for (id, agent) in modified_agents {

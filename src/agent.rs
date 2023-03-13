@@ -1,16 +1,13 @@
-use std::{collections::HashMap, f32::MIN, fmt::Display};
+use std::{collections::HashMap, fmt::Display};
 
-use crate::{
-    genes::{self, Genotype},
-    normalize_vector,
-};
+use crate::{genes::Genotype, normalize_vector};
 
-use rand::rngs::ThreadRng;
+use rand::{rngs::ThreadRng, Rng};
 use uuid::Uuid;
 
 use noise::{NoiseFn, OpenSimplex};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum AgentType {
     Wolf(Genotype),
     Sheep(Genotype),
@@ -33,6 +30,22 @@ impl AgentType {
             AgentType::Grass() => "Grass".to_string(),
         }
     }
+
+    pub fn genotype(&self) -> Genotype {
+        match self {
+            AgentType::Wolf(genes) => *genes,
+            AgentType::Sheep(genes) => *genes,
+            AgentType::Grass() => panic!("Grass has no genes!"),
+        }
+    }
+
+    pub fn set_genotype(&mut self, new_genotype: Genotype) {
+        match self {
+            AgentType::Wolf(genes) => *genes = new_genotype,
+            AgentType::Sheep(genes) => *genes = new_genotype,
+            AgentType::Grass() => panic!("Grass has no genes!"),
+        }
+    }
 }
 
 impl Display for AgentType {
@@ -49,6 +62,38 @@ impl Display for AgentType {
     }
 }
 
+#[derive(Clone)]
+pub enum State {
+    Idle,
+    Hunting(Uuid),
+    Fleeing,
+    Reproducing(Uuid),
+    Dead,
+}
+impl State {
+    pub fn to_int(&self) -> u8 {
+        match self {
+            State::Idle => 0,
+            State::Hunting(_) => 1,
+            State::Fleeing => 2,
+            State::Reproducing(_) => 3,
+            State::Dead => 4,
+        }
+    }
+}
+
+impl Display for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            State::Idle => write!(f, "Idle"),
+            State::Hunting(_) => write!(f, "Hunting"),
+            State::Fleeing => write!(f, "Fleeing"),
+            State::Reproducing(_) => write!(f, "Reproducing"),
+            State::Dead => write!(f, "Dead"),
+        }
+    }
+}
+
 const MIN_HUNGER: f32 = 30.;
 const SATIETY: f32 = 40.;
 const HUNGER_RATE: f32 = 0.001;
@@ -59,7 +104,7 @@ pub const PLANT_GROWTH_RATE: f32 = 0.1;
 /* const MAX_WANDER_SPEED: f32 = 0.1; */
 
 #[derive(Clone)]
-// TODO: 
+// TODO:
 pub struct Agent {
     pub kind: AgentType,
     pub position: (f32, f32, f32),
@@ -115,6 +160,7 @@ impl Agent {
         agents: &HashMap<Uuid, Agent>,
         genotype: Genotype,
         noise: &OpenSimplex,
+        thread_rng: &mut ThreadRng,
         time: f32,
     ) -> HashMap<Uuid, Agent> {
         let mut modified_agents = HashMap::new();
@@ -235,11 +281,45 @@ impl Agent {
                         self.state = State::Hunting(closest);
                     }
                     return modified_agents;
-                } else {
+                } else if genotype.reproduction_chance < thread_rng.gen() {
                     // If not hungry, try to reproduce
-                    // TODO: Reproduction mechanics
+                    // DONE: Reproduction mechanics
                     for nearby_agent in nearby_agents.iter() {
                         let agent = agents.get(&nearby_agent.0).unwrap();
+                        if self.kind.to_int() == agent.kind.to_int() {
+                            if let State::Idle = agent.state {
+                                let distance = ((nearby_agent.1).0.powf(2.)
+                                    + (nearby_agent.1).1.powf(2.))
+                                    - (self.position.0.powf(2.) + self.position.1.powf(2.));
+
+                                if distance < 10. {
+                                    // If close enough, spawn new agent and crossbreed genotypes
+                                    let mut agent = agent.clone();
+
+                                    self.timeout = 1.;
+                                    self.last_time = time;
+                                    agent.timeout = 1.;
+                                    agent.last_time = time;
+
+                                    let mut new_agent = Agent::new(
+                                        self.kind,
+                                        (self.position.0, self.position.1),
+                                        Uuid::new_v4(),
+                                        thread_rng.gen::<f64>() * 10000.,
+                                    );
+                                    let new_genotype = self.kind.genotype().crossbreed(&agent.kind.genotype(), thread_rng);
+                                    new_agent.kind.set_genotype(new_genotype);
+                                    
+                                    modified_agents.insert(new_agent.id, new_agent);
+
+                                    self.state = State::Idle;
+                                    agent.state = State::Idle;
+
+                                    modified_agents.insert(agent.id, agent);
+                                    println!("A new {} was born!", self.kind.to_string());
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -361,34 +441,3 @@ impl Agent {
     }
 }
 
-#[derive(Clone)]
-pub enum State {
-    Idle,
-    Hunting(Uuid),
-    Fleeing,
-    Reproducing(Uuid),
-    Dead,
-}
-impl State {
-    pub fn to_int(&self) -> u8 {
-        match self {
-            State::Idle => 0,
-            State::Hunting(_) => 1,
-            State::Fleeing => 2,
-            State::Reproducing(_) => 3,
-            State::Dead => 4,
-        }
-    }
-}
-
-impl Display for State {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            State::Idle => write!(f, "Idle"),
-            State::Hunting(_) => write!(f, "Hunting"),
-            State::Fleeing => write!(f, "Fleeing"),
-            State::Reproducing(_) => write!(f, "Reproducing"),
-            State::Dead => write!(f, "Dead"),
-        }
-    }
-}

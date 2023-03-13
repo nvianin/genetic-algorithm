@@ -7,22 +7,33 @@ pub struct Genotype {
     pub body_size: f32,
     pub sight_distance: f32,
     pub muscle_mass: f32,
+    pub reproduction_chance: f32,
     // Derived Variables
     pub hunger_rate: f32,
     pub health_scale: f32,
     pub movement_speed: f32,
     pub gestation_duration: f32,
 }
+
+const BODY_SIZE_RANGE: std::ops::Range<f32> = 5.0..10.0;
+const SIGHT_DISTANCE_RANGE: std::ops::Range<f32> = 50.0..200.;
+const MUSCLE_MASS_RANGE: std::ops::Range<f32> = 1.0..10.0;
+const REPRODUCTION_CHANCE_RANGE: std::ops::Range<f32> = 0.0..1.0;
+
+const MUTATION_RATE: f32 = 0.05;
+
 impl Genotype {
     pub fn new(thread_rng: &mut ThreadRng) -> Genotype {
-        let body_size = thread_rng.gen_range(5.0..10.0);
-        let sight_distance = thread_rng.gen_range(50.0..200.);
-        let muscle_mass = thread_rng.gen_range(1.0..10.0);
+        let body_size = thread_rng.gen_range(BODY_SIZE_RANGE);
+        let sight_distance = thread_rng.gen_range(SIGHT_DISTANCE_RANGE);
+        let muscle_mass = thread_rng.gen_range(MUSCLE_MASS_RANGE);
+        let reproduction_chance = thread_rng.gen_range(REPRODUCTION_CHANCE_RANGE);
 
         let mut genotype = Genotype {
             body_size,
             sight_distance,
             muscle_mass,
+            reproduction_chance,
             // Derived variables
             hunger_rate: 0.,
             health_scale: 0.,
@@ -57,11 +68,17 @@ impl Genotype {
         } else {
             other.muscle_mass
         };
+        let reproduction_chance = if thread_rng.gen_bool(0.5) {
+            self.reproduction_chance
+        } else {
+            other.reproduction_chance
+        };
 
         let mut new_genotype = Genotype {
             body_size,
             sight_distance,
             muscle_mass,
+            reproduction_chance,
             // Derived variables
             hunger_rate: 0.,
             health_scale: 0.,
@@ -69,20 +86,17 @@ impl Genotype {
             gestation_duration: 0.,
         };
         new_genotype.derive_genotype();
+        new_genotype.mutate(thread_rng);
 
         new_genotype
     }
 
     pub fn mutate(&mut self, thread_rng: &mut ThreadRng) {
-        if thread_rng.gen_range(0.0..1.0) < 0.1 {
-            self.body_size = thread_rng.gen_range(1.0..10.0);
-        }
-        if thread_rng.gen_range(0.0..1.0) < 0.1 {
-            self.sight_distance = thread_rng.gen_range(50.0..200.);
-        }
-        if thread_rng.gen_range(0.0..1.0) < 0.1 {
-            self.muscle_mass = thread_rng.gen_range(1.0..10.0);
-        }
+        self.body_size += (thread_rng.gen::<f32>() * 2. - 1.) * MUTATION_RATE;
+        self.sight_distance += (thread_rng.gen::<f32>() * 2. - 1.) * MUTATION_RATE;
+        self.muscle_mass += (thread_rng.gen::<f32>() * 2. - 1.) * MUTATION_RATE;
+        self.reproduction_chance += (thread_rng.gen::<f32>() * 2. - 1.) * MUTATION_RATE;
+
         self.derive_genotype();
     }
 
@@ -113,6 +127,7 @@ impl Genotype {
             self.health_scale,
             self.movement_speed,
             self.gestation_duration,
+            self.reproduction_chance,
         ]
     }
 

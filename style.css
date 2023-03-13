@@ -63,7 +63,7 @@ body {
   line-height : .7rem;
   user-select : none;
   box-sizing  : border-box;
-  column-width: 300px;
+  column-width: 20vw;
   column-count: 3;
   column-fill : auto;
 }
@@ -145,10 +145,15 @@ body {
   height          : 30px;
   right           : -40px;
   top             : 50%;
-  transform       : translate(0, -50%) rotate(-90deg);
+  transform       : translate(0, -50%);
   border-radius   : 10px;
   cursor          : pointer;
   background-color: white;
+  font-weight     : 400;
+}
+
+#stats-button:hover {
+  background-color: #aaa;
 }
 
 /* #stats-button::after {
@@ -171,7 +176,7 @@ body {
   left           : 0%;
   backdrop-filter: blur(20px);
   border-radius  : 15px;
-  transition     : .5s ease-in-out cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition     : .5s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .stats-hidden {
