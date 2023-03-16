@@ -28,6 +28,10 @@ THREE.MapControls = function (object, domElement) {
 THREE.MapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
 THREE.MapControls.prototype.constructor = THREE.MapControls;
 
+Math.lerp = (a, b, t) => a + (b - a) * t;
+
+log(Math.lerp(0, 1, .5));
+
 
 class Renderer {
     constructor(sheepNumber, wolfNumber, size, world) {
@@ -45,6 +49,7 @@ class Renderer {
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 5000);
         this.camera.position.z = this.size / 3;
         this.camera.position.y = this.size / 3;
@@ -90,6 +95,10 @@ class Renderer {
         /* this.render() */
     }
 
+    get_agent_sine(seed) {
+        return Math.sin(seed * 0.1 + performance.now() * 0.0001)
+    }
+
     update_agents(agents) {
         if (!this.done_loading) return;
 
@@ -121,6 +130,11 @@ class Renderer {
             const seed = parseInt(parseInt(agents.ids[i].replace(/-/g, ""), 16).toString(36), 36);
             /* log(seed) */
             /* if(dead) log("dead") */
+            let prevrot, scaled_acceleration;
+            if (agents.types[i] != 2) {
+                prevrot = Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]);
+                scaled_acceleration = Math.sqrt(agents.accelerations[i][0] ** 2 + agents.accelerations[i][1] ** 2) / agents.genotypes[5];
+            }
             switch (agents.types[i]) {
                 case 0:
                     m.compose(
@@ -132,7 +146,7 @@ class Renderer {
                         new THREE.Quaternion().setFromEuler(
                             new THREE.Euler(
                                 0,
-                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                Math.lerp(prevrot, Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]), .1),
                                 dead ? 1.4 : 0
                             )
                         ),
@@ -158,7 +172,7 @@ class Renderer {
                         new THREE.Quaternion().setFromEuler(
                             new THREE.Euler(
                                 0,
-                                Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]),
+                                Math.lerp(prevrot, Math.atan2(agents.accelerations[i][0], agents.accelerations[i][1]), .1),
                                 dead ? 1.4 : 0
                             )
                         ),
@@ -275,7 +289,9 @@ class Renderer {
                 map: circle_tex,
                 transparent: true,
                 opacity: 0.5,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                depthWrite: false,
+                depthTest: false,
             }));
         this.selection_circle.rotation.x = Math.PI / 2
         this.selection_circle.scale.multiplyScalar(15)
@@ -290,6 +306,7 @@ class Renderer {
         grass_tex.wrapT = THREE.RepeatWrapping;
         this.ground.material.map = grass_tex;
         this.ground.material.needsUpdate = true;
+        this.ground.material.color.setHex(0xffffff)
 
         this.done_loading = true;
     }
@@ -302,6 +319,7 @@ class Renderer {
         this.sun.position.y = this.size;
         this.sun.lookAt(new THREE.Vector3(0, 0, 0));
         this.sun.shadow.camera.far = 5000;
+        this.sun.shadow.camera.near = 500;
         this.sun.shadow.camera.bottom = -this.size / 2;
         this.sun.shadow.camera.top = this.size / 2;
         this.sun.shadow.camera.left = -this.size / 2;

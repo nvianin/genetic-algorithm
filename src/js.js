@@ -20,6 +20,10 @@ const STATE_COLOURS = {
     4: "grey", // Dead
 }
 
+const cut_to_decimal = (value, decimal) => {
+    return Math.round(value * 10 ** decimal) / 10 ** decimal
+}
+
 class App {
     constructor() {
 
@@ -145,10 +149,10 @@ class App {
         this.renderer.camera.userData.scroll = 0;
         this.renderer.renderer.domElement.addEventListener("wheel", e => {
             if (this.renderer.tracking_agent) {
-                if (e.deltaY < 0 && this.renderer.camera.position.y <= 50 || e.deltaY > 0 && this.renderer.camera.position.y >= 600) {
+                if (e.deltaY < 0 && this.renderer.camera.position.y <= 10 || e.deltaY > 0 && this.renderer.camera.position.y >= 600) {
                     return;
                 }
-                this.renderer.camera.userData.scroll += e.deltaY * .5;
+                this.renderer.camera.userData.scroll += e.deltaY * .1;
             }
         })
 
@@ -219,6 +223,7 @@ class App {
             this.stats_canvas.ctx.strokeStyle = "red"
             this.stats_canvas.ctx.lineWidth = 2;
             this.stats_canvas.ctx.beginPath();
+            /* log(this.logging_data[selected_category][selected_stat][0] * height) */
             this.stats_canvas.ctx.moveTo(0, this.logging_data[selected_category][selected_stat][0] * height);
             try {
                 for (let i = 0; i < this.logging_data.time.length; i++) {
@@ -235,11 +240,14 @@ class App {
             this.stats_canvas.ctx.stroke()
             this.stats_canvas.ctx.closePath();
             // DONE: Calculate "max_seen" value for each stat and use it to scale the graph, now it normalizes according to the first value in the array
-            const textX = height - this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1] / this.logging_data[selected_category][selected_stat].max * height;
+            const textY = height
+                - (this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1]
+                    / this.logging_data[selected_category][selected_stat].max * height);
+            log(textY)
             this.stats_canvas.ctx.fillText(
-                this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1],
+                cut_to_decimal(this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1], 3),
                 width - 30,
-                textX + (textX < height / 2) ? 10 : -10)
+                textY + (textY < height / 2) ? 10 : -10)
         }
     }
 
@@ -355,7 +363,7 @@ class App {
             }
 
             this.renderer.camera.position.y += this.renderer.camera.userData.scroll;
-            this.renderer.camera.position.y = Math.max(0, Math.min(1000, this.renderer.camera.position.y));
+            this.renderer.camera.position.y = Math.max(0, Math.min(1000, this.renderer.camera.position.y)) + agents.positions[index][2] * 12.5 + 1.;
             this.renderer.camera.userData.scroll = 0;
 
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
@@ -775,7 +783,3 @@ document.readyState == "complete" ? window.app = new App() :
         window.app = new App()
         log("App started")
     })
-
-const cut_to_decimal = (value, decimal) => {
-    return Math.round(value * 10 ** decimal) / 10 ** decimal
-}
