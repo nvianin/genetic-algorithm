@@ -133,10 +133,14 @@ class App {
         this.renderer.renderer.domElement.addEventListener("mouseup", e => {
             this.mouse_down = false;
             if (this.renderer.tracking_agent && !this.hovered_agent) {
+                log("untracking")
                 this.renderer.tracking_agent = false;
+                this.renderer.fake_cam.copy(this.renderer.camera)
                 return;
             }
             if (this.hovered_agent && !this.mouse_moved_while_down) {
+                log("tracking")
+                this.agent_defocus.style.visibility = "visible";
                 this.renderer.tracking_agent = true;
                 this.mousepicked_agent = this.hovered_agent;
 
@@ -196,6 +200,7 @@ class App {
             this.renderer.tracking_agent = false;
             this.mousepicked_agent = null;
             this.hovered_agent = null;
+            this.agent_defocus.style.visibility = "hidden";
         }
 
         this.agent_portrait.onclick = () => {
@@ -208,12 +213,16 @@ class App {
         this.stats_canvas = document.getElementById("stats-canvas");
         this.stats_canvas.ctx = this.stats_canvas.getContext("2d");
         this.stats_selector = document.querySelector("#stats-selector");
+
+        this.stats_canvas.ctx.font = "bold 11px RobotoFlex"
     }
 
     refreshInterface(agents) {
         if (!this.stats_drawer.classList.contains("stats-hidden")) {
             const selected_stat = this.stats_selector.value;
             const selected_category = this.stats_selector.options[this.stats_selector.selectedIndex].parentElement.getAttribute("value");
+
+            document.querySelector("#stats-category").innerText = selected_category[0].toUpperCase() + selected_category.slice(1);
 
             this.stats_canvas.ctx.fillStyle = "white"
             this.stats_canvas.ctx.clearRect(0, 0, this.stats_canvas.width, this.stats_canvas.height);
@@ -224,7 +233,7 @@ class App {
             this.stats_canvas.ctx.lineWidth = 2;
             this.stats_canvas.ctx.beginPath();
             /* log(this.logging_data[selected_category][selected_stat][0] * height) */
-            this.stats_canvas.ctx.moveTo(0, this.logging_data[selected_category][selected_stat][0] * height);
+            this.stats_canvas.ctx.moveTo(0, height - this.logging_data[selected_category][selected_stat][0] / this.logging_data[selected_category][selected_stat].max * height);
             try {
                 for (let i = 0; i < this.logging_data.time.length; i++) {
                     const x = (this.logging_data.time[i] - this.logging_data.time[0]) / (this.logging_data.time[this.logging_data.time.length - 1] - this.logging_data.time[0]) * width;
@@ -243,11 +252,11 @@ class App {
             const textY = height
                 - (this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1]
                     / this.logging_data[selected_category][selected_stat].max * height);
-            log(textY)
+            /* log(textY) */
             this.stats_canvas.ctx.fillText(
-                cut_to_decimal(this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1], 3),
-                width - 30,
-                textY + (textY < height / 2) ? 10 : -10)
+                cut_to_decimal(this.logging_data[selected_category][selected_stat][this.logging_data[selected_category][selected_stat].length - 1], 2),
+                width - 35,
+                textY + ((textY < height / 2) ? 10 : -10))
         }
     }
 

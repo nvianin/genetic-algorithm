@@ -15,55 +15,83 @@
 </head>
 
 <body>
-    <div id="agent-inspector">
+    <div id="agent-inspector" class="claymorphic">
         <div id="agent-title">Sheep</div>
         <img id="agent-portrait" src="./rsc/textures/sheep_icon.png">
         <div id="agent-stats"></div>
         <div class="stat_bar healthbar" id="agent-health">Health</div>
         <div class="stat_bar hungerbar" id="agent-hunger">Hunger</div>
-        <button id="agent-defocus"></button>
+        <button id="agent-defocus" class="claymorphic-button" style="visibility: hidden;"></button>
     </div>
     <script>
         function hide_show_stats() {
             log("lol")
             document.getElementById("stats").classList.toggle("stats-hidden")
         }
+        
+        function hide_splash(){
+            document.querySelector("#splash-background").style.opacity = 0;
+            setTimeout(() => {
+                document.querySelector("#splash-background").style.display = "none";
+            }, 1000);
+        }
     </script>
-    <div id="stats">
-        <button id="stats-button" onclick="hide_show_stats()">Stats</button>
+    <div id="splash-background" onclick="hide_splash()">
+        <div id="splash" class="claymorphic">
+            <div id="splash-title">Genetic Algorithm Simulation</div>
+            <div id="splash-text">
+                This is a 3D agent simulation experiment.
+                <br><br>
+                It was done to play with state machines, genetic algorithms, the Rust programming language in a
+                web context, and the Three.js library.
+                <br><br>
+                The simulation is based on a wolf-sheep ecosystem, with grass as a food source.
+                <br><br>
+                The stats of the agents can be observed by clicking on them, and also through the graph viewer which will log the stats of the agents over time.
+
+            </div>
+            <button id="splash-begin" class="claymorphic-button" onclick="hide_splash()">Try the Experiment</button>
+        </div>
+    </div>
+
+    <div id="stats" class="claymorphic">
+        <button id="stats-button" class="claymorphic-button" onclick="hide_show_stats()">Stats</button>
         <canvas id="stats-canvas"></canvas>
-        <select name="stats-selector" id="stats-selector">
-            <optgroup label="Wolves" value="wolves">
-                <option value="count">Count</option>
-                <option value="health">Health</option>
-                <option value="health_scale">Health factor</option>
-                <option value="hunger">Hunger</option>
-                <option value="hunger_rate">Hunger rate</option>
-                <option value="body_size">Body size</option>
-                <option value="movement_speed">Speed</option>
-                <option value="sight_distance">Sight</option>
-                <option value="muscle_mass">Strength</option>
-                <!-- <option value="gestation_duration">Gestation duration</option> -->
-                <option value="reproduction_chance">Reproduction chance</option>
-            </optgroup>
-            <optgroup label="Sheep" value="sheep">
-                <option value="count">Count</option>
-                <option value="health">Health</option>
-                <option value="health_scale">Health factor</option>
-                <option value="hunger">Hunger</option>
-                <option value="hunger_rate">Hunger rate</option>
-                <option value="body_size">Body size</option>
-                <option value="movement_speed">Speed</option>
-                <option value="sight_distance">Sight</option>
-                <option value="muscle_mass">Strength</option>
-                <option value="reproduction_chance">Reproduction chance</option>
-                <!-- <option value="gestation_duration">Gestation duration</option> -->
-            </optgroup>
-            <optgroup label="Grass" value="grass">
-                <option value="count">Count</option>
-                <option value="health">Health</option>
-            </optgroup>
-        </select>
+        <div id="stats-category-container">
+            <div id="stats-category"></div>
+            <select name="stats-selector" class="claymorphic-button" id="stats-selector">
+                <optgroup label="Wolves" value="wolves">
+                    <option value="count">Count</option>
+                    <option value="health">Health</option>
+                    <option value="health_scale">Health factor</option>
+                    <option value="hunger">Hunger</option>
+                    <option value="hunger_rate">Hunger rate</option>
+                    <option value="body_size">Body size</option>
+                    <option value="movement_speed">Speed</option>
+                    <option value="sight_distance">Sight</option>
+                    <option value="muscle_mass">Strength</option>
+                    <!-- <option value="gestation_duration">Gestation duration</option> -->
+                    <option value="reproduction_chance">Reproduction chance</option>
+                </optgroup>
+                <optgroup label="Sheep" value="sheep">
+                    <option value="count">Count</option>
+                    <option value="health">Health</option>
+                    <option value="health_scale">Health factor</option>
+                    <option value="hunger">Hunger</option>
+                    <option value="hunger_rate">Hunger rate</option>
+                    <option value="body_size">Body size</option>
+                    <option value="movement_speed">Speed</option>
+                    <option value="sight_distance">Sight</option>
+                    <option value="muscle_mass">Strength</option>
+                    <option value="reproduction_chance">Reproduction chance</option>
+                    <!-- <option value="gestation_duration">Gestation duration</option> -->
+                </optgroup>
+                <optgroup label="Grass" value="grass">
+                    <option value="count">Count</option>
+                    <option value="health">Health</option>
+                </optgroup>
+            </select>
+        </div>
     </div>
 </body>
 

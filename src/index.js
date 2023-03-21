@@ -279,6 +279,10 @@ class Renderer {
         this.sheep_model.material.envMap = this.exr;
         this.grass_model.material.envMap = this.exr;
         this.ground.material.envMap = this.exr;
+        
+        this.wolf_model.material.envMapIntensity = .5;
+        this.sheep_model.material.envMapIntensity = .5;
+        this.grass_model.material.envMapIntensity = .5;
         this.ground.material.envMapIntensity = 0.5;
         /* log(this.ground.material) */
 
@@ -329,12 +333,13 @@ class Renderer {
         /* this.scene.add(new THREE.CameraHelper(this.sun.shadow.camera)); */
 
         const exr_loader = new EXRLoader();
-        this.exr = (await exr_loader.loadAsync("./rsc/textures/evening_meadow_1k.exr"));
+        this.exr = (await exr_loader.loadAsync("/rsc/textures/straw_rolls_field_01_1k.exr"));
         this.exr.mapping = THREE.EquirectangularReflectionMapping;
 
-        this.envMap = await this.texLoader.loadAsync("./rsc/textures/evening_meadow_1k.jpg");
-        this.envMap.mapping = THREE.EquirectangularReflectionMapping
-        this.scene.background = this.envMap;
+        /* this.envMap = await this.texLoader.loadAsync("/rsc/textures/straw_rolls_field_01_1k.exr");
+        this.envMap.mapping = THREE.EquirectangularReflectionMapping */
+        this.scene.background = this.exr;
+        this.scene.backgroundIntensity = .5
         this.scene.backgroundBlurriness = .09
     }
 
