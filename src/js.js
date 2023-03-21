@@ -363,7 +363,6 @@ class App {
             }
 
             this.renderer.camera.position.y += this.renderer.camera.userData.scroll;
-            this.renderer.camera.position.y = Math.max(0, Math.min(1000, this.renderer.camera.position.y)) + agents.positions[index][2] * 12.5 + 1.;
             this.renderer.camera.userData.scroll = 0;
 
             this.renderer.selection_circle.material.color = STATE_COLOURS[agents.states[index]]
