@@ -182,13 +182,14 @@ body {
 .claymorphic-button {
   backdrop-filter : blur(10px);
   background-color: rgba(255, 255, 255, .75);
-  box-shadow      : inset -1px -1px 5px 0px rgba(0, 0, 0, 0.2), inset 1px 1px 5px 0px rgba(255, 255, 255, 0.2);
+  box-shadow      : inset -3px -3px 5px 0px rgba(0, 0, 0, .33), inset 3px 3px 5px 0px rgba(255, 255, 255, 0.2);
   transition      : .2s cubic-bezier(0.075, 0.82, 0.165, 1);
+  border          : none;
 }
 
 .claymorphic-button:hover {
-  /* background-color: #aaa; */
-  box-shadow: inset 1px 1px 5px 0px rgba(0, 0, 0, 0.1), inset 1px 1px 5px 0px rgba(255, 255, 255, .6);
+  background-color: rgba(255, 255, 255, .85);
+  box-shadow      : inset 3px 3px 5px 0px rgba(0, 0, 0, 0.33), inset -3px -3px 5px 0px rgba(255, 255, 255, .2);
 }
 
 /* #stats-button::after {
@@ -278,8 +279,8 @@ body {
   transform       : translate(-50%, -50%);
   z-index         : 100000;
   border-radius   : 50px;
-  background-color: rgba(255, 255, 255, .08);
-  backdrop-filter : blur(50px);
+  background-color: rgba(255, 255, 255, .01);
+  backdrop-filter : blur(64px);
 
   color: white;
 }
@@ -291,7 +292,7 @@ body {
   width     : 100%;
   height    : 100%;
   z-index   : 10000;
-  background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .94));
+  background: linear-gradient(rgba(0, 0, 0, .1), rgba(0, 0, 0, .94));
   transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
