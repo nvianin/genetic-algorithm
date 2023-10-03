@@ -1,4 +1,4 @@
-use nickname::NameGen;
+use nickname::Nickname;
 use std::{collections::HashMap, thread::current};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
@@ -38,7 +38,7 @@ impl QuadTree {
         }
     }
 
-    pub fn subdivide(&mut self, namer: &NameGen, agent_list: &HashMap<Uuid, Agent>) {
+    pub fn subdivide(&mut self, namer: &Nickname, agent_list: &HashMap<Uuid, Agent>) {
         /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
             let mut address = self.address.clone();
@@ -86,7 +86,7 @@ impl QuadTree {
         &mut self,
         point: (Uuid, (f32, f32)),
         agent_list: &HashMap<Uuid, Agent>,
-        namer: &NameGen,
+        namer: &Nickname,
     ) -> bool {
         if self.contains(point.1) && self.is_leaf {
             if self.children.len() < MAX_CHILDREN {

@@ -1,5 +1,5 @@
 mod quadtree;
-use nickname::NameGen;
+use nickname::Nickname;
 use quadtree::QuadTree;
 
 mod genes;
@@ -66,7 +66,7 @@ pub struct World {
     wolf_quad: QuadTree,
     sheep_quad: QuadTree,
     grass_quad: QuadTree,
-    namer: NameGen,
+    namer: Nickname,
     size: f32,
     pub seed: u32,
     rng: ThreadRng,
@@ -92,7 +92,7 @@ impl World {
     pub fn new(sheep_num: usize, wolf_num: usize, size: f32) -> World {
         console_error_panic_hook::set_once();
 
-        let namer = NameGen::new();
+        let namer = Nickname::new(0);
 
         let mut rng = rand::thread_rng();
         let seed = rng.gen();
@@ -245,7 +245,7 @@ impl World {
 
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
-        let namer = NameGen::new();
+        let namer = Nickname::new(0);
         let agent_list = HashMap::new();
 
         let mut q = QuadTree::new(1024.);
@@ -352,7 +352,9 @@ impl World {
                 self.get_noise(
                     agent.position.0 as f64 * 0.01,
                     agent.position.1 as f64 * 0.01,
-                ) as f32 * 2. -1.,
+                ) as f32
+                    * 2.
+                    - 1.,
             ));
             result.accelerations.push(agent.acceleration);
             result.types.push(agent.kind.to_int());
