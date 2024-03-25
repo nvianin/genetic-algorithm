@@ -57215,6 +57215,7 @@ class EXRLoader extends DataTextureLoader {
 // src/index.js
 var THREE = require_three();
 var MAX_GRASS = 1024;
+console.log("fuck");
 THREE.MapControls = function(object, domElement) {
   let control = new OrbitControls(object, domElement);
   control.mouseButtons.LEFT = THREE.MOUSE.PAN;
