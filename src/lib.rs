@@ -1,5 +1,4 @@
 mod quadtree;
-use nickname::Nickname;
 use quadtree::QuadTree;
 
 mod genes;
@@ -66,7 +65,7 @@ pub struct World {
     wolf_quad: QuadTree,
     sheep_quad: QuadTree,
     grass_quad: QuadTree,
-    namer: Nickname,
+    
     size: f32,
     pub seed: u32,
     rng: ThreadRng,
@@ -92,15 +91,13 @@ impl World {
     pub fn new(sheep_num: usize, wolf_num: usize, size: f32) -> World {
         console_error_panic_hook::set_once();
 
-        let namer = Nickname::new(0);
-
         let mut rng = rand::thread_rng();
         let seed = rng.gen();
         let mut w = World {
             wolf_quad: QuadTree::new(size),
             sheep_quad: QuadTree::new(size),
             grass_quad: QuadTree::new(size),
-            namer,
+    
             size,
             seed,
             rng: rand::thread_rng(),
@@ -219,25 +216,16 @@ impl World {
         for (id, agent) in self.agents.iter() {
             match agent.kind {
                 AgentType::Wolf(_) => {
-                    self.wolf_quad.insert(
-                        (*id, (agent.position.0, agent.position.1)),
-                        &self.agents,
-                        &self.namer,
-                    );
+                    self.wolf_quad
+                        .insert((*id, (agent.position.0, agent.position.1)), &self.agents);
                 }
                 AgentType::Sheep(_) => {
-                    self.sheep_quad.insert(
-                        (*id, (agent.position.0, agent.position.1)),
-                        &self.agents,
-                        &self.namer,
-                    );
+                    self.sheep_quad
+                        .insert((*id, (agent.position.0, agent.position.1)), &self.agents);
                 }
                 AgentType::Grass() => {
-                    self.grass_quad.insert(
-                        (*id, (agent.position.0, agent.position.1)),
-                        &self.agents,
-                        &self.namer,
-                    );
+                    self.grass_quad
+                        .insert((*id, (agent.position.0, agent.position.1)), &self.agents);
                 }
             }
         }
@@ -245,13 +233,12 @@ impl World {
 
     #[wasm_bindgen]
     pub fn test(&self) -> u32 {
-        let namer = Nickname::new(0);
         let agent_list = HashMap::new();
 
         let mut q = QuadTree::new(1024.);
-        q.subdivide(&namer, &agent_list);
-        q.child_nodes[0].subdivide(&namer, &agent_list);
-        q.child_nodes[0].child_nodes[3].subdivide(&namer, &agent_list);
+        q.subdivide(&agent_list);
+        q.child_nodes[0].subdivide(&agent_list);
+        q.child_nodes[0].child_nodes[3].subdivide(&agent_list);
         log(&format!("{:#?}", q));
         self.seed
     }

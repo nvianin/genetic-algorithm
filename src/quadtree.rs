@@ -1,4 +1,3 @@
-use nickname::Nickname;
 use std::{collections::HashMap, thread::current};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
@@ -38,7 +37,7 @@ impl QuadTree {
         }
     }
 
-    pub fn subdivide(&mut self, namer: &Nickname, agent_list: &HashMap<Uuid, Agent>) {
+    pub fn subdivide(&mut self, agent_list: &HashMap<Uuid, Agent>) {
         /* log(&format!("Subdividing at level {}", self.level)); */
         for i in 0..4 {
             let mut address = self.address.clone();
@@ -55,7 +54,7 @@ impl QuadTree {
                 level: self.level + 1,
                 index: i,
                 address: address.clone(),
-                name: namer.name(),
+                name: nickname::generate(),
             };
             self.child_nodes.push(Box::new(q));
             self.is_leaf = false;
@@ -64,7 +63,7 @@ impl QuadTree {
         while self.children.len() >= 1 {
             let child = self.children.pop().unwrap();
             for child_node in &mut self.child_nodes {
-                if child_node.insert(child.clone(), agent_list, namer) {
+                if child_node.insert(child.clone(), agent_list) {
                     break;
                 }
             }
@@ -86,7 +85,6 @@ impl QuadTree {
         &mut self,
         point: (Uuid, (f32, f32)),
         agent_list: &HashMap<Uuid, Agent>,
-        namer: &Nickname,
     ) -> bool {
         if self.contains(point.1) && self.is_leaf {
             if self.children.len() < MAX_CHILDREN {
@@ -94,15 +92,15 @@ impl QuadTree {
                 return true;
             } else {
                 if self.level + 1 <= MAX_LEVELS {
-                    self.subdivide(&namer, agent_list);
+                    self.subdivide( agent_list);
                     for child in &mut self.child_nodes {
-                        if child.insert(point, agent_list, namer) {
+                        if child.insert(point, agent_list) {
                             return true;
                         };
                     }
                     for child_agent in &self.children {
                         for child in &mut self.child_nodes {
-                            if child.insert(point, agent_list, namer) {
+                            if child.insert(point, agent_list) {
                                 return true;
                             };
                         }
@@ -115,7 +113,7 @@ impl QuadTree {
             }
         } else {
             for child in &mut self.child_nodes {
-                if child.insert(point, agent_list, namer) {
+                if child.insert(point, agent_list) {
                     return true;
                 };
             }
