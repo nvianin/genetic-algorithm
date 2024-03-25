@@ -1,5 +1,5 @@
 const THREE = require("three")
-const {
+/* const {
     GLTFLoader
 } = require("three/examples/jsm/loaders/GLTFLoader")
 const {
@@ -7,7 +7,12 @@ const {
 } = require("three/examples/jsm/controls/OrbitControls")
 const {
     EXRLoader
-} = require("three/examples/jsm/loaders/EXRLoader")
+} = require("three/examples/jsm/loaders/EXRLoader") */
+/* const {GLTFLoader} = require("three/examples/jsm/loaders/GLTFLoader") */
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {EXRLoader} from 'three/examples/jsm/loaders/EXRLoader.js';
+
 
 const MAX_GRASS = 1024;
 
