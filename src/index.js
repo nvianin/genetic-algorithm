@@ -9,12 +9,14 @@ const {
     EXRLoader
 } = require("three/examples/jsm/loaders/EXRLoader") */
 /* const {GLTFLoader} = require("three/examples/jsm/loaders/GLTFLoader") */
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {EXRLoader} from 'three/examples/jsm/loaders/EXRLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 
 
 const MAX_GRASS = 1024;
+
+console.log("fuck")
 
 
 THREE.MapControls = function (object, domElement) {
@@ -284,7 +286,7 @@ class Renderer {
         this.sheep_model.material.envMap = this.exr;
         this.grass_model.material.envMap = this.exr;
         this.ground.material.envMap = this.exr;
-        
+
         this.wolf_model.material.envMapIntensity = .5;
         this.sheep_model.material.envMapIntensity = .5;
         this.grass_model.material.envMapIntensity = .5;
