@@ -1,0 +1,3 @@
+[submodule "nickname"]
+	path = nickname
+	url = https://github.com/nvianin/nickname
