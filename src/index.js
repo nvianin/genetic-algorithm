@@ -16,8 +16,6 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 
 const MAX_GRASS = 1024;
 
-console.log("fuck")
-
 
 THREE.MapControls = function (object, domElement) {
 
