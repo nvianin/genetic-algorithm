@@ -1,0 +1,17 @@
+{
+  "name": "genetic-algorithm",
+  "collaborators": [
+    "nvianin <n.vianin@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "genetic_algorithm_bg.wasm",
+    "genetic_algorithm.js",
+    "genetic_algorithm.d.ts"
+  ],
+  "module": "genetic_algorithm.js",
+  "types": "genetic_algorithm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
