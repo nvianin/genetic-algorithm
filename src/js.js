@@ -3,7 +3,7 @@
     wasm.init();
 }) */
 
-import * as wasm from "/pkg/genetic_algorithm.js"
+import * as wasm from "../pkg/genetic_algorithm.js"
 await wasm.default()
 
 const WORLD_SETTINGS = {
