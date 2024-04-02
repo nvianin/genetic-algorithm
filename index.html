@@ -9,8 +9,8 @@
     <script>
         const log = console.log
     </script>
-    <script src="./renderer.js" type="module"></script>
-    <script src="./src/js.js" type="module"></script>
+    <!-- <script src="./dist/renderer.js" type="module"></script> -->
+    <script src="./dist/src/index.js" type="module"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -28,8 +28,8 @@
             log("lol")
             document.getElementById("stats").classList.toggle("stats-hidden")
         }
-        
-        function hide_splash(){
+
+        function hide_splash() {
             document.querySelector("#splash-background").style.opacity = 0;
             setTimeout(() => {
                 document.querySelector("#splash-background").style.display = "none";
@@ -47,7 +47,8 @@
                 <br><br>
                 The simulation is based on a wolf-sheep ecosystem, with grass as a food source.
                 <br><br>
-                The inner workings of the agents can be observed by clicking on them, and also through the graph viewer which will log their stats over time.
+                The inner workings of the agents can be observed by clicking on them, and also through the graph viewer
+                which will log their stats over time.
 
             </div>
             <button id="splash-begin" class="claymorphic-button" onclick="hide_splash()">Try the Experiment</button>
